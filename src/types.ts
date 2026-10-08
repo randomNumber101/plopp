@@ -3,7 +3,7 @@ export interface Brewery {
   name: string
   city: string | null
   state: string | null
-  country: string
+  country: string | null
   lat: number | null
   lng: number | null
   website: string | null
@@ -34,7 +34,7 @@ export interface BreweryProgress {
   name: string
   city: string | null
   state: string | null
-  country: string
+  country: string | null
   lat: number | null
   lng: number | null
   total: number

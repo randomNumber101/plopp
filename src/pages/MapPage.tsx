@@ -18,7 +18,7 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!el.current || map.current) return
-    map.current = L.map(el.current, { zoomControl: true }).setView([51.1, 10.4], 6)
+    map.current = L.map(el.current, { zoomControl: true, preferCanvas: true }).setView([51.1, 10.4], 6)
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
       attribution: '&copy; OpenStreetMap-Mitwirkende',
@@ -38,15 +38,15 @@ export default function MapPage() {
       if (b.lat == null || b.lng == null) continue
       const kind = b.drunk === 0 ? 'none' : b.drunk >= b.total ? 'all' : 'some'
       const m = L.circleMarker([b.lat, b.lng], {
-        radius: 7 + Math.min(8, b.total),
+        radius: b.total === 0 ? 4 : 6 + Math.min(6, Math.round(b.total / 3)),
         color: '#1c1917',
         weight: 1,
         fillColor: COLORS[kind],
-        fillOpacity: 0.9,
+        fillOpacity: b.total === 0 ? 0.5 : 0.9,
       })
       m.bindPopup(
         `<b>${escapeHtml(b.name)}</b><br>${escapeHtml(b.city ?? '')}<br>` +
-          `${b.drunk} von ${b.total} Bieren probiert<br><a href="#/brewery/${b.id}">Sortiment ansehen →</a>`,
+          `${b.total ? `${b.drunk} von ${b.total} Bieren probiert` : 'Noch keine Biere im Katalog'}<br><a href="#/brewery/${b.id}">Sortiment ansehen →</a>`,
       )
       m.addTo(layer.current)
       pts.push([b.lat, b.lng])

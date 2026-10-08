@@ -1,0 +1,25 @@
+name: Datenbank
+
+# Spielt neue SQL-Dateien aus supabase/migrations/ in Supabase ein.
+on:
+  push:
+    branches: [main]
+    paths: ['supabase/migrations/**', 'scripts/**', '.github/workflows/migrate.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: database
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Datenbank-Verbindung
+        run: bash scripts/db-url.sh
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      - name: Migrationen einspielen
+        run: bash scripts/migrate.sh

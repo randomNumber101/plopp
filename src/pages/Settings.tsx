@@ -45,7 +45,7 @@ export default function Settings({ session }: { session: Session }) {
 
       <h3>Datenquellen</h3>
       <p className="muted small">
-        Produktdaten teilweise von Open Food Facts (ODbL). Karten © OpenStreetMap-Mitwirkende. Ortssuche über Nominatim.
+        Brauereien und Biere aus Wikidata (CC0) und Open Food Facts (ODbL). Karten © OpenStreetMap-Mitwirkende. Ortssuche über Nominatim.
       </p>
     </div>
   )

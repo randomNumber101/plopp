@@ -3,7 +3,7 @@ name: Deploy
 on:
   push:
     branches: [main]
-    paths-ignore: ['.keepalive', 'README.md', 'supabase/**', 'setup.py', 'setup.bat']
+    paths-ignore: ['.keepalive', 'README.md', 'supabase/**', 'scraper/**', 'scripts/**', 'catalog/**', '*.py', '*.bat', '.github/workflows/catalog.yml', '.github/workflows/migrate.yml', '.github/workflows/keepalive.yml']
   workflow_dispatch:
 
 permissions:

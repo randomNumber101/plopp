@@ -8,13 +8,15 @@ export default function Breweries() {
   const data = useAsync(breweryProgress, [])
   const [q, setQ] = useState('')
   const [state, setState] = useState('')
-  const [filter, setFilter] = useState<'all' | 'open' | 'started'>('all')
+  const [filter, setFilter] = useState<'beers' | 'all' | 'open' | 'started'>('beers')
+  const [limit, setLimit] = useState(100)
 
   const list = (data.data ?? []).filter(
     (b) =>
       (!q || `${b.name} ${b.city ?? ''}`.toLowerCase().includes(q.toLowerCase())) &&
       (!state || b.state === state) &&
-      (filter === 'all' || (filter === 'started' ? b.drunk > 0 : b.drunk < b.total)),
+      (filter === 'all' ||
+        (filter === 'beers' ? b.total > 0 : filter === 'started' ? b.drunk > 0 : b.drunk < b.total)),
   )
 
   return (
@@ -29,7 +31,8 @@ export default function Breweries() {
           ))}
         </select>
         <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)}>
-          <option value="all">Alle</option>
+          <option value="beers">Mit Bieren im Katalog</option>
+          <option value="all">Alle Brauereien</option>
           <option value="started">Schon probiert</option>
           <option value="open">Noch Biere offen</option>
         </select>
@@ -38,7 +41,7 @@ export default function Breweries() {
       <ErrorBox msg={data.error} />
       {data.data?.length === 0 && <p className="empty">Noch keine Brauereien. Sie entstehen automatisch, wenn du Biere anlegst.</p>}
       <div className="list">
-        {list.map((b) => (
+        {list.slice(0, limit).map((b) => (
           <button key={b.id} className="row" onClick={() => go(`/brewery/${b.id}`)}>
             <div className="thumb thumb-empty">🏭</div>
             <div className="row-main">
@@ -51,6 +54,12 @@ export default function Breweries() {
           </button>
         ))}
       </div>
+      {list.length > limit && (
+        <button className="btn" onClick={() => setLimit(limit + 200)}>
+          Mehr anzeigen ({list.length - limit} weitere)
+        </button>
+      )}
+      {data.data && <p className="muted small">{list.length} Brauereien</p>}
     </div>
   )
 }

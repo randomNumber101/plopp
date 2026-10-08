@@ -13,14 +13,28 @@ Einmalig `setup.bat` (Windows) bzw. `python setup.py` ausführen. Das Skript
 legt die Datenbank an, erstellt dein App-Konto, sperrt weitere Registrierungen,
 lädt den Code ins Repo und schaltet GitHub Pages ein.
 
+## Bier-Katalog
+
+Der GitHub-Workflow **Katalog** lädt monatlich (und bei Änderungen in `scraper/`) Brauereien
+und Biere in die Datenbank:
+
+- **Wikidata** (CC0): Brauereien in Deutschland mit Ort, Bundesland, Koordinaten, Website und deren Biere
+- **Open Food Facts** (ODbL): in Deutschland verkaufte Biere mit Barcode, Bild und Alkoholgehalt
+  (täglicher CSV-Export), über den Markennamen den Brauereien zugeordnet
+
+Eigene Einträge werden nie überschrieben. Ergebnis jedes Laufs: `catalog/report.md`.
+Benötigt das Repo-Secret `SUPABASE_DB_PASSWORD`.
+
 ## Struktur
 
 | Pfad | Inhalt |
 | --- | --- |
 | `src/pages/` | Seiten: Meine Biere, Scannen, Neues Bier, Bier, Brauereien, Brauerei, Karte, Mehr |
 | `src/api.ts` | Datenzugriff (Supabase), Open Food Facts, Nominatim |
-| `supabase/migrations/` | Datenbankschema (idempotent) |
-| `.github/workflows/` | Deploy + Keepalive |
+| `supabase/migrations/` | Datenbankschema (wird von GitHub Actions automatisch eingespielt) |
+| `scraper/` | Katalog-Import (Wikidata, Open Food Facts) |
+| `scripts/` | Datenbank-Verbindung und Migrationen für GitHub Actions |
+| `.github/workflows/` | Deploy, Datenbank-Migrationen, Katalog, Keepalive |
 
 ## Lokal entwickeln
 

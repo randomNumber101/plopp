@@ -43,7 +43,7 @@ export default function BreweryDetail({ id }: { id: string }) {
       )}
       {editing && (
         <EditBrewery
-          initial={{ name: b.name, city: b.city ?? '', state: b.state ?? '', country: b.country, website: b.website ?? '' }}
+          initial={{ name: b.name, city: b.city ?? '', state: b.state ?? '', country: b.country ?? '', website: b.website ?? '' }}
           onSave={async (v) => {
             await updateBrewery(id, {
               name: v.name.trim(),

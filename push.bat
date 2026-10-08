@@ -20,6 +20,8 @@ if not exist ".git" (
 
 git add -A
 git commit -m "Update %date% %time%"
+rem Aenderungen von GitHub (z. B. Katalog-Bericht) vorher holen
+git pull --rebase origin main
 git push -u origin main
 
 echo.
