@@ -3,10 +3,10 @@ import L from '../leaflet'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { beersOfBrewery, breweryProgress, drunkBeerIds, setWishlist, wishlistIds } from '../api'
-import { BeerRow, ErrorBox, Progress, Spinner, useAsync } from '../components'
+import { BeerRow, ErrorBox, Progress, Spinner, TrustBadge, useAsync } from '../components'
 import { go } from '../router'
 import { setPrefill } from '../store'
-import type { BreweryProgress } from '../types'
+import { BREWERY_TYPES, type BreweryProgress } from '../types'
 import { initials } from '../brewery'
 
 type Filter = 'beers' | 'drunk' | 'open' | 'wish' | 'all'
@@ -20,6 +20,7 @@ const FILTERS: { id: Filter; label: string; test: (b: BreweryProgress) => boolea
 ]
 
 const VIEW_KEY = 'bier-map-view'
+const VERIFIED_KEY = 'bier-map-verified'
 
 function loadView(): { lat: number; lng: number; zoom: number; filter: Filter } | null {
   try {
@@ -51,7 +52,7 @@ function esc(s: string) {
 
 function pinIcon(b: BreweryProgress, selected: boolean) {
   const img = b.logo_url || b.image_url
-  const cls = `bpin st-${status(b)}${b.logo_url ? ' has-logo' : ''}${selected ? ' selected' : ''}`
+  const cls = `bpin st-${status(b)} tr-${b.trust ?? 'user'}${b.logo_url ? ' has-logo' : ''}${selected ? ' selected' : ''}`
   const badge = b.drunk > 0 ? `<b class="bpin-badge">${b.drunk >= b.total ? '✓' : b.drunk}</b>` : ''
   return L.divIcon({
     className: 'bpin-wrap',
@@ -89,10 +90,17 @@ export default function MapPage() {
   const initial = useMemo(loadView, [])
   const [filter, setFilter] = useState<Filter>(initial?.filter ?? 'beers')
   const [selected, setSelected] = useState<BreweryProgress | null>(null)
+  const [onlyVerified, setOnlyVerified] = useState(() => {
+    try {
+      return sessionStorage.getItem(VERIFIED_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
   const [q, setQ] = useState('')
   const [locError, setLocError] = useState<string | null>(null)
   const fitted = useRef(!!initial)
-  const lastFilter = useRef(filter)
+  const lastFilter = useRef(`${filter}${onlyVerified}`)
 
   // Karte einmalig anlegen
   useEffect(() => {
@@ -148,9 +156,15 @@ export default function MapPage() {
     c.clearLayers()
     markers.current.clear()
     const test = FILTERS.find((f) => f.id === filter)!.test
+    try {
+      sessionStorage.setItem(VERIFIED_KEY, onlyVerified ? '1' : '0')
+    } catch {
+      /* egal */
+    }
     const list: PinMarker[] = []
     for (const b of data.data) {
       if (b.lat == null || b.lng == null || !test(b)) continue
+      if (onlyVerified && b.trust && b.trust !== 'verified' && b.trust !== 'user') continue
       const mk = L.marker([b.lat, b.lng], { icon: pinIcon(b, false), title: b.name }) as PinMarker
       mk.brewery = b
       mk.on('click', () => setSelected(b))
@@ -159,13 +173,13 @@ export default function MapPage() {
     }
     c.addLayers(list)
     // Beim ersten Laden und nach Filterwechsel auf die sichtbaren Brauereien zoomen
-    const filterChanged = lastFilter.current !== filter
-    lastFilter.current = filter
+    const filterChanged = lastFilter.current !== `${filter}${onlyVerified}`
+    lastFilter.current = `${filter}${onlyVerified}`
     if ((!fitted.current || filterChanged) && list.length) {
       fitted.current = true
       map.current?.fitBounds(c.getBounds(), { padding: [40, 40], maxZoom: 10 })
     }
-  }, [data.data, filter])
+  }, [data.data, filter, onlyVerified])
 
   // Auswahl hervorheben
   useEffect(() => {
@@ -247,6 +261,13 @@ export default function MapPage() {
           )}
         </div>
         <div className="chips">
+          <button
+            className={`chip-btn ${onlyVerified ? 'on' : ''}`}
+            onClick={() => setOnlyVerified(!onlyVerified)}
+            title="Nur Brauereien aus der Wikipedia-Liste"
+          >
+            ✓ Nur geprüfte
+          </button>
           {FILTERS.map((f) => (
             <button key={f.id} className={`chip-btn ${filter === f.id ? 'on' : ''}`} onClick={() => setFilter(f.id)}>
               {f.label} <span className="chip-count">{counts[f.id] ?? 0}</span>
@@ -294,6 +315,9 @@ export default function MapPage() {
           <span>
             <i className="lg lg-none" /> offen
           </span>
+          <span>
+            <i className="lg lg-unverified" /> ungeprüft
+          </span>
           {missing > 0 && <span className="muted">· {missing} ohne Standort</span>}
         </div>
       )}
@@ -329,11 +353,18 @@ function BrewerySheet({ b, onClose }: { b: BreweryProgress; onClose: () => void 
         </div>
         <div className="sheet-title">
           <b>{b.name}</b>
-          <span className="muted small">{[b.city, b.state].filter(Boolean).join(' · ')}</span>
+          <span className="muted small">
+            {[b.city, b.state, b.brewery_type && b.brewery_type !== 'brauerei' ? BREWERY_TYPES[b.brewery_type] : null]
+              .filter(Boolean)
+              .join(' · ')}
+          </span>
         </div>
         <button className="sheet-close" onClick={onClose} aria-label="Schließen">
           ×
         </button>
+      </div>
+      <div className="badge-row">
+        <TrustBadge trust={b.trust} detail={b.trust === 'verified' ? 'Wikipedia-Liste' : undefined} />
       </div>
       {b.total > 0 && <Progress drunk={b.drunk} total={b.total} />}
       <div className="sheet-list">

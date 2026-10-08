@@ -1178,3 +1178,103 @@ label.check input {
 .leaflet-container .leaflet-marker-pane .bpin.has-logo img {
   padding: 3px;
 }
+
+/* Vertrauensstufen */
+.trust-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: 1px;
+  flex-shrink: 0;
+}
+
+.trust-dot.t-verified {
+  background: var(--ok);
+}
+
+.trust-dot.t-unverified {
+  background: transparent;
+  border: 1.5px dashed #a8a29e;
+  width: 9px;
+  height: 9px;
+}
+
+.trust-dot.t-user {
+  background: #2563eb;
+}
+
+.trust-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.trust-badge.t-verified {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  color: var(--ok);
+}
+
+.trust-badge.t-unverified {
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px dashed #a8a29e;
+}
+
+.trust-badge.t-user {
+  background: color-mix(in srgb, #2563eb 12%, transparent);
+  color: #2563eb;
+}
+
+.trust-detail {
+  font-weight: 400;
+}
+
+.trust-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.type-chip {
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.row-unverified .row-title {
+  color: var(--muted);
+}
+
+/* Karte: ungeprüfte Brauereien */
+.bpin.tr-unverified {
+  border-style: dashed;
+  opacity: 0.7;
+  transform: scale(0.85);
+}
+
+.bpin.tr-unverified.selected {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.lg-unverified {
+  border-color: #a8a29e;
+  border-style: dashed;
+}

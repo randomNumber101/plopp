@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { Beer } from './types'
+import type { Beer, Trust } from './types'
 import { go } from './router'
 
 /** Lädt Daten asynchron; reload() lädt neu */
@@ -115,6 +115,44 @@ export function BeerThumb({ beer }: { beer: Beer }) {
   )
 }
 
+export const TRUST: Record<Trust, { label: string; icon: string; title: string }> = {
+  verified: { label: 'Geprüft', icon: '✓', title: 'Geprüft: steht in der Wikipedia-Liste bzw. stammt von der Brauerei' },
+  unverified: { label: 'Ungeprüft', icon: '?', title: 'Automatisch zugeordnet (Open Food Facts / Wikidata) – nicht sicher' },
+  user: { label: 'Eigener Eintrag', icon: '✎', title: 'Von dir angelegt' },
+}
+
+/** Kleiner farbiger Punkt vor Namen: grün = geprüft, grau = ungeprüft, blau = eigener Eintrag */
+export function TrustDot({ trust }: { trust?: Trust | null }) {
+  const t = trust ?? 'user'
+  return <span className={`trust-dot t-${t}`} title={TRUST[t].title} aria-label={TRUST[t].label} />
+}
+
+export function TrustBadge({ trust, detail }: { trust?: Trust | null; detail?: string }) {
+  const t = trust ?? 'user'
+  return (
+    <span className={`trust-badge t-${t}`} title={TRUST[t].title}>
+      {TRUST[t].icon} {TRUST[t].label}
+      {detail ? <span className="trust-detail"> · {detail}</span> : null}
+    </span>
+  )
+}
+
+export function TrustLegend() {
+  return (
+    <div className="trust-legend">
+      <span>
+        <TrustDot trust="verified" /> geprüft
+      </span>
+      <span>
+        <TrustDot trust="unverified" /> ungeprüft
+      </span>
+      <span>
+        <TrustDot trust="user" /> eigener Eintrag
+      </span>
+    </div>
+  )
+}
+
 export function BeerRow({
   beer,
   right,
@@ -128,7 +166,10 @@ export function BeerRow({
     <button type="button" className="row" onClick={() => go(`/beer/${beer.id}`)}>
       <BeerThumb beer={beer} />
       <div className="row-main">
-        <div className="row-title">{beer.name}</div>
+        <div className="row-title">
+          <TrustDot trust={beer.trust} />
+          {beer.name}
+        </div>
         <div className="row-sub">
           {sub ?? [beer.brewery?.name, beer.style, beer.abv != null ? `${beer.abv} %` : null]
             .filter(Boolean)

@@ -194,3 +194,57 @@ def fetch() -> tuple[list[dict], list[dict]]:
     breweries = parse_breweries(query(BREWERIES_QUERY, s))
     beers = parse_beers(query(BEERS_QUERY, s), breweries)
     return list(breweries.values()), beers
+
+
+# --------------------------------------------------------------------------- Prüfung verlinkter Objekte
+
+# Unternehmen (allgemein) – zählt nur als Brauerei, wenn der Name danach klingt
+_COMPANY_CLASSES = "wd:Q4830453 wd:Q783794 wd:Q6881511 wd:Q891723 wd:Q167037"
+
+CHECK_QUERY = """
+SELECT ?item ?itemLabel ?isBrewery ?isCompany ?coord ?website ?logo ?dissolved WHERE {
+  VALUES ?item { %s }
+  OPTIONAL { ?item wdt:P31/wdt:P279* wd:Q131734 . BIND(true AS ?isBrewery) }
+  OPTIONAL { ?item wdt:P31 ?c . VALUES ?c { %s } BIND(true AS ?isCompany) }
+  OPTIONAL { ?item wdt:P625 ?coord }
+  OPTIONAL { ?item wdt:P856 ?website }
+  OPTIONAL { ?item wdt:P154 ?logo }
+  OPTIONAL { ?item wdt:P576 ?dissolved }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+}
+"""
+
+_BREWERY_WORDS = re.compile(r"brauerei|bräu|brau|brauhaus|brewery|brewing|bier", re.IGNORECASE)
+
+
+def parse_check(rows: list[dict]) -> dict[str, dict]:
+    out: dict[str, dict] = {}
+    for row in rows:
+        qid = _qid(_val(row, "item"))
+        d = out.setdefault(qid, {"is_brewery": False, "coords": None, "website": None, "logo_url": None,
+                                 "dissolved": False, "label": _val(row, "itemLabel")})
+        if _val(row, "isBrewery"):
+            d["is_brewery"] = True
+        if _val(row, "isCompany") and _BREWERY_WORDS.search(d["label"] or ""):
+            d["is_brewery"] = True
+        if _val(row, "dissolved"):
+            d["dissolved"] = True
+        c = _point(_val(row, "coord"))
+        if c and not d["coords"]:
+            d["coords"] = c
+        if not d["website"] and _val(row, "website"):
+            d["website"] = _val(row, "website")
+        if not d["logo_url"] and _val(row, "logo"):
+            d["logo_url"] = _logo_url(_val(row, "logo"))
+    return out
+
+
+def check_entities(qids: list[str], session=None) -> dict[str, dict]:
+    """Prüft verlinkte Wikidata-Objekte: Ist es wirklich eine Brauerei? Plus Koordinaten, Website, Logo."""
+    s = session or http_session()
+    out: dict[str, dict] = {}
+    uniq = sorted(set(q for q in qids if q and re.fullmatch(r"Q\d+", q)))
+    for i in range(0, len(uniq), 150):
+        values = " ".join(f"wd:{q}" for q in uniq[i:i + 150])
+        out.update(parse_check(query(CHECK_QUERY % (values, _COMPANY_CLASSES), s)))
+    return out

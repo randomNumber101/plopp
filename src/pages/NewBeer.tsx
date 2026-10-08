@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { addBarcode, addCheckin, createBeer, createBrewery, getBrewery, searchBeers, searchBreweries } from '../api'
-import { BeerRow, ErrorBox, Stars, dateInputToIso, toast, todayInput } from '../components'
+import { BeerRow, ErrorBox, Stars, TrustDot, dateInputToIso, toast, todayInput } from '../components'
 import { go } from '../router'
 import { takePrefill } from '../store'
 import { STATES, STYLES, type Beer, type Brewery } from '../types'
@@ -184,6 +184,7 @@ export default function NewBeer() {
                 <div className="suggest">
                   {matches.map((b) => (
                     <button type="button" key={b.id} onClick={() => setBrewery(b)}>
+                      <TrustDot trust={b.trust} />
                       {b.name}
                       {b.city ? <span className="muted"> · {b.city}</span> : null}
                     </button>

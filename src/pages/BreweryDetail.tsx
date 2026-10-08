@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { beersOfBrewery, drunkBeerIds, getBrewery, setWishlist, updateBrewery, wishlistIds } from '../api'
-import { BeerRow, ErrorBox, Progress, Spinner, useAsync } from '../components'
+import { beersOfBrewery, drunkBeerIds, getBrewery, setWishlist, sitesOfBrewery, updateBrewery, wishlistIds } from '../api'
+import { BeerRow, ErrorBox, Progress, Spinner, TrustBadge, TrustDot, useAsync } from '../components'
 import { go } from '../router'
 import { setPrefill } from '../store'
-import { STATES } from '../types'
+import { BREWERY_TYPES, STATES } from '../types'
 import { initials } from '../brewery'
 
 export default function BreweryDetail({ id }: { id: string }) {
@@ -11,6 +11,11 @@ export default function BreweryDetail({ id }: { id: string }) {
   const beers = useAsync(() => beersOfBrewery(id), [id])
   const drunk = useAsync(drunkBeerIds, [id])
   const wish = useAsync(wishlistIds, [id])
+  const sites = useAsync(() => sitesOfBrewery(id), [id])
+  const parent = useAsync(async () => {
+    const b = await getBrewery(id)
+    return b.parent_id ? getBrewery(b.parent_id) : null
+  }, [id])
   const [editing, setEditing] = useState(false)
 
   if (brewery.loading && !brewery.data) return <Spinner />
@@ -32,8 +37,25 @@ export default function BreweryDetail({ id }: { id: string }) {
         </div>
         <h2>{b.name}</h2>
       </div>
+      <div className="badge-row">
+        <TrustBadge
+          trust={b.trust}
+          detail={b.trust === 'verified' ? 'Wikipedia-Liste' : b.trust === 'unverified' ? 'automatisch zugeordnet' : undefined}
+        />
+        {b.brewery_type && <span className="type-chip">{BREWERY_TYPES[b.brewery_type] ?? b.brewery_type}</span>}
+        {b.founded && <span className="type-chip">seit {b.founded}</span>}
+      </div>
+      {parent.data && (
+        <p className="small">
+          Braustätte von{' '}
+          <button className="link" onClick={() => go(`/brewery/${parent.data!.id}`)}>
+            {parent.data.name}
+          </button>
+        </p>
+      )}
       <p className="meta">
-        {[b.city, b.state, b.country].filter(Boolean).join(' · ')}
+        {[b.city, b.district && b.district !== b.city ? b.district : null, b.state].filter(Boolean).join(' · ') ||
+          b.country}
         {b.website && (
           <>
             {' · '}
@@ -47,6 +69,9 @@ export default function BreweryDetail({ id }: { id: string }) {
           {editing ? 'schließen' : 'bearbeiten'}
         </button>
       </p>
+      {b.lat != null && (b.geo_precision === 'ort' || b.geo_precision === 'gemeinde') && !editing && (
+        <p className="muted small">📍 Standort auf der Karte ungefähr (Ortsmitte).</p>
+      )}
       {b.lat == null && !editing && (
         <p className="muted small">Kein Standort hinterlegt – über „bearbeiten“ einen Ort eintragen, dann erscheint die Brauerei auf der Karte.</p>
       )}
@@ -65,6 +90,27 @@ export default function BreweryDetail({ id }: { id: string }) {
             brewery.reload()
           }}
         />
+      )}
+
+      {sites.data && sites.data.length > 0 && (
+        <>
+          <h3>Weitere Braustätten</h3>
+          <div className="list">
+            {sites.data.map((s) => (
+              <button key={s.id} className="row" onClick={() => go(`/brewery/${s.id}`)}>
+                <div className="row-main">
+                  <div className="row-title">
+                    <TrustDot trust={s.trust} />
+                    {s.name}
+                  </div>
+                  <div className="row-sub">
+                    {[s.city, s.brewery_type ? BREWERY_TYPES[s.brewery_type] : null].filter(Boolean).join(' · ')}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="card">

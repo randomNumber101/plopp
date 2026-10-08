@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { drunkBeerIds, searchBeers } from '../api'
-import { BeerRow, ErrorBox, Spinner, useAsync } from '../components'
+import { BeerRow, ErrorBox, Spinner, TrustLegend, useAsync } from '../components'
 import { go } from '../router'
 import { setPrefill } from '../store'
 import type { Beer } from '../types'
@@ -24,6 +24,7 @@ export default function Catalog() {
     <div className="page">
       <h2>Bier suchen</h2>
       <input className="search" autoFocus placeholder="Name des Biers …" value={q} onChange={(e) => setQ(e.target.value)} />
+      <TrustLegend />
       <ErrorBox msg={error} />
       {!results && <Spinner />}
       <div className="list">

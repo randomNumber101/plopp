@@ -9,6 +9,24 @@ export interface Brewery {
   website: string | null
   logo_url?: string | null
   source?: string
+  trust?: Trust
+  brewery_type?: BreweryType | null
+  region?: string | null
+  district?: string | null
+  founded?: string | null
+  geo_precision?: string | null
+  parent_id?: string | null
+}
+
+export type Trust = 'verified' | 'unverified' | 'user'
+export type BreweryType = 'brauerei' | 'gasthausbrauerei' | 'kommunbrauhaus' | 'museumsbrauerei' | 'marke'
+
+export const BREWERY_TYPES: Record<BreweryType, string> = {
+  brauerei: 'Brauerei',
+  gasthausbrauerei: 'Gasthausbrauerei',
+  kommunbrauhaus: 'Kommunbrauhaus',
+  museumsbrauerei: 'Museumsbrauerei',
+  marke: 'Marke (Brauerei unbekannt)',
 }
 
 export interface Beer {
@@ -18,6 +36,7 @@ export interface Beer {
   style: string | null
   abv: number | null
   image_url: string | null
+  trust?: Trust
   brewery?: Brewery | null
 }
 
@@ -40,6 +59,9 @@ export interface BreweryProgress {
   lng: number | null
   logo_url?: string | null
   image_url?: string | null
+  trust?: Trust
+  brewery_type?: BreweryType | null
+  parent_id?: string | null
   total: number
   drunk: number
   wished?: number

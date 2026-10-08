@@ -46,8 +46,13 @@ export async function getBrewery(id: string): Promise<Brewery> {
   return check(await supabase.from('breweries').select('*').eq('id', id).single()) as Brewery
 }
 
+export async function sitesOfBrewery(id: string): Promise<Brewery[]> {
+  const res = await supabase.from('breweries').select('*').eq('parent_id', id).order('name')
+  return res.error ? [] : (res.data as Brewery[])
+}
+
 export async function searchBreweries(q: string, limit = 10): Promise<Brewery[]> {
-  let query = supabase.from('breweries').select('*').order('name').limit(limit)
+  let query = supabase.from('breweries').select('*').order('trust', { ascending: false }).order('name').limit(limit)
   if (q.trim()) query = query.ilike('name', `%${q.trim()}%`)
   return check(await query) as Brewery[]
 }

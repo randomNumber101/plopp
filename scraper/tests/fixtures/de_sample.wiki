@@ -1,0 +1,40 @@
+In der folgenden Liste sind die deutschen Brauereiunternehmen aufgelistet, die gegenwärtig Bier herstellen.
+
+== Baden-Württemberg ==
+{| class="wikitable sortable"
+|- class="hintergrundfarbe5"
+! Unternehmen !! Standort !! Gründung !! Marken !! Sorten
+|-
+| [[Datei:Alpirsbacher Logo.svg|60px]] [[Alpirsbacher Klosterbräu]] || [[Alpirsbach]] || 1880 || Alpirsbacher || Pils, Spezial, Kloster Weizen
+|-
+| [[Badische Staatsbrauerei Rothaus|Rothaus]]<ref>[https://www.rothaus.de/ Website Rothaus]</ref> || [[Grafenhausen]]-Rothaus || {{SortKey|1791|1791}} || Rothaus, Tannenzäpfle || Pils, Märzen Export, Hefeweizen
+|-
+| Brauerei Schmid<ref>{{Internetquelle |url=https://www.brauerei-schmid.de/impressum |titel=Impressum |abruf=2024-01-01}}</ref> || Ellwangen-Röhlingen || 1863 || Schmid || Helles
+|-
+| rowspan="2" | [[Dinkelacker|Dinkelacker-Schwaben Bräu]] || Stuttgart || 1888 || Dinkelacker || Pils, CD-Pils
+|-
+| Stuttgart-Vaihingen || 1878 || Schwaben Bräu || Meister Pils
+|}
+
+== Berlin ==
+{| class="wikitable sortable"
+! Unternehmen !! Gründung !! Marken !! Sorten
+|-
+| [[Berliner Kindl-Schultheiss-Brauerei]] || 1872 || Berliner Kindl, Schultheiss || Pils, Berliner Weisse
+|}
+
+== Bayern ==
+''Siehe [[Liste aktiver Brauereien in Bayern]]''
+
+== Mecklenburg-Vorpommern ==
+{| class="wikitable sortable"
+! Unternehmen !! Standort !! Gründung !! Marken !! Sorten !! Anmerkungen
+|-
+| Usedomer Brauhaus || [[Heringsdorf]] {{Coordinate|NS=53.955|EW=14.164|type=landmark|region=DE-MV}} || 2005 || Usedomer || Pils<br />Dunkel || [[Gasthausbrauerei]] im Hotel
+|}
+
+== Siehe auch ==
+* [[Liste von Brauereien]]
+
+== Einzelnachweise ==
+<references />

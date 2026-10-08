@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { addCheckin, checkinsForBeer, deleteCheckin, getBeer, setWishlist, updateBeer, wishlistIds } from '../api'
-import { ErrorBox, Spinner, Stars, dateInputToIso, formatDate, toast, todayInput, useAsync } from '../components'
+import { ErrorBox, Spinner, Stars, TrustBadge, dateInputToIso, formatDate, toast, todayInput, useAsync } from '../components'
 import { go } from '../router'
 import { STYLES } from '../types'
 
@@ -46,6 +46,14 @@ export default function BeerDetail({ id }: { id: string }) {
     <div className="page">
       {b.image_url && <img className="hero-img" src={b.image_url} alt="" />}
       <h2>{b.name}</h2>
+      <div className="badge-row">
+        <TrustBadge
+          trust={b.trust}
+          detail={
+            b.trust === 'verified' ? 'von der Brauerei bzw. Wikipedia' : b.trust === 'unverified' ? 'Open Food Facts / Wikidata' : undefined
+          }
+        />
+      </div>
       <p className="meta">
         {b.brewery && (
           <button className="link" onClick={() => go(`/brewery/${b.brewery!.id}`)}>
