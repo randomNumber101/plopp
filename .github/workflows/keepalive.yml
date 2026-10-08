@@ -1,0 +1,39 @@
+name: Keepalive
+
+# Supabase pausiert kostenlose Projekte nach 7 Tagen ohne Zugriffe.
+# Dieser Job pingt die Datenbank zweimal pro Woche an.
+# GitHub deaktiviert geplante Jobs nach 60 Tagen ohne Commits – deshalb
+# schreibt der Job alle ~45 Tage einen kleinen Zeitstempel-Commit.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1,4'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Supabase anpingen
+        run: |
+          URL=$(grep -oP "SUPABASE_URL = '\K[^']+" src/config.ts)
+          KEY=$(grep -oP "SUPABASE_KEY = '\K[^']+" src/config.ts)
+          curl -fsS -X POST "$URL/rest/v1/rpc/ping" \
+            -H "apikey: $KEY" -H "Content-Type: application/json" -d '{}'
+          echo
+      - name: Repo aktiv halten
+        run: |
+          AGE_DAYS=$(( ( $(date +%s) - $(git log -1 --format=%ct) ) / 86400 ))
+          echo "Letzter Commit vor $AGE_DAYS Tagen"
+          if [ "$AGE_DAYS" -gt 45 ]; then
+            date -u +%FT%TZ > .keepalive
+            git config user.name "keepalive-bot"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .keepalive
+            git commit -m "chore: keepalive"
+            git push
+          fi
