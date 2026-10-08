@@ -17,6 +17,7 @@ WD_BREWERY_ROWS = [
     # Krombacher mit eigenen Koordinaten, zwei Zeilen (zwei Orte) → wird zusammengefasst
     {"b": b("http://www.wikidata.org/entity/Q1"), "bLabel": b("Krombacher Brauerei"),
      "coord": b("Point(7.93 50.98)"), "website": b("https://krombacher.de"),
+     "logo": b("http://commons.wikimedia.org/wiki/Special:FilePath/Krombacher%20Logo.svg"),
      "place": b("http://www.wikidata.org/entity/Q100"), "placeLabel": b("Kreuztal"),
      "stateLabel": b("Nordrhein-Westfalen")},
     {"b": b("http://www.wikidata.org/entity/Q1"), "bLabel": b("Krombacher Brauerei"),
@@ -82,6 +83,8 @@ def build_catalog():
     assert set(wd_b) == {"Q1", "Q2", "Q5"}, wd_b.keys()
     assert wd_b["Q1"]["city"] == "Kreuztal" and wd_b["Q1"]["lat"] == 50.98
     assert wd_b["Q2"]["lat"] == 48.14 and wd_b["Q2"]["state"] == "Bayern"
+    assert wd_b["Q1"]["logo_url"] == "https://commons.wikimedia.org/wiki/Special:FilePath/Krombacher%20Logo.svg?width=128"
+    assert wd_b["Q2"]["logo_url"] is None
     wd_beers = wikidata.parse_beers(WD_BEER_ROWS, wd_b)
     assert {x["name"] for x in wd_beers} == {"Augustiner Edelstoff", "Krombacher Pils"}
     off = openfoodfacts.iter_dump(iter(OFF_DUMP))

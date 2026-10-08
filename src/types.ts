@@ -7,6 +7,7 @@ export interface Brewery {
   lat: number | null
   lng: number | null
   website: string | null
+  logo_url?: string | null
   source?: string
 }
 
@@ -37,8 +38,11 @@ export interface BreweryProgress {
   country: string | null
   lat: number | null
   lng: number | null
+  logo_url?: string | null
+  image_url?: string | null
   total: number
   drunk: number
+  wished?: number
 }
 
 /** Vorschlag aus Open Food Facts */

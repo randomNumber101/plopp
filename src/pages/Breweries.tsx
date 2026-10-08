@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { breweryProgress } from '../api'
 import { ErrorBox, Progress, Spinner, useAsync } from '../components'
 import { go } from '../router'
+import { initials } from '../brewery'
 import { STATES } from '../types'
 
 export default function Breweries() {
@@ -31,7 +32,7 @@ export default function Breweries() {
           ))}
         </select>
         <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)}>
-          <option value="beers">Mit Bieren im Katalog</option>
+          <option value="beers">Mit Bieren</option>
           <option value="all">Alle Brauereien</option>
           <option value="started">Schon probiert</option>
           <option value="open">Noch Biere offen</option>
@@ -43,7 +44,17 @@ export default function Breweries() {
       <div className="list">
         {list.slice(0, limit).map((b) => (
           <button key={b.id} className="row" onClick={() => go(`/brewery/${b.id}`)}>
-            <div className="thumb thumb-empty">🏭</div>
+            {b.logo_url || b.image_url ? (
+              <img
+                className={`thumb ${b.logo_url ? 'thumb-logo' : ''}`}
+                src={(b.logo_url || b.image_url)!}
+                alt=""
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="thumb thumb-empty thumb-ini">{initials(b.name)}</div>
+            )}
             <div className="row-main">
               <div className="row-title">{b.name}</div>
               <div className="row-sub">{[b.city, b.state].filter(Boolean).join(' · ') || b.country}</div>

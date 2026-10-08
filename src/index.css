@@ -685,50 +685,367 @@ label.check input {
 }
 
 /* Map */
-.page-map {
-  padding: 0;
-  gap: 0;
+.mapview {
+  position: relative;
+  height: calc(100dvh - var(--nav-h) - 53px - env(safe-area-inset-bottom) - env(safe-area-inset-top));
+  overflow: hidden;
 }
 
-.map {
-  height: calc(100dvh - var(--nav-h) - 60px - 36px - env(safe-area-inset-bottom) - env(safe-area-inset-top));
-  width: 100%;
+.mapview-map {
+  position: absolute;
+  inset: 0;
+  background: var(--surface-2);
 }
 
-.legend {
+.map-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 800;
   display: flex;
-  gap: 14px;
-  justify-content: center;
-  padding: 8px;
-  font-size: 0.8rem;
-  background: var(--surface);
-  position: fixed;
-  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.map-top > * {
+  pointer-events: auto;
+}
+
+.map-search {
+  position: relative;
+}
+
+.map-search .search {
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.15);
+  border: none;
+}
+
+.map-suggest {
+  position: absolute;
+  top: calc(100% + 4px);
   left: 0;
   right: 0;
-  z-index: 999;
-  border-top: 1px solid var(--border);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.2);
 }
 
-.legend i {
+.chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.chips::-webkit-scrollbar {
+  display: none;
+}
+
+.chip-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.15);
+  cursor: pointer;
+}
+
+.chip-btn.on {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.chip-count {
+  font-weight: 500;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.map-tools {
+  position: absolute;
+  right: 10px;
+  top: 112px;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-tool {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1.25rem;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.2);
+  cursor: pointer;
+}
+
+.map-loading,
+.map-msg {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translateX(-50%);
+  z-index: 800;
+}
+
+.map-msg {
+  top: auto;
+  bottom: 60px;
+  width: calc(100% - 24px);
+}
+
+.map-legend {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 800;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 0.75rem;
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.15);
+  max-width: calc(100% - 140px);
+}
+
+.lg {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  margin-right: 4px;
+  margin-right: 3px;
+  vertical-align: -1px;
+  border: 2px solid;
 }
 
-.page-map > .muted,
-.page-map > .error {
-  position: fixed;
-  top: calc(env(safe-area-inset-top) + 62px);
-  left: 56px;
-  right: 12px;
+.lg-all {
+  border-color: var(--ok);
+}
+
+.lg-some {
+  border-color: var(--accent-2);
+}
+
+.lg-none {
+  border-color: #a8a29e;
+}
+
+.leaflet-control-attribution {
+  font-size: 9px !important;
+}
+
+/* Brauerei-Pins */
+.bpin-wrap {
+  background: none;
+  border: none;
+}
+
+.bpin {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #a8a29e;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s;
+}
+
+.bpin img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.bpin.has-logo img {
+  object-fit: contain;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+.bpin-ini {
+  font-weight: 800;
   font-size: 0.8rem;
-  z-index: 999;
+  color: #44403c;
+  letter-spacing: -0.02em;
+}
+
+.bpin.st-all {
+  border-color: var(--ok);
+}
+
+.bpin.st-some {
+  border-color: #f59e0b;
+}
+
+.bpin.st-wish {
+  border-color: #a8a29e;
+  border-style: dashed;
+}
+
+.bpin.st-empty {
+  opacity: 0.75;
+  transform: scale(0.8);
+}
+
+.bpin.selected {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 4px rgb(245 158 11 / 0.45), 0 4px 10px rgb(0 0 0 / 0.4);
+}
+
+.bpin-badge {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--ok);
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #fff;
+}
+
+.bpin.st-some .bpin-badge {
+  background: #f59e0b;
+}
+
+.bcluster-wrap {
+  background: none;
+  border: none;
+}
+
+.bcluster {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ok) var(--p), #d6d3d1 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
+
+.bcluster span {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #1c1917;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bottom-Sheet */
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 900;
+  max-height: 62%;
+  overflow-y: auto;
+  background: var(--bg);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -6px 24px rgb(0 0 0 / 0.25);
+  padding: 6px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: sheet-in 0.2s ease-out;
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(40%);
+    opacity: 0;
+  }
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  align-self: center;
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sheet-logo {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+}
+
+.sheet-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-title b {
+  font-size: 1.1rem;
+}
+
+.sheet-close {
+  border: none;
+  background: var(--surface-2);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.sheet .progress {
+  width: 100%;
+}
+
+.sheet-list {
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
-  padding: 6px 10px;
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.sheet-list:empty {
+  display: none;
+}
+
+.sheet-list > .muted {
+  padding: 12px;
   margin: 0;
 }
 
@@ -777,4 +1094,87 @@ label.check input {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
+  transform: translateX(-50%);
+  z-index: 2000;
+  background: #1c1917;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.3);
+  max-width: calc(100% - 32px);
+  animation: toast-in 0.18s ease-out;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+}
+
+.thumb-logo {
+  object-fit: contain;
+  background: #fff;
+  padding: 3px;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.date-row input {
+  flex: 1;
+}
+
+.dupes {
+  border: 1px dashed var(--accent-2);
+  border-radius: var(--radius);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dupes .list {
+  border: none;
+}
+
+.brew-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brew-head .bpin {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.thumb-ini {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+/* Leaflet setzt für Bilder im Marker-Pane width:auto/padding:0 – hier überschreiben */
+.leaflet-container .leaflet-marker-pane .bpin img {
+  width: 100%;
+  height: 100%;
+}
+
+.leaflet-container .leaflet-marker-pane .bpin.has-logo img {
+  padding: 3px;
 }

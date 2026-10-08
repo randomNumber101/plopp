@@ -16,7 +16,19 @@ from pathlib import Path
 
 from . import merge, openfoodfacts, wikidata
 
-OUT_DIR = Path(__file__).resolve().parent.parent / "catalog"
+# In GitHub Actions landet der Bericht im Temp-Ordner (nicht im Repo) und zusätzlich
+# als Zusammenfassung des Laufs + Annotation (über die API ohne Login lesbar).
+if os.environ.get("GITHUB_ACTIONS") and os.environ.get("RUNNER_TEMP"):
+    OUT_DIR = Path(os.environ["RUNNER_TEMP"]) / "catalog"
+else:
+    OUT_DIR = Path(__file__).resolve().parent.parent / "catalog"
+
+
+def _annotate(level: str, title: str, text: str) -> None:
+    if not os.environ.get("GITHUB_ACTIONS"):
+        return
+    msg = text.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+    print(f"::{level} title={title}::{msg}", flush=True)
 
 
 def write_report(stats: dict, errors: list[str], timings: dict) -> None:
@@ -58,7 +70,18 @@ def write_report(stats: dict, errors: list[str], timings: dict) -> None:
     lines += ["", "## Laufzeiten (s)", ""] + [f"- {k}: {v}" for k, v in timings.items()]
     if errors:
         lines += ["", "## Fehler", ""] + [f"```\n{e}\n```" for e in errors]
-    (OUT_DIR / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    report = "\n".join(lines) + "\n"
+    (OUT_DIR / "report.md").write_text(report, encoding="utf-8")
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a", encoding="utf-8") as f:
+            f.write(report)
+    compact = {k: v for k, v in stats.items() if k != "top_unmatched_brands"}
+    compact["top_unmatched_brands"] = (stats.get("top_unmatched_brands") or [])[:25]
+    compact["timings_s"] = timings
+    _annotate("notice", "Katalog-Statistik", json.dumps(compact, ensure_ascii=False, default=list))
+    for e in errors:
+        _annotate("warning", "Katalog-Fehler", e[-3500:])
 
 
 def main() -> int:

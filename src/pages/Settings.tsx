@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { exportAll } from '../api'
-import { ErrorBox } from '../components'
+import { ErrorBox, toast } from '../components'
 import { supabase } from '../supabase'
 
 export default function Settings({ session }: { session: Session }) {
   const [error, setError] = useState<string | null>(null)
+  const [pw, setPw] = useState('')
+  const [pwOpen, setPwOpen] = useState(false)
 
   async function download() {
     try {
@@ -31,6 +33,40 @@ export default function Settings({ session }: { session: Session }) {
       <button className="btn" onClick={download}>
         ⬇️ Meine Daten exportieren (JSON)
       </button>
+      {!pwOpen ? (
+        <button className="btn" onClick={() => setPwOpen(true)}>
+          🔑 Passwort ändern
+        </button>
+      ) : (
+        <form
+          className="card"
+          onSubmit={async (e) => {
+            e.preventDefault()
+            setError(null)
+            const res = await supabase.auth.updateUser({ password: pw })
+            if (res.error) return setError(res.error.message)
+            setPw('')
+            setPwOpen(false)
+            toast('Passwort geändert')
+          }}
+        >
+          <input
+            type="password"
+            autoComplete="new-password"
+            placeholder="Neues Passwort (mind. 8 Zeichen)"
+            minLength={8}
+            required
+            value={pw}
+            onChange={(e) => setPw(e.target.value)}
+          />
+          <div className="btn-row">
+            <button className="btn btn-primary">Speichern</button>
+            <button type="button" className="btn" onClick={() => setPwOpen(false)}>
+              Abbrechen
+            </button>
+          </div>
+        </form>
+      )}
       <button className="btn" onClick={() => supabase.auth.signOut()}>
         Abmelden
       </button>

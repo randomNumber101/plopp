@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import psycopg
 
-BREWERY_COLS = ["ext_id", "name", "city", "state", "country", "lat", "lng", "website", "source"]
+BREWERY_COLS = ["ext_id", "name", "city", "state", "country", "lat", "lng", "website", "logo_url", "source"]
 BEER_COLS = ["ext_id", "brewery_ext", "name", "style", "abv", "image_url", "source"]
 
 
@@ -41,7 +41,7 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict]) -> 
     with conn.transaction(), conn.cursor() as cur:
         cur.execute(
             "create temp table stg_breweries (ext_id text, name text, city text, state text, country text,"
-            " lat double precision, lng double precision, website text, source text) on commit drop"
+            " lat double precision, lng double precision, website text, logo_url text, source text) on commit drop"
         )
         cur.execute(
             "create temp table stg_beers (ext_id text, brewery_ext text, name text, style text,"
@@ -89,27 +89,30 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict]) -> 
               lat = coalesce(s.lat, b.lat),
               lng = coalesce(s.lng, b.lng),
               website = coalesce(s.website, b.website),
+              logo_url = coalesce(s.logo_url, b.logo_url),
               source = s.source
             from stg_breweries s
             where b.ext_id = s.ext_id and b.source <> 'user'
-              and (b.name, b.city, b.state, b.country, b.lat, b.lng, b.website, b.source)
+              and (b.name, b.city, b.state, b.country, b.lat, b.lng, b.website, b.logo_url, b.source)
                   is distinct from (s.name, s.city, coalesce(s.state, b.state), coalesce(s.country, b.country),
-                                    coalesce(s.lat, b.lat), coalesce(s.lng, b.lng), coalesce(s.website, b.website), s.source)
+                                    coalesce(s.lat, b.lat), coalesce(s.lng, b.lng), coalesce(s.website, b.website),
+                                    coalesce(s.logo_url, b.logo_url), s.source)
         """)
         stats["breweries_updated"] = cur.rowcount
         # 3) Eigene Einträge nur ergänzen
         cur.execute("""
             update public.breweries b set
               state = coalesce(b.state, s.state), lat = coalesce(b.lat, s.lat),
-              lng = coalesce(b.lng, s.lng), website = coalesce(b.website, s.website)
+              lng = coalesce(b.lng, s.lng), website = coalesce(b.website, s.website),
+              logo_url = coalesce(b.logo_url, s.logo_url)
             from stg_breweries s
             where b.ext_id = s.ext_id and b.source = 'user'
-              and (b.state is null or b.lat is null or b.website is null)
+              and (b.state is null or b.lat is null or b.website is null or b.logo_url is null)
         """)
         # 4) Neue Brauereien
         cur.execute("""
-            insert into public.breweries (ext_id, name, city, state, country, lat, lng, website, source)
-            select s.ext_id, s.name, s.city, s.state, s.country, s.lat, s.lng, s.website, s.source
+            insert into public.breweries (ext_id, name, city, state, country, lat, lng, website, logo_url, source)
+            select s.ext_id, s.name, s.city, s.state, s.country, s.lat, s.lng, s.website, s.logo_url, s.source
             from stg_breweries s
             where not exists (select 1 from public.breweries x where x.ext_id = s.ext_id)
             on conflict do nothing
@@ -169,8 +172,10 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict]) -> 
             select (select count(*) from public.breweries),
                    (select count(*) from public.breweries where lat is not null),
                    (select count(*) from public.beers),
-                   (select count(*) from public.beer_barcodes)
+                   (select count(*) from public.beer_barcodes),
+                   (select count(*) from public.breweries where logo_url is not null)
         """)
         t = cur.fetchone()
-        stats.update(db_breweries=t[0], db_breweries_on_map=t[1], db_beers=t[2], db_barcodes=t[3])
+        stats.update(db_breweries=t[0], db_breweries_on_map=t[1], db_beers=t[2], db_barcodes=t[3],
+                     db_breweries_with_logo=t[4])
     return stats

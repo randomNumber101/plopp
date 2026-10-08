@@ -24,6 +24,46 @@ export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
   return { data, error, loading, reload: () => setTick((t) => t + 1) }
 }
 
+/** Kurze Rückmeldung unten am Bildschirm */
+export function toast(msg: string) {
+  window.dispatchEvent(new CustomEvent('bier-toast', { detail: msg }))
+}
+
+export function Toaster() {
+  const [msg, setMsg] = useState<string | null>(null)
+  useEffect(() => {
+    let t: ReturnType<typeof setTimeout>
+    const on = (e: Event) => {
+      setMsg((e as CustomEvent<string>).detail)
+      clearTimeout(t)
+      t = setTimeout(() => setMsg(null), 2600)
+    }
+    window.addEventListener('bier-toast', on)
+    return () => {
+      window.removeEventListener('bier-toast', on)
+      clearTimeout(t)
+    }
+  }, [])
+  return msg ? (
+    <div className="toast" role="status">
+      {msg}
+    </div>
+  ) : null
+}
+
+/** yyyy-mm-dd für <input type="date"> (lokale Zeit) */
+export function todayInput() {
+  const d = new Date()
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
+  return d.toISOString().slice(0, 10)
+}
+
+/** Datum aus <input type="date"> → ISO-Zeitpunkt; heute = jetzt, sonst 20:00 Uhr */
+export function dateInputToIso(v: string) {
+  if (!v || v === todayInput()) return new Date().toISOString()
+  return new Date(`${v}T20:00:00`).toISOString()
+}
+
 export function Spinner() {
   return <div className="spinner" aria-label="Lädt" />
 }
@@ -61,8 +101,15 @@ export function Stars({
 }
 
 export function BeerThumb({ beer }: { beer: Beer }) {
-  return beer.image_url ? (
-    <img className="thumb" src={beer.image_url} alt="" loading="lazy" />
+  const src = beer.image_url || beer.brewery?.logo_url
+  return src ? (
+    <img
+      className={`thumb ${beer.image_url ? '' : 'thumb-logo'}`}
+      src={src}
+      alt=""
+      loading="lazy"
+      referrerPolicy="no-referrer"
+    />
   ) : (
     <div className="thumb thumb-empty">🍺</div>
   )
@@ -78,7 +125,7 @@ export function BeerRow({
   sub?: React.ReactNode
 }) {
   return (
-    <button className="row" onClick={() => go(`/beer/${beer.id}`)}>
+    <button type="button" className="row" onClick={() => go(`/beer/${beer.id}`)}>
       <BeerThumb beer={beer} />
       <div className="row-main">
         <div className="row-title">{beer.name}</div>

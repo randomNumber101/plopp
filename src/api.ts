@@ -25,8 +25,14 @@ export async function getBeer(id: string): Promise<Beer> {
 }
 
 export async function searchBeers(q: string, limit = 30): Promise<Beer[]> {
+  const term = q.trim()
+  if (term) {
+    // Suche über Bier- UND Brauereinamen (Datenbankfunktion); Fallback: nur Biername
+    const res = await supabase.rpc('search_beers', { q: term }).select(BEER_SELECT).limit(limit)
+    if (!res.error) return res.data as unknown as Beer[]
+  }
   let query = supabase.from('beers').select(BEER_SELECT).order('name').limit(limit)
-  if (q.trim()) query = query.ilike('name', `%${q.trim()}%`)
+  if (term) query = query.ilike('name', `%${term}%`)
   return check(await query) as Beer[]
 }
 
@@ -97,8 +103,12 @@ export async function addBarcode(ean: string, beerId: string): Promise<void> {
 
 // ---------------------------------------------------------------- Persönlich
 
-export async function addCheckin(beerId: string, rating: number | null, note: string | null) {
-  check(await supabase.from('checkins').insert({ beer_id: beerId, rating, note: note || null }))
+export async function addCheckin(beerId: string, rating: number | null, note: string | null, drunkAt?: string) {
+  check(
+    await supabase
+      .from('checkins')
+      .insert({ beer_id: beerId, rating, note: note || null, ...(drunkAt ? { drunk_at: drunkAt } : {}) }),
+  )
   // getrunken → von der Merkliste nehmen
   await supabase.from('wishlist').delete().eq('beer_id', beerId)
 }
@@ -158,6 +168,19 @@ export async function exportAll() {
 
 // ---------------------------------------------------------------- Externe Dienste
 
+/** Gebindeangaben aus Produktnamen entfernen: „Pils 0,5l Dose“ → „Pils“ */
+export function cleanProductName(name: string) {
+  return name
+    .replace(/\b\d+\s*[x×]\s*\d+([.,]\d+)?\s*(l|ml|cl|liter)\b/gi, ' ')
+    .replace(/\b\d+([.,]\d+)?\s*(l|ml|cl|liter)\b/gi, ' ')
+    .replace(/\b(dose|dosen|flasche|flaschen|glasflasche|kasten|kiste|mehrweg|einweg|pfand|sixpack|träger|tray|bügelflasche|longneck)\b/gi, ' ')
+    .replace(/\b\d+\s*er(\s*-?\s*pack)?\b/gi, ' ')
+    .replace(/\(\s*\)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/^[-–,.;:/\s]+|[-–,.;:/\s]+$/g, '')
+}
+
 /** Open Food Facts: Produkt zu einem Barcode nachschlagen */
 export async function offLookup(ean: string): Promise<OffSuggestion | null> {
   try {
@@ -171,7 +194,7 @@ export async function offLookup(ean: string): Promise<OffSuggestion | null> {
     const p = json.product
     const alc = Number(p.nutriments?.alcohol_100g ?? p.nutriments?.alcohol)
     return {
-      name: (p.product_name_de || p.product_name || '').trim(),
+      name: cleanProductName(p.product_name_de || p.product_name || ''),
       brand: String(p.brands || '').split(',')[0].trim(),
       imageUrl: p.image_front_url || p.image_front_small_url || null,
       abv: Number.isFinite(alc) && alc > 0 && alc < 70 ? Math.round(alc * 10) / 10 : null,

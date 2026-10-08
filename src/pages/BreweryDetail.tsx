@@ -4,6 +4,7 @@ import { BeerRow, ErrorBox, Progress, Spinner, useAsync } from '../components'
 import { go } from '../router'
 import { setPrefill } from '../store'
 import { STATES } from '../types'
+import { initials } from '../brewery'
 
 export default function BreweryDetail({ id }: { id: string }) {
   const brewery = useAsync(() => getBrewery(id), [id])
@@ -22,7 +23,15 @@ export default function BreweryDetail({ id }: { id: string }) {
 
   return (
     <div className="page">
-      <h2>{b.name}</h2>
+      <div className="brew-head">
+        <div className={`bpin ${drunkCount && drunkCount >= list.length ? 'st-all' : drunkCount ? 'st-some' : ''} ${b.logo_url ? 'has-logo' : ''}`}>
+          <span className="bpin-ini">{initials(b.name)}</span>
+          {b.logo_url && (
+            <img src={b.logo_url} alt="" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.remove()} />
+          )}
+        </div>
+        <h2>{b.name}</h2>
+      </div>
       <p className="meta">
         {[b.city, b.state, b.country].filter(Boolean).join(' · ')}
         {b.website && (

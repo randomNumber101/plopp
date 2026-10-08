@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { addCheckin, checkinsForBeer, deleteCheckin, getBeer, setWishlist, updateBeer, wishlistIds } from '../api'
-import { ErrorBox, Spinner, Stars, formatDate, useAsync } from '../components'
+import { ErrorBox, Spinner, Stars, dateInputToIso, formatDate, toast, todayInput, useAsync } from '../components'
 import { go } from '../router'
 import { STYLES } from '../types'
 
@@ -12,6 +12,7 @@ export default function BeerDetail({ id }: { id: string }) {
   const [adding, setAdding] = useState(false)
   const [rating, setRating] = useState<number | null>(null)
   const [note, setNote] = useState('')
+  const [date, setDate] = useState(todayInput)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
@@ -27,10 +28,12 @@ export default function BeerDetail({ id }: { id: string }) {
     setBusy(true)
     setError(null)
     try {
-      await addCheckin(id, rating, note)
+      await addCheckin(id, rating, note, dateInputToIso(date))
       setAdding(false)
       setRating(null)
       setNote('')
+      setDate(todayInput())
+      toast(list.length ? `Prost! Das ${list.length + 1}. Mal 🍺` : 'Prost! Neues Bier eingetragen 🍺')
       checkins.reload()
       wish.reload()
     } catch (e) {
@@ -78,6 +81,7 @@ export default function BeerDetail({ id }: { id: string }) {
             className={`btn ${wish.data ? 'btn-active' : ''}`}
             onClick={async () => {
               await setWishlist(id, !wish.data)
+              toast(wish.data ? 'Von der Merkliste entfernt' : 'Auf die Merkliste gesetzt ★')
               wish.reload()
             }}
           >
@@ -88,6 +92,10 @@ export default function BeerDetail({ id }: { id: string }) {
         <div className="card">
           <Stars value={rating} onChange={setRating} />
           <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Notiz (optional)" />
+          <label className="date-row">
+            Wann?
+            <input type="date" value={date} max={todayInput()} onChange={(e) => setDate(e.target.value)} />
+          </label>
           <div className="btn-row">
             <button className="btn btn-primary" disabled={busy} onClick={saveCheckin}>
               Eintragen

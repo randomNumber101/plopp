@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { addBarcode, addCheckin, createBeer, createBrewery, getBrewery, searchBreweries } from '../api'
-import { ErrorBox, Stars } from '../components'
+import { addBarcode, addCheckin, createBeer, createBrewery, getBrewery, searchBeers, searchBreweries } from '../api'
+import { BeerRow, ErrorBox, Stars, dateInputToIso, toast, todayInput } from '../components'
 import { go } from '../router'
 import { takePrefill } from '../store'
-import { STATES, STYLES, type Brewery } from '../types'
+import { STATES, STYLES, type Beer, type Brewery } from '../types'
 import { supabase } from '../supabase'
 
 export default function NewBeer() {
@@ -26,6 +26,8 @@ export default function NewBeer() {
   const [drunk, setDrunk] = useState(true)
   const [rating, setRating] = useState<number | null>(null)
   const [note, setNote] = useState('')
+  const [date, setDate] = useState(todayInput)
+  const [dupes, setDupes] = useState<Beer[]>([])
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -48,6 +50,31 @@ export default function NewBeer() {
     }, 250)
     return () => clearTimeout(t)
   }, [breweryQuery, brewery, newBrewery, prefill.brand])
+
+  // Gibt es das Bier schon im Katalog? (verhindert Dubletten, z. B. bei neuem Barcode)
+  useEffect(() => {
+    const term = name.trim()
+    if (term.length < 3) return setDupes([])
+    const t = setTimeout(async () => {
+      const res = await searchBeers(term, 5).catch(() => [])
+      setDupes(brewery ? res.filter((b) => b.brewery_id === brewery.id) : res)
+    }, 350)
+    return () => clearTimeout(t)
+  }, [name, brewery])
+
+  async function pickExisting(beer: Beer) {
+    setBusy(true)
+    setError(null)
+    try {
+      if (ean) await addBarcode(ean, beer.id)
+      if (drunk) await addCheckin(beer.id, rating, note, dateInputToIso(date))
+      toast(ean ? 'Barcode mit dem Bier verknüpft ✓' : drunk ? 'Prost! Eingetragen 🍺' : 'Übernommen')
+      go(`/beer/${beer.id}`)
+    } catch (err) {
+      setError((err as Error).message)
+      setBusy(false)
+    }
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault()
@@ -89,7 +116,8 @@ export default function NewBeer() {
         beerId = data.id
       }
       if (ean) await addBarcode(ean, beerId)
-      if (drunk) await addCheckin(beerId, rating, note)
+      if (drunk) await addCheckin(beerId, rating, note, dateInputToIso(date))
+      toast(drunk ? 'Prost! Neues Bier eingetragen 🍺' : 'Bier angelegt')
       go(`/beer/${beerId}`)
     } catch (err) {
       setError((err as Error).message)
@@ -113,6 +141,22 @@ export default function NewBeer() {
           Name des Biers *
           <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="z. B. Augustiner Edelstoff" />
         </label>
+
+        {dupes.length > 0 && (
+          <div className="dupes">
+            <span className="small">
+              <b>Schon im Katalog?</b> Tippe auf das passende Bier
+              {ean ? ', dann wird der Barcode damit verknüpft' : ''}:
+            </span>
+            <div className="list">
+              {dupes.map((d) => (
+                <div key={d.id} onClickCapture={(e) => { e.stopPropagation(); e.preventDefault(); if (!busy) pickExisting(d) }}>
+                  <BeerRow beer={d} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="field">
           <span>Brauerei *</span>
@@ -198,6 +242,10 @@ export default function NewBeer() {
           <div className="subform">
             <Stars value={rating} onChange={setRating} />
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Notiz (optional)" />
+            <label className="date-row">
+              Wann?
+              <input type="date" value={date} max={todayInput()} onChange={(e) => setDate(e.target.value)} />
+            </label>
           </div>
         )}
 

@@ -11,11 +11,12 @@ ENDPOINT = "https://query.wikidata.org/sparql"
 
 # wd:Q131734 = Brauerei, wd:Q183 = Deutschland, wd:Q1221156 = Land (Bundesland), wd:Q44 = Bier
 BREWERIES_QUERY = """
-SELECT ?b ?bLabel ?coord ?website ?dissolved ?place ?placeLabel ?placeCoord ?stateLabel WHERE {
+SELECT ?b ?bLabel ?coord ?website ?logo ?dissolved ?place ?placeLabel ?placeCoord ?stateLabel WHERE {
   ?b wdt:P31/wdt:P279* wd:Q131734 ;
      wdt:P17 wd:Q183 .
   OPTIONAL { ?b wdt:P625 ?coord }
   OPTIONAL { ?b wdt:P856 ?website }
+  OPTIONAL { ?b wdt:P154 ?logo }
   OPTIONAL { ?b wdt:P576 ?dissolved }
   OPTIONAL {
     ?b wdt:P131 ?place .
@@ -58,6 +59,11 @@ def _point(s: str | None) -> tuple[float, float] | None:
         return None
     lng, lat = float(m.group(1)), float(m.group(2))
     return lat, lng
+
+
+def _logo_url(commons: str) -> str:
+    """Commons-Datei als kleines PNG-Vorschaubild (funktioniert auch für SVG-Logos)."""
+    return commons.replace("http://", "https://", 1) + "?width=128"
 
 
 def _is_label_missing(label: str | None, qid: str) -> bool:
@@ -104,6 +110,7 @@ def parse_breweries(rows: list[dict]) -> dict[str, dict]:
                 "lat": None,
                 "lng": None,
                 "website": None,
+                "logo_url": None,
                 "source": "wikidata",
                 "dissolved": False,
                 "_place_coord": None,
@@ -116,6 +123,8 @@ def parse_breweries(rows: list[dict]) -> dict[str, dict]:
             b["lat"], b["lng"] = c
         if not b["website"] and _val(row, "website"):
             b["website"] = _val(row, "website")
+        if not b["logo_url"] and _val(row, "logo"):
+            b["logo_url"] = _logo_url(_val(row, "logo"))
         place = _val(row, "placeLabel")
         if place and not b["city"] and not _is_label_missing(place, _qid(_val(row, "place") or "")):
             b["city"] = place

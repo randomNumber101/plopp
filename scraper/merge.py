@@ -89,7 +89,8 @@ def build(wd_breweries: list[dict], wd_beers: list[dict], off_products: list[dic
                 if ext not in breweries:
                     breweries[ext] = {
                         "ext_id": ext, "name": p["brand"].strip(), "city": None, "state": None,
-                        "country": None, "lat": None, "lng": None, "website": None, "source": "off",
+                        "country": None, "lat": None, "lng": None, "website": None, "logo_url": None,
+                        "source": "off",
                     }
             brand_cache[bk] = ext
         if ext.startswith("off-brand:"):

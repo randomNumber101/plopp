@@ -2,7 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { go, useRoute } from './router'
-import { Spinner } from './components'
+import { Spinner, Toaster } from './components'
 import Login from './pages/Login'
 import MyBeers from './pages/MyBeers'
 import NewBeer from './pages/NewBeer'
@@ -90,6 +90,7 @@ export default function App() {
       <main>
         <Suspense fallback={<Spinner />}>{content}</Suspense>
       </main>
+      <Toaster />
       <nav className="bottomnav">
         {NAV.map((n) => (
           <button key={n.path} className={active === n.path ? 'on' : ''} onClick={() => go(`/${n.path}`)}>
