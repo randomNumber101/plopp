@@ -16,6 +16,8 @@ export interface Brewery {
   founded?: string | null
   geo_precision?: string | null
   parent_id?: string | null
+  street?: string | null
+  postcode?: string | null
 }
 
 export type Trust = 'verified' | 'unverified' | 'user'
@@ -38,6 +40,7 @@ export interface Beer {
   image_url: string | null
   trust?: Trust
   brewery?: Brewery | null
+  sources?: Record<string, unknown> | null
 }
 
 export interface Checkin {

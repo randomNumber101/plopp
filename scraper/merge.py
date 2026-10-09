@@ -15,6 +15,8 @@ from rapidfuzz import fuzz, process
 
 from .enrich import haversine_km, place_city
 from .util import STOPWORDS, clean_beer_name, fold, guess_style, key, tokens
+from .sites import is_beerish
+from .web import WEAK_GEO, apply_osm, choose_address
 
 _BAD_STYLE = re.compile(r"verschied|saison|weitere|u\.\s?a\.|diverse|etc|sowie|wechselnd|spezialit|biere\b|sorten",
                         re.IGNORECASE)
@@ -89,9 +91,17 @@ class AliasIndex:
         return None, "kein Treffer"
 
 
+def brand_word(name: str) -> str:
+    """Kurzer Markenname für Biere ohne Marke im Namen: „Brauerei Rittmayer“ → „Rittmayer“."""
+    words = [w for w in re.split(r"\s+", short_name(name)) if len(re.sub(r"[^\wäöüß]", "", w.lower())) >= 4]
+    return words[0].strip(",.") if words else short_name(name)
+
+
 def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict], off_products: list[dict],
-          brand_overrides: dict[str, str | None] | None = None):
-    """→ (breweries, beers, stats). brand_overrides: Markenschlüssel → ext_id (Zuordnung) bzw. None (ablehnen)."""
+          brand_overrides: dict[str, str | None] | None = None, osm: list[dict] | None = None,
+          crawl=None, geocoder=None):
+    """→ (breweries, beers, stats). brand_overrides: Markenschlüssel → ext_id (Zuordnung) bzw. None (ablehnen).
+    osm: Objekte aus OpenStreetMap; crawl: Funktion {website: [Brauereien]} → {website: Ergebnis}."""
     brand_overrides = brand_overrides or {}
     stats: dict = {}
     breweries: dict[str, dict] = {}
@@ -175,6 +185,45 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
             b["parent_ext"] = None
             parent_of.pop(b["ext_id"], None)
 
+    # ------------------------------------------------------------ 2b. OpenStreetMap: Adresse, genaue Lage, Website
+    if osm:
+        new, ostats = apply_osm(breweries, osm)
+        stats.update(ostats)
+        for n in new:
+            breweries.setdefault(n["ext_id"], n)
+
+    # ------------------------------------------------------------ 2c. Brauerei-Websites: Adresse + Sortiment
+    by_site: dict[str, list[dict]] = defaultdict(list)
+    for b in breweries.values():
+        if b.get("website") and b["brewery_type"] != "marke":
+            by_site[b["website"]].append(b)
+    site_results: dict[str, dict] = {}
+    if crawl and by_site:
+        site_results = crawl(by_site) or {}
+        addr_how = Counter()
+        for site, bs in by_site.items():
+            d = site_results.get(site) or {}
+            for b in bs:
+                if b.get("street"):
+                    continue
+                a, hit = choose_address(b, d.get("addresses") or [], geocoder)
+                if not a:
+                    if d.get("addresses"):
+                        addr_how["abgelehnt"] += 1
+                    continue
+                b["street"], b["postcode"] = a["street"], a["postcode"]
+                b["city"] = b.get("city") or a.get("city")
+                b["sources"]["adresse"] = a.get("src") or "website"
+                addr_how[a.get("src") or "website"] += 1
+                if hit and hit[2] == "adresse" and b.get("geo_precision") in WEAK_GEO:
+                    b["lat"], b["lng"], b["geo_precision"] = hit
+                    addr_how["koordinaten_genauer"] += 1
+        stats["addr_website"] = dict(addr_how)
+        stats["sites_total"] = len(by_site)
+        stats["sites_ok"] = sum(1 for d in site_results.values() if d.get("status") == 200)
+        stats["sites_with_beers"] = sum(1 for d in site_results.values() if d.get("beers"))
+    stats["breweries_with_address"] = sum(1 for b in breweries.values() if b.get("street"))
+
     # Herkunftsform als Markenname: „Brauerei Aying“ in Aying → „Ayinger“, „Lübz“ → „Lübzer“
     for b in breweries.values():
         city_t = set(tokens(b.get("city") or ""))
@@ -233,6 +282,37 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
             if add_beer(ext, name, guess_style(s), None, None, "wikipedia", "verified", set()):
                 wp_beers += 1
     stats["wp_beers"] = wp_beers
+
+    # 3a2. Sortiment von der Brauerei-Website (Shop/JSON-LD/eindeutige Liste = geprüft, sonst ungeprüft)
+    web_beers, web_how = 0, Counter()
+    for site, bs in by_site.items():
+        d = site_results.get(site) or {}
+        if not d.get("beers"):
+            continue
+        # Mehrere Braustätten mit derselben Website → Biere zum Unternehmen bzw. zur Hauptbrauerei
+        owner = next((breweries[b["parent_ext"]] for b in bs if b.get("parent_ext") in breweries), None) or \
+            sorted(bs, key=lambda b: (b["trust"] != "verified", b["brewery_type"] != "brauerei", len(b["name"])))[0]
+        oext = owner["ext_id"]
+        brand = brand_word(owner["name"])
+        own = ({oext, owner.get("parent_ext")} | {b["ext_id"] for b in bs}) - {None}
+        for it in d["beers"]:
+            name = it["name"]
+            # Biere anderer Brauereien (Getränkekarte, Handel) überspringen: „Augustiner Hell“ auf fremder Seite
+            first = name.split()[0]
+            if len(first) >= 5 and not is_beerish(first):
+                other, _ = index.find(first)
+                if other and other not in own and parent_of.get(other) not in own:
+                    web_how["fremd"] += 1
+                    continue
+            if not set(tokens(name)) & alias_tokens[oext]:
+                name = f"{brand} {name}"
+            trust = "verified" if it.get("conf") == "hoch" and it.get("method") != "ki" else "unverified"
+            style = guess_style(name) or it.get("style")
+            if add_beer(oext, name, style, it.get("abv"), it.get("image"), "website", trust, set()):
+                web_beers += 1
+                web_how[(it.get("method") or "?").split("-")[0]] += 1
+    stats["website_beers"] = web_beers
+    stats["website_methods"] = dict(web_how)
 
     # 3b. Biere aus Wikidata
     for wb in wd_beers:

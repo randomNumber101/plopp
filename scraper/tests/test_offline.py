@@ -117,6 +117,46 @@ def test_wikipedia():
     return de, by
 
 
+def test_state_history():
+    from scraper import wikipedia as w
+
+    text = """== Geschichte ==
+* Kapitän X gründete 1835 eine Brauerei, die bis 1920 bestand.
+== Liste ==
+(Brauereien und Marken der Vergangenheit in getönten Feldern)
+=== Bremen ===
+{| class="wikitable"
+|- class="hintergrundfarbe8"
+! Name || Marke || Zeit || Ort
+|-
+| [[Brauerei Beck]]
+| Beck’s
+| seit 1873
+| Neustadt, Am Deich 18/19
+|-
+| style="background: #D7EBD7|Alte Brauerei
+| Kristall
+| style="background: #D7EBD7|1873–1917
+| Neustadt
+|-
+| Ohne Farbe aber zu
+| X
+| 1900–1950
+| Walle
+|-
+| Bremer Braumanufaktur, Überseestadt (ehemaliges Gelände der Kellogg Deutschland GmbH)
+| Hopfenfänger
+| seit 2014
+| Haag an der Amper, gegr. 2007
+|}
+"""
+    es = w.parse_state_page(text, "Bremen", "land:Bremen")
+    names = [e["name"] for e in es]
+    assert names == ["Brauerei Beck", "Bremer Braumanufaktur"], names
+    assert es[0]["founded"] == "1873", es[0]
+    assert es[1]["place"] == "Haag an der Amper", es[1]
+
+
 def test_real_wikitext():
     """Echter Quelltext beider Listen (Stand Oktober 2026)"""
     de, main_pages = wikipedia.parse_germany((FIX / "real_de.wiki").read_text(encoding="utf-8"))
@@ -133,6 +173,98 @@ def test_real_wikitext():
     assert sum(1 for e in by if e["type"] == "kommunbrauhaus") >= 20
 
 
+SITES = FIX / "sites"
+
+
+def test_sites():
+    from scraper import sites as S
+
+    items, _ = S.extract_items((SITES / "loewen_biere.html").read_text(encoding="utf-8"),
+                               "https://loewenbraeu-buttenheim.de/brauerei/biere/")
+    names = [i["name"] for i in items]
+    assert names[:3] == ["Lager", "Vollbier", "Pilsner"] and "Bartholomäus" in names and len(names) == 9, names
+    links, imp = S.page_links((SITES / "loewen_biere.html").read_text(encoding="utf-8"), "https://loewenbraeu-buttenheim.de/")
+    assert links and links[0].endswith("/brauerei/biere/") and not any(l.endswith(".jpg") for l in links), links
+    assert imp == "https://loewenbraeu-buttenheim.de/impressum/"
+
+    items, _ = S.extract_items((SITES / "insel_flaschen.html").read_text(encoding="utf-8"),
+                               "https://insel-brauerei.de/Seltene-Biere/Flaschen/")
+    n = {i["name"]: i for i in items}
+    assert {"Summer Ale", "Baltic Gose", "Meerjungfrau", "Snorkelers Sea Salt IPA alkoholfrei"} <= set(n), list(n)
+    assert not any("Geschenk" in x for x in n)
+    assert n["Baltic Gose"]["abv"] == 4.5 and n["Baltic Gose"]["image"].endswith("Gose.png?ts=1")
+
+    items, _ = S.extract_items((SITES / "warburger_home.html").read_text(encoding="utf-8"), "https://www.warburger-brauerei.de/de/")
+    names = {i["name"] for i in items}
+    assert {"Warburger Pils", "Warburger Urtyp", "Warburger Keller Naturtrüb", "Warburger Summerlife"} <= names, names
+    assert not names & {"Warburger Brewhouse Gin", "Warburger Diemelbrand", "Kohlschein-Brause Orange",
+                        "Warburger White Cider", "Warburger Bierspezialitäten", "Landbier-Comics"}, names
+
+    a = S.find_addresses((SITES / "loewen_impressum.txt").read_text(encoding="utf-8"))
+    assert a[0]["street"] == "Marktstraße 8" and a[0]["postcode"] == "96155" and a[0]["city"] == "Buttenheim", a
+    assert a[1]["city"] == "Kehl" and a[1]["foreign"]  # Schlichtungsstelle
+    assert S.find_addresses("Bamberger Straße 12\n96047 Bamberg\nTel 0951")[0]["street"] == "Bamberger Straße 12"
+    assert S.find_addresses("Am Deich 18/19, 28199 Bremen")[0]["street"] == "Am Deich 18/19"
+    assert S.find_addresses("Amtsgericht Bamberg HRB 1234\n96047 Bamberg") == []
+    assert S.find_abv("Stammwürze 12,5 % · Alkohol 5,2 % vol") == 5.2
+    assert S.name_from_file("/x/keller_leicht-200x300.jpg") == "Keller Leicht"
+    assert S.name_from_file("/x/20260421_1920x1080_slider_Ci_blau4.jpg") is None
+
+    shop = S.shopify_items({"products": [
+        {"title": "Helles 0,5l", "product_type": "Bier", "tags": [], "body_html": "<p>4,9 % vol</p>", "images": []},
+        {"title": "Bierglas 0,5l", "product_type": "Merch", "tags": [], "body_html": "", "images": []},
+        {"title": "Geschenkbox", "product_type": "Bier", "tags": [], "body_html": "", "images": []}]})
+    assert [(x["name"], x["abv"]) for x in shop] == [("Helles", 4.9)], shop
+
+    # Ablauf einer ganzen Website mit nachgebildetem Server
+    class Resp:
+        def __init__(self, url, body, ct="text/html; charset=utf-8", status=200):
+            self.url, self.text, self.status_code = url, body, status
+            self.headers = {"content-type": ct}
+            self.content = body.encode()
+            self.encoding = "utf-8"
+            self.apparent_encoding = "utf-8"
+
+        def json(self):
+            import json as _j
+            return _j.loads(self.text)
+
+    home = (SITES / "loewen_biere.html").read_text(encoding="utf-8").replace("<article>", "<article><h2>Willkommen</h2>", 1)
+    pages = {
+        "https://loewenbraeu-buttenheim.de/robots.txt": Resp("", "User-agent: *\nDisallow: /wp-admin/", "text/plain"),
+        "https://loewenbraeu-buttenheim.de/": Resp("https://loewenbraeu-buttenheim.de/", home),
+        "https://loewenbraeu-buttenheim.de/impressum/": Resp("https://loewenbraeu-buttenheim.de/impressum/",
+                                                             "<html><body><p>" + (SITES / "loewen_impressum.txt").read_text(encoding="utf-8").replace("\n", "<br>") + "</p></body></html>"),
+        "https://loewenbraeu-buttenheim.de/brauerei/biere/": Resp("https://loewenbraeu-buttenheim.de/brauerei/biere/",
+                                                                  (SITES / "loewen_biere.html").read_text(encoding="utf-8")),
+    }
+
+    class Sess:
+        headers: dict = {}
+        def get(self, url, **kw):
+            return pages.get(url) or Resp(url, "", status=404)
+
+    S.time.sleep = lambda s: None
+    d = S.crawl_site(Sess(), "https://loewenbraeu-buttenheim.de")
+    assert d["status"] == 200 and len(d["beers"]) == 9 and d["addresses"][0]["street"] == "Marktstraße 8", d
+    assert d["addresses"][0]["src"] == "impressum" and d["requests"] <= 8, d
+
+    from scraper import osm
+    els = osm.parse({"elements": [
+        {"type": "node", "id": 1, "lat": 47.9702, "lon": 11.7801, "tags": {"craft": "brewery", "name": "Brauerei Aying",
+                                                                        "addr:street": "Zornedinger Straße", "addr:housenumber": "1",
+                                                                        "addr:postcode": "85653", "addr:city": "Aying"}},
+        {"type": "way", "id": 2, "center": {"lat": 49.7531, "lon": 10.9512}, "tags": {"craft": "brewery", "name": "Rittmayer",
+                                                                                      "website": "rittmayer.de"}},
+        {"type": "node", "id": 3, "lat": 50.1, "lon": 8.6, "tags": {"amenity": "pub", "microbrewery": "yes", "name": "Hausbräu Neu"}},
+        {"type": "node", "id": 4, "lat": 50.1, "lon": 8.6, "tags": {"craft": "brewery"}},
+        {"type": "node", "id": 5, "lat": 50.2, "lon": 8.7, "tags": {"disused:craft": "brewery", "name": "Alte Brauerei"}},
+    ]})
+    assert [e["osm_id"] for e in els] == ["n1", "w2", "n3"], els
+    assert els[0]["street"] == "Zornedinger Straße 1" and els[1]["website"] == "https://rittmayer.de"
+    return els
+
+
 def build_catalog():
     de, by = test_wikipedia()
     entries = de + by
@@ -146,6 +278,40 @@ def build_catalog():
     off = openfoodfacts.iter_dump(iter(OFF_DUMP))
     breweries, beers, stats = merge.build(entries, wd_b, wd_beers, off, {})
     return entries, breweries, beers, {**s1, **s2, **s3, **stats}
+
+
+def test_web_pipeline():
+    """OpenStreetMap + Website-Ergebnisse im Zusammenspiel mit merge.build"""
+    els = test_sites()
+    entries, _, _, _ = build_catalog()
+    wd_b = list(wikidata.parse_breweries(WD_BREWERY_ROWS).values())
+    off = openfoodfacts.iter_dump(iter(OFF_DUMP))
+    seen_sites = {}
+
+    def crawl(by_site):
+        seen_sites.update(by_site)
+        return {"http://www.rittmayer.de/": {"status": 200, "addresses": [
+            {"street": "Straßburger Str. 8", "postcode": "77694", "city": "Kehl", "foreign": True, "src": "impressum"},
+            {"street": "An der Brauerei 1", "postcode": "91352", "city": "Hallerndorf", "src": "impressum"}],
+            "beers": [{"name": "Hefeweizen", "abv": 5.3, "image": "http://www.rittmayer.de/hw.jpg", "method": "html-img", "conf": "hoch"},
+                      {"name": "Rittmayer Kellerbier", "abv": None, "image": None, "method": "html-txt", "conf": "mittel"},
+                      {"name": "Aischgründer Zoigl", "abv": 5.0, "image": None, "method": "ki", "conf": "mittel"},
+                      {"name": "Ayinger Celebrator", "abv": 6.7, "image": None, "method": "html-txt", "conf": "hoch"}]}}
+
+    breweries, beers, st = merge.build(entries, wd_b, [], off, {}, osm=els, crawl=crawl)
+    bx = {b["name"]: b for b in breweries}
+    ay = bx["Ayinger Privatbrauerei"]
+    assert ay["street"] == "Zornedinger Straße 1" and ay["postcode"] == "85653" and ay["geo_precision"] == "wikidata", ay
+    rt = bx["Brauerei Rittmayer"]
+    assert rt["geo_precision"] == "osm" and abs(rt["lat"] - 49.7531) < 1e-6, rt
+    assert rt["street"] == "An der Brauerei 1" and rt["sources"]["adresse"] == "impressum", rt  # Kehl übersprungen
+    assert "Hausbräu Neu" in bx and bx["Hausbräu Neu"]["trust"] == "unverified" and bx["Hausbräu Neu"]["brewery_type"] == "gasthausbrauerei"
+    assert st["osm_matched"] == 2 and st["osm_new"] == 1, st
+    rb = {b["name"]: b for b in beers if b["brewery_ext"] == rt["ext_id"]}
+    assert rb["Rittmayer Hefeweizen"]["trust"] == "verified" and rb["Rittmayer Hefeweizen"]["abv"] == 5.3, rb
+    assert rb["Rittmayer Kellerbier"]["trust"] == "unverified" and rb["Rittmayer Aischgründer Zoigl"]["trust"] == "unverified"
+    assert st["website_beers"] == 3 and st["sites_with_beers"] == 1 and st["website_methods"]["fremd"] == 1, st
+    assert "http://www.rittmayer.de/" in seen_sites
 
 
 def test_pipeline():
@@ -205,6 +371,7 @@ def test_db(url: str):
     from scraper.load import load, load_caches, save_caches
 
     _, breweries, beers, _ = build_catalog()
+    breweries[0]["street"], breweries[0]["postcode"] = "Teststraße 1", "12345"
     with psycopg.connect(url) as conn:
         with conn.cursor() as cur:
             cur.execute("delete from public.beer_barcodes; delete from public.checkins; delete from public.wishlist;"
@@ -221,7 +388,9 @@ def test_db(url: str):
         s1 = load(conn, breweries, beers, prune=True)
         save_caches(conn, {"Aying, Bayern": {"lat": 1.0, "lng": 2.0, "state": "Bayern", "precision": "ort"}},
                     {"https://x.de/": {"logo_url": None, "status": 404}})
-        geo, web, over = load_caches(conn)
+        save_caches(conn, {}, {}, {"https://site.de/": {"status": 200, "beers": [{"name": "Pils"}]}})
+        geo, web, over, site_c = load_caches(conn)
+        assert site_c["https://site.de/"]["beers"][0]["name"] == "Pils"
         s2 = load(conn, breweries, beers, prune=True)
         # Schlüssel der Biere ändern sich (z. B. neue Normalisierung) → vorhandene Biere werden neu zugeordnet, nicht gelöscht
         changed = [{**x, "ext_id": x["ext_id"] + "-v2"} for x in beers]
@@ -247,6 +416,7 @@ def test_db(url: str):
     assert moved == [("Rothaus Pils", "verified")], moved  # Check-in ist zum geprüften Bier umgezogen
     assert old_left == 0  # alte Pseudo-Brauerei aufgeräumt
     assert s1["checkins_moved"] == 1 and s1["barcodes_moved"] == 1, s1
+    assert s1["db_breweries_with_address"] == 1, s1
     assert parent and parent[0] == "Paulaner Brauerei", parent
     assert aliases > 10
     assert s2["breweries_inserted"] == 0 and s2["beers_inserted"] == 0 and s2["barcodes_inserted"] == 0, s2
@@ -258,6 +428,9 @@ def test_db(url: str):
 if __name__ == "__main__":
     test_util()
     test_wikipedia()
+    test_sites()
+    test_web_pipeline()
+    test_state_history()
     test_real_wikitext()
     test_pipeline()
     print("Offline-Tests OK")

@@ -3,8 +3,10 @@
 Ablauf:
   1. Wikipedia-Listen (Rückgrat, verifiziert) + Wikidata (Prüfung verlinkter Objekte, weitere Brauereien)
   2. Koordinaten (Wikipedia/Wikidata, sonst Nominatim mit Bundesland-Gegenprobe), Website, Logo
-  3. Open Food Facts über Aliase / EAN-Präfixe zuordnen
-  4. Laden + Aufräumen
+  3. OpenStreetMap: genaue Lage, Adresse, Website; weitere (ungeprüfte) Brauereien
+  4. Brauerei-Websites: Adresse aus Impressum/JSON-LD, Sortiment (Shop, JSON-LD, HTML-Regeln, optional KI)
+  5. Open Food Facts über Aliase / EAN-Präfixe zuordnen
+  6. Laden + Aufräumen
 
 Optionen:
   --dry-run   nichts in die Datenbank schreiben, nur Bericht erzeugen
@@ -25,7 +27,7 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import enrich, merge, openfoodfacts, wikidata, wikipedia
+from . import enrich, merge, openfoodfacts, osm, sites, wikidata, wikipedia
 from .geocode import Geocoder
 
 if os.environ.get("GITHUB_ACTIONS") and os.environ.get("RUNNER_TEMP"):
@@ -79,13 +81,15 @@ def write_report(stats: dict, errors: list[str], timings: dict) -> str:
     g = stats.get
     lines = ["# Katalog-Bericht", "", f"Letzter Lauf: {now}", "", "| Kennzahl | Wert |", "| --- | ---: |"]
     for k, v in stats.items():
-        if k in ("top_unmatched_brands", "samples", "geocode_failures", "qid_rejected_samples"):
+        if k in ("top_unmatched_brands", "samples", "geocode_failures", "qid_rejected_samples", "osm_unmatched_samples"):
             continue
         lines.append(f"| {k} | {json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else v} |")
     lines += ["", "## Häufigste Marken ohne Brauerei-Zuordnung", ""]
     lines += [f"- {b} ({n})" for b, n in g("top_unmatched_brands", []) or []]
     lines += ["", "## Nicht geokodiert (Auswahl)", ""] + [f"- {x}" for x in g("geocode_failures", []) or []]
     lines += ["", "## Abgelehnte Wikidata-Links (Auswahl)", ""] + [f"- {x}" for x in g("qid_rejected_samples", []) or []]
+    lines += ["", "## OSM-Brauereien ohne Zuordnung (Auswahl, als neue Einträge übernommen)", ""] + \
+        [f"- {x}" for x in g("osm_unmatched_samples", []) or []]
     lines += ["", "## Laufzeiten (s)", ""] + [f"- {k}: {v}" for k, v in timings.items()]
     if errors:
         lines += ["", "## Fehler", ""] + [f"```\n{e}\n```" for e in errors]
@@ -98,7 +102,8 @@ def write_report(stats: dict, errors: list[str], timings: dict) -> str:
     if summary:
         with open(summary, "a", encoding="utf-8") as f:
             f.write(report)
-    compact = {k: v for k, v in stats.items() if k not in ("top_unmatched_brands", "samples")}
+    compact = {k: v for k, v in stats.items() if k not in ("top_unmatched_brands", "samples", "osm_unmatched_samples",
+                                                           "geocode_failures", "qid_rejected_samples")}
     compact["top_unmatched_brands"] = (stats.get("top_unmatched_brands") or [])[:20]
     compact["timings_s"] = timings
     _annotate("notice", "Katalog-Statistik", json.dumps(compact, ensure_ascii=False, default=list)[:60000])
@@ -123,7 +128,7 @@ def main() -> int:
             print(f"{name}: {timings[name]} s", flush=True)
 
     conn = None
-    geo_cache, web_cache, overrides = {}, {}, {}
+    geo_cache, web_cache, overrides, site_cache = {}, {}, {}, {}
     if not dry and os.environ.get("DB_URL"):
         try:
             import psycopg
@@ -131,7 +136,7 @@ def main() -> int:
             from .load import load_caches
 
             conn = psycopg.connect(os.environ["DB_URL"], autocommit=False, prepare_threshold=None)
-            geo_cache, web_cache, overrides = load_caches(conn)
+            geo_cache, web_cache, overrides, site_cache = load_caches(conn)
         except Exception:  # noqa: BLE001
             errors.append("Datenbank (Verbindung/Caches):\n" + traceback.format_exc())
 
@@ -178,6 +183,38 @@ def main() -> int:
         except Exception:  # noqa: BLE001
             errors.append("Anreicherung:\n" + traceback.format_exc())
 
+    # 3b. OpenStreetMap
+    osm_elements: list[dict] = []
+    try:
+        osm_elements = timed("openstreetmap", osm.fetch)
+    except Exception:  # noqa: BLE001
+        errors.append("OpenStreetMap:\n" + traceback.format_exc())
+
+    # 3c. Brauerei-Websites (wird in merge.build aufgerufen, sobald alle Websites bekannt sind)
+    site_new: dict = {}
+    site_all: dict = {}
+    addr_geocoder = Geocoder(cache=geo_cache, budget_s=float(os.environ.get("ADDRESS_GEOCODE_BUDGET_S", "900")))
+
+    def crawl(by_site: dict) -> dict:
+        def run():
+            res, new = sites.crawl(list(by_site), site_cache, budget_s=float(os.environ.get("SITE_BUDGET_S", "1500")))
+            names = {s_: bs[0]["name"] for s_, bs in by_site.items()}
+            calls, state = sites.llm_extract(res, names, max_calls=int(os.environ.get("LLM_MAX_CALLS", "120")))
+            stats["llm_calls"], stats["llm_state"] = calls, state
+            for s_, d in res.items():
+                if d.get("llm") and s_ not in new:
+                    new[s_] = d
+            site_new.update(new)
+            site_all.update(res)
+            stats["sites_crawled_now"] = len(new)
+            return res
+
+        try:
+            return timed("websites", run)
+        except Exception:  # noqa: BLE001
+            errors.append("Websites:\n" + traceback.format_exc())
+            return {}
+
     # 4. Open Food Facts
     off_products = []
     try:
@@ -187,7 +224,10 @@ def main() -> int:
         errors.append("Open Food Facts:\n" + traceback.format_exc())
 
     # 5. Zusammenführen
-    breweries, beers, mstats = merge.build(wp_entries, wd_breweries, wd_beers, off_products, overrides)
+    breweries, beers, mstats = merge.build(wp_entries, wd_breweries, wd_beers, off_products, overrides,
+                                           osm=osm_elements, crawl=crawl if os.environ.get("CRAWL", "1") == "1" else None,
+                                           geocoder=addr_geocoder)
+    stats["address_geocode_requests"] = addr_geocoder.requests
     stats.update(mstats)
     stats["samples"] = [{k: b.get(k) for k in ("name", "city", "state", "trust", "brewery_type", "lat", "logo_url", "website")}
                         for b in breweries[:25]]
@@ -202,9 +242,13 @@ def main() -> int:
             complete = not errors and len(wp_entries) > 500 and len(off_products) > 200
             stats.update(timed("datenbank", lambda: load(conn, breweries, beers, prune=complete)))
             stats["pruned"] = complete
-            save_caches(conn, geocoder.new, web_new)
         except Exception:  # noqa: BLE001
             errors.append("Datenbank:\n" + traceback.format_exc())
+        try:
+            conn.rollback()
+            save_caches(conn, {**geocoder.new, **addr_geocoder.new}, web_new, site_new)
+        except Exception:  # noqa: BLE001
+            errors.append("Caches:\n" + traceback.format_exc())
     if conn:
         conn.close()
 
@@ -217,6 +261,13 @@ def main() -> int:
             "wiki_de.txt": raw_pages.get("de", ""),
             "wiki_by.txt": raw_pages.get("by", ""),
             **{f"wiki_{k.replace(':', '_').replace(' ', '_')}.txt": v for k, v in raw_pages.items() if k.startswith("land:")},
+            "sites.json": json.dumps({s_: {k: v for k, v in d.items() if k != "text"} for s_, d in sorted(site_all.items())},
+                                     ensure_ascii=False, indent=1, default=list),
+            "sites_text.json": json.dumps({s_: d["text"] for s_, d in sorted(site_all.items()) if d.get("text")},
+                                          ensure_ascii=False, indent=1),
+            "breweries.json": json.dumps([{k: b.get(k) for k in ("ext_id", "name", "city", "street", "postcode", "lat",
+                                                                 "lng", "geo_precision", "website", "trust", "sources")}
+                                          for b in breweries], ensure_ascii=False, indent=0, default=list),
             "entries.json": json.dumps([{k: v for k, v in e.items() if k != "wd"} | {"wd": (e.get("wd") or {}).get("qid")}
                                         for e in wp_entries], ensure_ascii=False, indent=1, default=list),
         }

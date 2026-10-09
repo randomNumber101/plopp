@@ -30,7 +30,7 @@ CITY_STATES = {"Berlin", "Hamburg", "Bremen"}
 BY_REGIONS = ["Oberbayern", "Niederbayern", "Oberpfalz", "Oberfranken", "Mittelfranken", "Unterfranken", "Schwaben"]
 
 SKIP_SECTIONS = re.compile(
-    r"ehemal|geschlossen|siehe auch|weblinks|einzelnachweis|literatur|quellen|^anmerkung|fußnote|statistik|legende",
+    r"ehemal|geschlossen|geschichte|historie|siehe auch|weblinks|einzelnachweis|literatur|quellen|^anmerkung|fußnote|statistik|legende",
     re.IGNORECASE,
 )
 FILE_PREFIX = re.compile(r"^\s*(datei|file|bild|image)\s*:", re.IGNORECASE)
@@ -259,6 +259,11 @@ def _tables(lines: list[str]) -> list[str]:
     return out
 
 
+class _Row(list):
+    """Zeile einer Tabelle; tinted = mindestens eine Zelle farbig hinterlegt (z. B. „ehemalige Brauerei“)."""
+    tinted = False
+
+
 def _table_rows(block: str) -> tuple[list[str], list[list]]:
     """(Spaltenköpfe, Zeilen als Liste von Wikicode-Zellen) – berücksichtigt rowspan."""
     code = mwp.parse(block)
@@ -279,7 +284,11 @@ def _table_rows(block: str) -> tuple[list[str], list[list]]:
             if not headers:
                 headers = [_flatten(c.contents).lower() for c in cells]
             continue
-        row = []
+        row = _Row()
+        row.tinted = any(
+            str(a.name).strip().lower() in ("style", "bgcolor") and re.search(r"background|#[0-9a-f]{3,6}", str(a.value), re.I)
+            for c in cells for a in c.attributes
+        )
         ci = 0
         it = iter(cells)
         while True:
@@ -357,7 +366,19 @@ def _link_texts(code) -> list[str]:
     return out
 
 
-def _table_entries(block: str, state: str, district: str | None, page: str) -> list[dict]:
+_RANGE = re.compile(r"\b1\d{3}\s*[–—-]\s*(1\d{3}|20\d{2})\b")
+
+
+def _clean_place(place: str | None) -> str | None:
+    """„Haag an der Amper, gegr. 2007“ → „Haag an der Amper“; lange Beschreibungen verwerfen."""
+    if not place:
+        return None
+    p = re.split(r",?\s*(gegr\.|gegründet|seit)\s*\d{4}", place, flags=re.IGNORECASE)[0].strip(" ,;")
+    return p if p and len(p) <= 70 else None
+
+
+def _table_entries(block: str, state: str, district: str | None, page: str,
+                   skip_tinted: bool = False) -> list[dict]:
     out = []
     headers, rows = _table_rows(block)
     ci_name = _col(headers, "unternehmen", "brauerei", "name", "betrieb")
@@ -367,6 +388,7 @@ def _table_entries(block: str, state: str, district: str | None, page: str) -> l
     ci_styles = _col(headers, "sorte", "biere")
     ci_note = _col(headers, "anmerkung", "bemerkung", "hinweis")
     ci_closed = next((i for i, h in enumerate(headers) if _CLOSED_COL.search(h)), None)
+    ci_time = _col(headers, "zeit", "bestand", "bestehen")
     if ci_name is None:
         ci_name = 0
     for row in rows:
@@ -375,8 +397,16 @@ def _table_entries(block: str, state: str, district: str | None, page: str) -> l
 
         if ci_closed is not None and re.search(r"\d{4}|ja|geschlossen", _flatten(cell(ci_closed)), re.IGNORECASE):
             continue
+        if skip_tinted and getattr(row, "tinted", False):
+            continue  # „Brauereien der Vergangenheit in getönten Feldern“
+        if ci_time is not None:
+            t = _flatten(cell(ci_time))
+            if _RANGE.search(t) and not re.search(r"seit|heute|bis heute", t, re.IGNORECASE):
+                continue  # „1873–1917“ → existiert nicht mehr
         name_c = cell(ci_name)
         name = _flatten(name_c)
+        if len(name) > 50:  # „Bremer Braumanufaktur, Überseestadt (ehemaliges Gelände …)“
+            name = re.split(r",\s| \(", name)[0].strip()
         if not name or len(name) > 120 or name.lower() in ("unternehmen", "brauerei"):
             continue
         note_c = cell(ci_note)
@@ -387,7 +417,7 @@ def _table_entries(block: str, state: str, district: str | None, page: str) -> l
         if link_text and len(link_text) >= 3 and link_text.lower() in name.lower():
             name = link_text if len(name) > len(link_text) + 25 else name
         place_c = cell(ci_place)
-        place = _flatten(place_c) or None
+        place = _clean_place(_flatten(place_c))
         if not place and state in CITY_STATES:
             place = state
         if not place and is_city_district(district):
@@ -398,6 +428,9 @@ def _table_entries(block: str, state: str, district: str | None, page: str) -> l
             brands = _link_texts(mwp.parse(str(note_c)))
         street, founded_note = _note_info(note)
         founded = _flatten(cell(ci_found)) or founded_note
+        if not founded and ci_time is not None:
+            m = _FOUNDED.search(_flatten(cell(ci_time)))
+            founded = m.group(2) if m else None
         out.append(_entry(
             name=name, place=place, state=state, district=district, founded=founded or None,
             brands=brands, styles=_split_list(_flatten(cell(ci_styles))),
@@ -473,6 +506,10 @@ def parse_germany(text: str) -> tuple[list[dict], dict[str, str]]:
 def parse_state_page(text: str, state: str, page: str, regions: list[str] | None = None) -> list[dict]:
     """Eigene Landesliste (Bayern, Baden-Württemberg, Hessen …): Tabellen und/oder Listen."""
     out = []
+    # z. B. Bremen: „Brauereien und Marken der Vergangenheit in getönten Feldern“
+    skip_tinted = bool(re.search(r"(vergangenheit|ehemalig\w*|geschlossen\w*)[^\n]{0,40}(getönt|hinterlegt|farbig)"
+                                 r"|(getönt|hinterlegt|farbig)[^\n]{0,60}(vergangenheit|ehemalig|geschlossen)",
+                                 text, re.IGNORECASE))
     for heads, lines in _sections(text):
         if any(SKIP_SECTIONS.search(h) for h in heads):
             continue
@@ -483,7 +520,7 @@ def parse_state_page(text: str, state: str, page: str, regions: list[str] | None
         if district and district.lower().startswith(("sonstig", "übersicht", "allgemein")):
             district = None
         for block in _tables(lines):
-            out += _table_entries(block, state, district, page)
+            out += _table_entries(block, state, district, page, skip_tinted)
         out += _list_entries(lines, state, region, district, page)
     return out
 

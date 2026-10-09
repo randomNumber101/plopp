@@ -5,3 +5,4 @@ __pycache__
 .DS_Store
 _workflows_zum_kopieren/
 Claude outputs/
+.github/workflows/_probe

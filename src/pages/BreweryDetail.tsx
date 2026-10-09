@@ -69,7 +69,30 @@ export default function BreweryDetail({ id }: { id: string }) {
           {editing ? 'schließen' : 'bearbeiten'}
         </button>
       </p>
-      {b.lat != null && (b.geo_precision === 'ort' || b.geo_precision === 'gemeinde') && !editing && (
+      {(b.street || b.lat != null) && !editing && (
+        <p className="address small">
+          {b.street && (
+            <span>
+              📍 {b.street}, {[b.postcode, b.city].filter(Boolean).join(' ')}
+            </span>
+          )}
+          {b.lat != null && (
+            <a
+              className="route-link"
+              href={`https://www.google.com/maps/dir/?api=1&destination=${
+                b.street
+                  ? encodeURIComponent(`${b.name}, ${b.street}, ${b.postcode ?? ''} ${b.city ?? ''}`)
+                  : `${b.lat},${b.lng}`
+              }`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Route ↗
+            </a>
+          )}
+        </p>
+      )}
+      {b.lat != null && !b.street && (b.geo_precision === 'ort' || b.geo_precision === 'gemeinde') && !editing && (
         <p className="muted small">📍 Standort auf der Karte ungefähr (Ortsmitte).</p>
       )}
       {b.lat == null && !editing && (

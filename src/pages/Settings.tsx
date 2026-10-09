@@ -81,7 +81,7 @@ export default function Settings({ session }: { session: Session }) {
 
       <h3>Datenquellen</h3>
       <p className="muted small">
-        Brauereien und Biere aus Wikidata (CC0) und Open Food Facts (ODbL). Karten © OpenStreetMap-Mitwirkende. Ortssuche über Nominatim.
+        Brauereien aus den Wikipedia-Listen aktiver Brauereien (CC BY-SA), Wikidata (CC0) und OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL); Adressen und Sortimente von den Websites der Brauereien; Biere und Barcodes aus Open Food Facts (ODbL). Karten © OpenStreetMap-Mitwirkende. Ortssuche über Nominatim.
       </p>
     </div>
   )

@@ -90,6 +90,8 @@ export default function MapPage() {
   const initial = useMemo(loadView, [])
   const [filter, setFilter] = useState<Filter>(initial?.filter ?? 'beers')
   const [selected, setSelected] = useState<BreweryProgress | null>(null)
+  const [group, setGroup] = useState<BreweryProgress[] | null>(null)
+  const pendingFocus = useRef<string | null>(null)
   const [onlyVerified, setOnlyVerified] = useState(() => {
     try {
       return sessionStorage.getItem(VERIFIED_KEY) === '1'
@@ -112,15 +114,42 @@ export default function MapPage() {
       maxZoom: 18,
       attribution: '&copy; OpenStreetMap',
     }).addTo(m)
-    cluster.current = L.markerClusterGroup({
+    // Kein disableClusteringAtZoom: Brauereien am selben Ort bleiben sonst übereinander liegen.
+    // Stattdessen wird der Radius beim Hineinzoomen kleiner, und enge Gruppen werden aufgefächert.
+    const c = L.markerClusterGroup({
       showCoverageOnHover: false,
-      maxClusterRadius: 48,
-      disableClusteringAtZoom: 12,
+      maxClusterRadius: (z: number) => (z >= 14 ? 20 : z >= 11 ? 34 : 48),
       spiderfyOnMaxZoom: true,
+      spiderfyDistanceMultiplier: 1.7,
+      zoomToBoundsOnClick: false,
       chunkedLoading: true,
       iconCreateFunction: clusterIcon,
     }).addTo(m)
-    m.on('click', () => setSelected(null))
+    c.on('clusterclick', (e: L.LeafletEvent) => {
+      const cl = (e as L.LeafletEvent & { layer: L.MarkerCluster }).layer
+      const bounds = cl.getBounds()
+      const spanM = bounds.getNorthEast().distanceTo(bounds.getSouthWest())
+      const ms = cl.getAllChildMarkers() as PinMarker[]
+      // Alle (fast) am selben Punkt → Hineinzoomen hilft nicht mehr
+      if (spanM < 250 || m.getZoom() >= 16) {
+        setSelected(null)
+        if (ms.length <= 8) {
+          setGroup(null)
+          cl.spiderfy()
+        } else {
+          keepAboveSheet(cl.getLatLng())
+          setGroup(ms.map((x) => x.brewery).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name)))
+        }
+      } else {
+        setGroup(null)
+        cl.zoomToBounds({ padding: [60, 60] })
+      }
+    })
+    cluster.current = c
+    m.on('click', () => {
+      setSelected(null)
+      setGroup(null)
+    })
     map.current = m
     return () => {
       m.remove()
@@ -167,7 +196,11 @@ export default function MapPage() {
       if (onlyVerified && b.trust && b.trust !== 'verified' && b.trust !== 'user') continue
       const mk = L.marker([b.lat, b.lng], { icon: pinIcon(b, false), title: b.name }) as PinMarker
       mk.brewery = b
-      mk.on('click', () => setSelected(b))
+      mk.on('click', () => {
+        setGroup(null)
+        setSelected(b)
+        keepAboveSheet(mk.getLatLng())
+      })
       markers.current.set(b.id, mk)
       list.push(mk)
     }
@@ -177,7 +210,12 @@ export default function MapPage() {
     lastFilter.current = `${filter}${onlyVerified}`
     if ((!fitted.current || filterChanged) && list.length) {
       fitted.current = true
-      map.current?.fitBounds(c.getBounds(), { padding: [40, 40], maxZoom: 10 })
+      if (!pendingFocus.current) map.current?.fitBounds(c.getBounds(), { padding: [40, 40], maxZoom: 10 })
+    }
+    if (pendingFocus.current) {
+      const mk = markers.current.get(pendingFocus.current)
+      pendingFocus.current = null
+      if (mk) showMarker(mk)
     }
   }, [data.data, filter, onlyVerified])
 
@@ -203,11 +241,39 @@ export default function MapPage() {
       .slice(0, 6)
   }, [q, data.data])
 
+  // Marker sichtbar machen – liegt er in einer Gruppe, wird hineingezoomt bzw. aufgefächert
+  function showMarker(mk: PinMarker) {
+    const c = cluster.current
+    const m = map.current
+    if (!c || !m) return
+    if (m.getZoom() < 13) m.setView(mk.getLatLng(), 13, { animate: false })
+    c.zoomToShowLayer(mk, () => keepAboveSheet(mk.getLatLng()))
+  }
+
+  // Das Info-Blatt deckt die untere Hälfte ab → Pin in den sichtbaren oberen Bereich schieben
+  function keepAboveSheet(ll: L.LatLng) {
+    const m = map.current
+    if (!m) return
+    const size = m.getSize()
+    const p = m.latLngToContainerPoint(ll)
+    const target = size.y * 0.3
+    if (p.y > size.y * 0.42 || p.y < 90) m.panBy([0, p.y - target], { duration: 0.35 })
+  }
+
   function focus(b: BreweryProgress) {
     setQ('')
-    if (!FILTERS.find((f) => f.id === filter)!.test(b)) setFilter('all')
+    setGroup(null)
     setSelected(b)
-    if (b.lat != null && b.lng != null) map.current?.flyTo([b.lat, b.lng], Math.max(map.current.getZoom(), 13), { duration: 0.6 })
+    const visible = FILTERS.find((f) => f.id === filter)!.test(b) && (!onlyVerified || b.trust === 'verified' || b.trust === 'user' || !b.trust)
+    if (!visible) {
+      pendingFocus.current = b.id
+      if (!FILTERS.find((f) => f.id === filter)!.test(b)) setFilter('all')
+      if (onlyVerified) setOnlyVerified(false)
+      return
+    }
+    const mk = markers.current.get(b.id)
+    if (mk) showMarker(mk)
+    else if (b.lat != null && b.lng != null) map.current?.flyTo([b.lat, b.lng], Math.max(map.current.getZoom(), 13), { duration: 0.6 })
   }
 
   function locate() {
@@ -304,6 +370,15 @@ export default function MapPage() {
 
       {selected ? (
         <BrewerySheet b={selected} onClose={() => setSelected(null)} />
+      ) : group ? (
+        <GroupSheet
+          list={group}
+          onPick={(b) => {
+            setGroup(null)
+            setSelected(b)
+          }}
+          onClose={() => setGroup(null)}
+        />
       ) : (
         <div className="map-legend">
           <span>
@@ -321,6 +396,52 @@ export default function MapPage() {
           {missing > 0 && <span className="muted">· {missing} ohne Standort</span>}
         </div>
       )}
+    </div>
+  )
+}
+
+function GroupSheet({
+  list,
+  onPick,
+  onClose,
+}: {
+  list: BreweryProgress[]
+  onPick: (b: BreweryProgress) => void
+  onClose: () => void
+}) {
+  const place = list.find((b) => b.city)?.city
+  return (
+    <div className="sheet" role="dialog" aria-label="Brauereien an diesem Ort">
+      <div className="sheet-handle" />
+      <div className="sheet-head">
+        <div className="sheet-title">
+          <b>{list.length} Brauereien{place ? ` in ${place}` : ' hier'}</b>
+          <span className="muted small">liegen auf der Karte am selben Punkt</span>
+        </div>
+        <button className="sheet-close" onClick={onClose} aria-label="Schließen">
+          ×
+        </button>
+      </div>
+      <div className="sheet-list group-list">
+        {list.map((b) => {
+          const img = b.logo_url || b.image_url
+          return (
+            <button key={b.id} type="button" className="group-row" onClick={() => onPick(b)}>
+              <span className={`bpin st-${status(b)} tr-${b.trust ?? "user"}${b.logo_url ? " has-logo" : ""} group-logo`}>
+                <span className="bpin-ini">{initials(b.name)}</span>
+                {img && <img src={img} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.remove()} />}
+              </span>
+              <span className="group-name">
+                {b.name}
+                {b.brewery_type && b.brewery_type !== 'brauerei' && (
+                  <span className="muted small"> · {BREWERY_TYPES[b.brewery_type]}</span>
+                )}
+              </span>
+              <span className="muted small">{b.total ? `${b.drunk}/${b.total}` : ''}</span>
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

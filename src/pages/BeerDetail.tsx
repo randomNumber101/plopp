@@ -50,7 +50,16 @@ export default function BeerDetail({ id }: { id: string }) {
         <TrustBadge
           trust={b.trust}
           detail={
-            b.trust === 'verified' ? 'von der Brauerei bzw. Wikipedia' : b.trust === 'unverified' ? 'Open Food Facts / Wikidata' : undefined
+            b.trust === 'user'
+              ? undefined
+              : [
+                  b.sources?.website ? 'Website der Brauerei' : null,
+                  b.sources?.wikipedia ? 'Wikipedia' : null,
+                  b.sources?.off ? 'Open Food Facts' : null,
+                  b.sources?.wikidata ? 'Wikidata' : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || (b.trust === 'verified' ? 'von der Brauerei bzw. Wikipedia' : 'automatisch erkannt')
           }
         />
       </div>

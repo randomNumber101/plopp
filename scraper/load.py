@@ -16,9 +16,10 @@ import json
 import psycopg
 
 BREWERY_COLS = ["ext_id", "name", "city", "state", "country", "lat", "lng", "website", "logo_url", "source",
-                "trust", "sources", "brewery_type", "region", "district", "founded", "geo_precision", "parent_ext"]
+                "trust", "sources", "brewery_type", "region", "district", "founded", "geo_precision", "parent_ext",
+                "street", "postcode"]
 BREWERY_TYPES = ["text", "text", "text", "text", "text", "double precision", "double precision", "text", "text",
-                 "text", "text", "jsonb", "text", "text", "text", "text", "text", "text"]
+                 "text", "text", "jsonb", "text", "text", "text", "text", "text", "text", "text", "text"]
 BEER_COLS = ["ext_id", "brewery_ext", "name", "style", "abv", "image_url", "source", "trust", "sources"]
 BEER_TYPES = ["text", "text", "text", "text", "numeric(4,1)", "text", "text", "text", "jsonb"]
 
@@ -111,7 +112,8 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
               logo_url = coalesce(s.logo_url, b.logo_url),
               source = s.source, trust = s.trust, sources = s.sources,
               brewery_type = s.brewery_type, region = s.region, district = s.district,
-              founded = s.founded, geo_precision = coalesce(s.geo_precision, b.geo_precision)
+              founded = s.founded, geo_precision = coalesce(s.geo_precision, b.geo_precision),
+              street = coalesce(s.street, b.street), postcode = coalesce(s.postcode, b.postcode)
             from stg_breweries s
             where b.ext_id = s.ext_id and b.source <> 'user'
         """)
@@ -122,15 +124,18 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
               lng = coalesce(b.lng, s.lng), website = coalesce(b.website, s.website),
               logo_url = coalesce(b.logo_url, s.logo_url),
               brewery_type = coalesce(b.brewery_type, s.brewery_type),
-              district = coalesce(b.district, s.district), region = coalesce(b.region, s.region)
+              district = coalesce(b.district, s.district), region = coalesce(b.region, s.region),
+              street = coalesce(b.street, s.street), postcode = coalesce(b.postcode, s.postcode)
             from stg_breweries s
             where b.ext_id = s.ext_id and b.source = 'user'
         """)
         cur.execute("""
             insert into public.breweries (ext_id, name, city, state, country, lat, lng, website, logo_url, source,
-                                          trust, sources, brewery_type, region, district, founded, geo_precision)
+                                          trust, sources, brewery_type, region, district, founded, geo_precision,
+                                          street, postcode)
             select s.ext_id, s.name, s.city, s.state, s.country, s.lat, s.lng, s.website, s.logo_url, s.source,
-                   s.trust, s.sources, s.brewery_type, s.region, s.district, s.founded, s.geo_precision
+                   s.trust, s.sources, s.brewery_type, s.region, s.district, s.founded, s.geo_precision,
+                   s.street, s.postcode
             from stg_breweries s
             where not exists (select 1 from public.breweries x where x.ext_id = s.ext_id)
             on conflict do nothing
@@ -274,17 +279,19 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
                    (select count(*) from public.breweries where logo_url is not null),
                    (select count(*) from public.beers),
                    (select count(*) from public.beers where trust = 'verified'),
-                   (select count(*) from public.beer_barcodes)
+                   (select count(*) from public.beer_barcodes),
+                   (select count(*) from public.breweries where street is not null)
         """)
         t = cur.fetchone()
         stats.update(db_breweries=t[0], db_breweries_verified=t[1], db_breweries_on_map=t[2],
-                     db_breweries_with_logo=t[3], db_beers=t[4], db_beers_verified=t[5], db_barcodes=t[6])
+                     db_breweries_with_logo=t[3], db_beers=t[4], db_beers_verified=t[5], db_barcodes=t[6],
+                     db_breweries_with_address=t[7])
     return stats
 
 
-def load_caches(conn: psycopg.Connection) -> tuple[dict, dict, dict]:
-    """→ (geocode_cache, web_cache, brand_overrides {marke_key: ext_id|None})"""
-    geo, web, over = {}, {}, {}
+def load_caches(conn: psycopg.Connection) -> tuple[dict, dict, dict, dict]:
+    """→ (geocode_cache, web_cache, brand_overrides {marke_key: ext_id|None}, site_cache)"""
+    geo, web, over, sites = {}, {}, {}, {}
     with conn.cursor() as cur:
         try:
             cur.execute("select query, lat, lng, state, precision from app_private.geocode_cache")
@@ -300,12 +307,29 @@ def load_caches(conn: psycopg.Connection) -> tuple[dict, dict, dict]:
                 over[k] = ext if action == "match" else None
         except psycopg.errors.UndefinedTable:
             conn.rollback()
+    with conn.cursor() as cur:
+        try:
+            from .sites import TTL_FAIL_DAYS, TTL_OK_DAYS
+
+            cur.execute("select url, data from app_private.site_cache where fetched_at > now() - "
+                        "(case when (data->>'status') = '200' then %s else %s end) * interval '1 day'",
+                        (TTL_OK_DAYS, TTL_FAIL_DAYS))
+            for u, d in cur.fetchall():
+                sites[u] = d
+        except psycopg.errors.UndefinedTable:
+            conn.rollback()
     conn.commit()
-    return geo, web, over
+    return geo, web, over, sites
 
 
-def save_caches(conn: psycopg.Connection, geo_new: dict, web_new: dict) -> None:
+def save_caches(conn: psycopg.Connection, geo_new: dict, web_new: dict, sites_new: dict | None = None) -> None:
     with conn.transaction(), conn.cursor() as cur:
+        if sites_new:
+            cur.executemany(
+                "insert into app_private.site_cache (url, data) values (%s, %s) "
+                "on conflict (url) do update set data = excluded.data, fetched_at = now()",
+                [(u, json.dumps(d, ensure_ascii=False, default=list)) for u, d in sites_new.items()],
+            )
         cur.executemany(
             "insert into app_private.geocode_cache (query, lat, lng, state, precision) values (%s, %s, %s, %s, %s) "
             "on conflict (query) do update set lat = excluded.lat, lng = excluded.lng, state = excluded.state, "

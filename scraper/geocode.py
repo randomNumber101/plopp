@@ -146,3 +146,10 @@ class Geocoder:
                 continue
             return res["lat"], res["lng"], res["precision"]
         return None
+
+    def address(self, street: str, postcode: str, city: str | None):
+        """Genaue Adresse → (lat, lng, precision) oder None"""
+        res = self._search(f"{street}, {postcode} {city or ''}".strip())
+        if res.get("skip") or res.get("lat") is None:
+            return None
+        return res["lat"], res["lng"], res["precision"]
