@@ -3,17 +3,22 @@ import {
   checkinsForBeer,
   deleteCheckin,
   getBeer,
+  hideBeers,
   restoreCheckin,
+  unhideBeers,
   setWishlist,
   updateBeer,
   updateCheckin,
   wishlistIds,
 } from '../api'
 import {
+  ChoiceSheet,
   CountUp,
   ErrorBox,
   Spinner,
   RatingInput,
+  RoundChip,
+  RoundNote,
   Stars,
   TrustBadge,
   formatRating,
@@ -26,9 +31,9 @@ import {
   useAsync,
 } from '../components'
 import { go } from '../router'
-import { STYLES } from '../types'
+import { HIDE_REASONS, STYLES, type HideReason } from '../types'
 import { haptic } from '../ui/fx'
-import { IconTrash } from '../ui/icons'
+import { IconEyeOff, IconTrash } from '../ui/icons'
 
 
 export default function BeerDetail({ id }: { id: string }) {
@@ -39,6 +44,7 @@ export default function BeerDetail({ id }: { id: string }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
+  const [asking, setAsking] = useState(false)
   /** gerade eingetragener Check-in → „Wie war's?“ */
   const [fresh, setFresh] = useState<string | null>(null)
   const [rating, setRating] = useState<number | null>(null)
@@ -102,6 +108,24 @@ export default function BeerDetail({ id }: { id: string }) {
 
   return (
     <div className="page">
+      {b.hidden_at && (
+        <div className="hidden-banner">
+          <IconEyeOff size={18} />
+          <span>
+            Ausgeblendet{b.hidden_reason ? ` – ${HIDE_REASONS[b.hidden_reason]}` : ''}. Erscheint für dich und deine Runde nicht in Listen und Suche.
+          </span>
+          <button
+            className="btn btn-small"
+            onClick={async () => {
+              await unhideBeers([id])
+              toast({ icon: '👀', msg: 'Wieder eingeblendet' })
+              beer.reload()
+            }}
+          >
+            Einblenden
+          </button>
+        </div>
+      )}
       <div className="beer-hero">
         {b.image_url ? (
           <img className="hero-img" src={b.image_url} alt="" referrerPolicy="no-referrer" />
@@ -121,6 +145,7 @@ export default function BeerDetail({ id }: { id: string }) {
           {b.style && <span className="tag">{b.style}</span>}
           {b.abv != null && <span className="tag">{b.abv} % vol</span>}
           <TrustBadge trust={b.trust} detail={sources} />
+          <RoundChip item={b} />
         </div>
       </div>
 
@@ -249,15 +274,48 @@ export default function BeerDetail({ id }: { id: string }) {
         <EditBeer
           initial={{ name: b.name, style: b.style ?? '', abv: b.abv != null ? String(b.abv) : '' }}
           onSave={async (v) => {
-            await updateBeer(id, {
+            const next = {
               name: v.name.trim(),
               style: v.style.trim() || null,
               abv: v.abv ? Number(v.abv.replace(',', '.')) : null,
-            })
+            }
+            // nur tatsächlich geänderte Felder als Vorschlag einreichen
+            const changed = Object.fromEntries(
+              Object.entries(next).filter(([k, val]) => val !== ((b as unknown as Record<string, unknown>)[k] ?? null)),
+            )
+            if (Object.keys(changed).length) await updateBeer(id, changed)
             setEditing(false)
-            toast({ icon: '✏️', msg: 'Gespeichert' })
+            toast({ icon: '✏️', msg: 'Gespeichert – gilt für deine Runde, Vorschlag ist eingereicht' })
             beer.reload()
           }}
+        />
+      )}
+      {!b.hidden_at && (
+        <button className="btn btn-ghost danger-ghost" onClick={() => setAsking(true)}>
+          <IconEyeOff size={18} /> Kein Bier / falsch? Ausblenden
+        </button>
+      )}
+      {asking && (
+        <ChoiceSheet
+          title="Eintrag ausblenden"
+          sub="Gilt für dich und deine Runde (eingeladene Freunde) und geht als Vorschlag an den Katalog. Deine Check-ins bleiben erhalten. Rückgängig auf dieser Seite oder bei der Brauerei unter „ausgeblendet“."
+          options={(Object.keys(HIDE_REASONS) as HideReason[]).map((r) => ({
+            id: r,
+            label: HIDE_REASONS[r],
+            icon: r === 'kein_bier' ? '🧢' : r === 'doppelt' ? '👯' : '🚫',
+          }))}
+          onPick={async (r) => {
+            setAsking(false)
+            await hideBeers([id], r)
+            toast({
+              icon: '🙈',
+              msg: 'Ausgeblendet',
+              action: { label: 'Rückgängig', run: async () => (await unhideBeers([id]), beer.reload()) },
+            })
+            if (b.brewery) go(`/brewery/${b.brewery.id}`)
+            else beer.reload()
+          }}
+          onClose={() => setAsking(false)}
         />
       )}
     </div>
@@ -304,6 +362,7 @@ function EditBeer({
           <input inputMode="decimal" value={v.abv} onChange={(e) => setV({ ...v, abv: e.target.value })} />
         </label>
       </div>
+      <RoundNote />
       <ErrorBox msg={error} />
       <button className="btn btn-primary">Speichern</button>
     </form>

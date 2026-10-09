@@ -7,7 +7,7 @@ import { BeerRow, ErrorBox, Progress, Spinner, TrustBadge, useAsync } from '../c
 import { go } from '../router'
 import { setPrefill } from '../store'
 import { BREWERY_TYPES, type BreweryProgress } from '../types'
-import { initials } from '../brewery'
+import { initials, shortBeerName } from '../brewery'
 
 type Filter = 'beers' | 'drunk' | 'open' | 'wish' | 'all'
 
@@ -495,6 +495,7 @@ function BrewerySheet({ b, onClose }: { b: BreweryProgress; onClose: () => void 
           <BeerRow
             key={beer.id}
             beer={beer}
+            title={shortBeerName(beer.name, b.name)}
             quick={!drunkSet.has(beer.id)}
             onChanged={() => drunk.reload()}
             sub={[beer.style, beer.abv != null ? `${beer.abv} %` : null].filter(Boolean).join(' · ')}

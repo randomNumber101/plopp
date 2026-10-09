@@ -128,7 +128,7 @@ def main() -> int:
             print(f"{name}: {timings[name]} s", flush=True)
 
     conn = None
-    geo_cache, web_cache, overrides, site_cache = {}, {}, {}, {}
+    geo_cache, web_cache, overrides, site_cache, hidden = {}, {}, {}, {}, []
     if not dry and os.environ.get("DB_URL"):
         try:
             import psycopg
@@ -136,7 +136,7 @@ def main() -> int:
             from .load import load_caches
 
             conn = psycopg.connect(os.environ["DB_URL"], autocommit=False, prepare_threshold=None)
-            geo_cache, web_cache, overrides, site_cache = load_caches(conn)
+            geo_cache, web_cache, overrides, site_cache, hidden = load_caches(conn)
         except Exception:  # noqa: BLE001
             errors.append("Datenbank (Verbindung/Caches):\n" + traceback.format_exc())
 
@@ -226,7 +226,7 @@ def main() -> int:
     # 5. Zusammenführen
     breweries, beers, mstats = merge.build(wp_entries, wd_breweries, wd_beers, off_products, overrides,
                                            osm=osm_elements, crawl=crawl if os.environ.get("CRAWL", "1") == "1" else None,
-                                           geocoder=addr_geocoder)
+                                           geocoder=addr_geocoder, hidden=hidden)
     stats["address_geocode_requests"] = addr_geocoder.requests
     stats.update(mstats)
     stats["samples"] = [{k: b.get(k) for k in ("name", "city", "state", "trust", "brewery_type", "lat", "logo_url", "website")}

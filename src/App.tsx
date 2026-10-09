@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
+import { ensureCircle } from './api'
 import { go, useRoute } from './router'
 import { Celebration, Spinner, Toaster } from './components'
 import { IconBack, IconBrewery, IconMap, IconMore, IconMug, IconScan } from './ui/icons'
@@ -19,6 +20,7 @@ import { InviteWhileLoggedIn } from './pages/Invites'
 const Scan = lazy(() => import('./pages/Scan'))
 const MapPage = lazy(() => import('./pages/MapPage'))
 const Stats = lazy(() => import('./pages/Stats'))
+const Suggestions = lazy(() => import('./pages/Suggestions'))
 
 const NAV = [
   { path: '', Icon: IconMug, label: 'Meine' },
@@ -37,6 +39,12 @@ export default function App() {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
     return () => data.subscription.unsubscribe()
   }, [])
+
+  // ältere Konten ohne Runde bekommen beim ersten Start eine eigene
+  const uid = session?.user.id
+  useEffect(() => {
+    if (uid) ensureCircle().catch(() => {})
+  }, [uid])
 
   if (session === undefined) return <div className="boot"><Spinner /></div>
   if (!session) return <Login />
@@ -74,6 +82,9 @@ export default function App() {
     case 'stats':
       content = <Stats />
       break
+    case 'suggestions':
+      content = <Suggestions />
+      break
     case 'invite':
       content = id ? <InviteWhileLoggedIn session={session} code={id} /> : <MyBeers />
       break
@@ -82,7 +93,7 @@ export default function App() {
   }
 
   const active = page ?? ''
-  const isSub = ['beer', 'brewery', 'new', 'catalog', 'stats', 'invite'].includes(active)
+  const isSub = ['beer', 'brewery', 'new', 'catalog', 'stats', 'invite', 'suggestions'].includes(active)
   const navActive = isSub ? (active === 'brewery' ? 'breweries' : active === 'catalog' || active === 'new' ? 'scan' : '') : active
 
   return (
@@ -95,12 +106,12 @@ export default function App() {
         ) : (
           <span className="back" />
         )}
-        <button className="title" onClick={() => go('/')} aria-label="Bier-Tracker – zur Startseite">
+        <button className="title" onClick={() => go('/')} aria-label="Plopp! – zur Startseite">
           <span className="title-glass" aria-hidden="true">
             <span className="tg-foam" />
             <span className="tg-beer" />
           </span>
-          Bier-Tracker
+          Plopp!
         </button>
         <span className="back" />
       </header>

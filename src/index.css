@@ -1,5 +1,5 @@
 /* ============================================================================================
-   Bier-Tracker – Biergarten-Design
+   Plopp! – Der Biertracker · Biergarten-Design
    Farben: Bernstein (Bier), Malzbraun (Text), Schaumcreme (Hintergrund), Hopfengrün (geschafft)
    ============================================================================================ */
 
@@ -262,7 +262,8 @@ main {
 }
 
 .page-anim {
-  animation: page-in 0.24s ease-out both;
+  /* „backwards“: nach dem Einblenden bleibt kein transform aktiv (sonst hängen fixierte Elemente an der Seite) */
+  animation: page-in 0.24s ease-out backwards;
 }
 
 @keyframes page-in {
@@ -3086,4 +3087,323 @@ button.tag {
   padding: 0;
   cursor: pointer;
   color: var(--text);
+}
+
+/* Marke */
+.topbar .title {
+  letter-spacing: 0.01em;
+}
+
+h1.brand {
+  font-size: 3rem;
+  margin-bottom: 0;
+  background: linear-gradient(180deg, var(--beer-2), var(--accent-deep));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 0 rgb(255 255 255 / 0.6));
+}
+
+.app-footer {
+  text-align: center;
+  color: var(--muted);
+  margin-top: 18px;
+}
+
+/* Aufräumen: ausblenden */
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 4px -4px;
+}
+
+.list-toolbar .list-head {
+  flex: 1;
+  margin: 0;
+}
+
+.tidy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.row .select-box {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.row.selected {
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+}
+
+.row.selected .select-box {
+  background: var(--danger);
+  border-color: var(--danger);
+  animation: pop-in 0.25s var(--ease-bounce);
+}
+
+.action-bar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);
+  transform: translateX(-50%);
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(600px, calc(100% - 24px));
+  padding: 8px 8px 8px 16px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+  font-weight: 800;
+  animation: toast-in 0.3s var(--ease-bounce);
+}
+
+.action-bar > span {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 70%, #000);
+  color: #fff;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--danger) 70%, #000);
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 12px;
+}
+
+.danger-ghost {
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.hidden-toggle {
+  align-self: flex-start;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.list-hidden .row {
+  opacity: 0.75;
+}
+
+.list-hidden .row-title {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
+}
+
+.hint-line {
+  margin: -4px 4px 0;
+}
+
+.hidden-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.hidden-banner span {
+  flex: 1;
+}
+
+/* Auswahlblatt */
+.choice-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgb(20 12 4 / 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade-in 0.2s ease-out;
+}
+
+.choice-sheet {
+  width: min(640px, 100%);
+  background: var(--bg);
+  border-radius: 24px 24px 0 0;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: sheet-in 0.35s var(--ease-bounce);
+}
+
+.choice-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.choice-sub {
+  margin: -4px 0 0;
+  text-align: center;
+}
+
+.page.with-bar {
+  padding-bottom: 96px;
+}
+
+/* Runde & Änderungsvorschläge */
+.round-chip {
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.round-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.menu .m-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #3a2300;
+  font-size: 0.8rem;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+
+.sugg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sugg {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: row-in 0.35s both;
+}
+
+.sugg-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sugg-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 1.2rem;
+}
+
+.sugg-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.sugg-kind {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sugg-name {
+  font-weight: 800;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.sugg-status {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  white-space: nowrap;
+}
+
+.sugg-status.st-offen {
+  background: var(--accent-soft);
+}
+
+.sugg-status.st-übernommen {
+  background: #d8f3dc;
+  color: #1b5e20;
+}
+
+.sugg-status.st-abgelehnt {
+  background: #fde2e1;
+  color: #8a1c14;
+}
+
+.sugg-zurückgezogen,
+.sugg-abgelehnt {
+  opacity: 0.7;
+}
+
+.sugg-diff {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.sugg-diff > div {
+  display: flex;
+  gap: 8px;
+}
+
+.sugg-diff dt {
+  width: 86px;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.sugg-diff dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.sugg-diff s {
+  color: var(--muted);
+}
+
+.sugg-reject {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }

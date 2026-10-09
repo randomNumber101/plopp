@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Beer, Trust } from './types'
 import { go } from './router'
 import { addCheckin, deleteCheckin } from './api'
@@ -404,6 +405,36 @@ export function TrustDot({ trust }: { trust?: Trust | null }) {
   return <span className={`trust-dot t-${t}`} title={TRUST[t].title} aria-label={TRUST[t].label} />
 }
 
+/** Markiert Einträge, die nur in der eigenen Runde existieren bzw. dort geändert wurden */
+export function RoundChip({ item }: { item: { circle_id?: string | null; _edited?: boolean } }) {
+  if (item.circle_id)
+    return (
+      <span className="round-chip" title="Von deiner Runde angelegt – als Vorschlag für den Katalog gespeichert">
+        👥 nur in deiner Runde
+      </span>
+    )
+  if (item._edited)
+    return (
+      <span className="round-chip" title="Deine Runde hat Angaben geändert – als Vorschlag für den Katalog gespeichert">
+        ✏️ in deiner Runde geändert
+      </span>
+    )
+  return null
+}
+
+/** Hinweis unter Bearbeiten-Formularen */
+export function RoundNote() {
+  return (
+    <p className="round-note">
+      👥 Änderungen gelten sofort für dich und deine Runde (eingeladene Freunde). Für den gemeinsamen Katalog werden sie als{' '}
+      <button type="button" className="link" onClick={() => go('/suggestions')}>
+        Vorschlag
+      </button>{' '}
+      gespeichert und geprüft.
+    </p>
+  )
+}
+
 export function TrustBadge({ trust, detail }: { trust?: Trust | null; detail?: string }) {
   const t = trust ?? 'user'
   return (
@@ -438,6 +469,10 @@ export function BeerRow({
   index = 0,
   quick,
   onChanged,
+  title,
+  selected,
+  onSelect,
+  onLongPress,
 }: {
   beer: Beer
   right?: React.ReactNode
@@ -445,32 +480,116 @@ export function BeerRow({
   index?: number
   quick?: boolean
   onChanged?: () => void
+  /** abweichender Anzeigename (z. B. ohne Brauereinamen) */
+  title?: string
+  /** Auswahlmodus: Tippen wählt aus statt zu öffnen */
+  selected?: boolean
+  onSelect?: () => void
+  /** langes Drücken (z. B. um den Auswahlmodus zu starten) */
+  onLongPress?: () => void
 }) {
-  const open = () => go(`/beer/${beer.id}`)
+  const selecting = onSelect !== undefined
+  const press = useRef<{ t: ReturnType<typeof setTimeout>; x: number; y: number; fired: boolean } | null>(null)
+  const open = () => {
+    if (press.current?.fired) return
+    if (selecting) {
+      haptic(6)
+      onSelect!()
+    } else go(`/beer/${beer.id}`)
+  }
+  const cancel = () => press.current && clearTimeout(press.current.t)
   return (
     <div
-      role="button"
+      role={selecting ? 'checkbox' : 'button'}
+      aria-checked={selecting ? !!selected : undefined}
       tabIndex={0}
-      className="row"
+      className={`row ${selecting ? 'selecting' : ''} ${selected ? 'selected' : ''}`}
       style={{ '--i': Math.min(index, 14) } as React.CSSProperties}
-      onClick={open}
+      onPointerDown={(e) => {
+        if (!onLongPress || selecting) return
+        cancel()
+        const st = { x: e.clientX, y: e.clientY, fired: false, t: setTimeout(() => {
+          st.fired = true
+          haptic(30)
+          onLongPress()
+        }, 520) }
+        press.current = st
+      }}
+      onPointerMove={(e) => {
+        const p = press.current
+        if (p && Math.hypot(e.clientX - p.x, e.clientY - p.y) > 10) cancel()
+      }}
+      onPointerUp={cancel}
+      onPointerCancel={cancel}
+      onContextMenu={(e) => onLongPress && e.preventDefault()}
+      onClick={() => {
+        open()
+        if (press.current) press.current.fired = false
+      }}
       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), open())}
     >
+      {selecting && (
+        <span className="select-box" aria-hidden="true">
+          {selected && <IconCheck size={16} />}
+        </span>
+      )}
       <BeerThumb beer={beer} />
       <div className="row-main">
-        <div className="row-title">
+        <div className="row-title" title={title && title !== beer.name ? beer.name : undefined}>
           <TrustDot trust={beer.trust} />
-          {beer.name}
+          {title ?? beer.name}
         </div>
         <div className="row-sub">
           {sub ??
             [beer.brewery?.name, beer.style, beer.abv != null ? `${beer.abv} %` : null].filter(Boolean).join(' · ')}
         </div>
       </div>
-      {right && <div className="row-right">{right}</div>}
-      {quick && <ProstButton beer={beer} onDone={onChanged} />}
+      {right && !selecting && <div className="row-right">{right}</div>}
+      {quick && !selecting && <ProstButton beer={beer} onDone={onChanged} />}
     </div>
   )
+}
+
+/** Unten einfahrendes Auswahlblatt (z. B. Grund fürs Ausblenden) */
+export function ChoiceSheet<T extends string>({
+  title,
+  sub,
+  options,
+  onPick,
+  onClose,
+}: {
+  title: string
+  sub?: string
+  options: { id: T; label: string; icon?: string }[]
+  onPick: (id: T) => void
+  onClose: () => void
+}) {
+  return createPortal(
+    <div className="choice-backdrop" onClick={onClose}>
+      <div className="choice-sheet" role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <b className="choice-title">{title}</b>
+        {sub && <p className="muted small choice-sub">{sub}</p>}
+        <div className="menu">
+          {options.map((o) => (
+            <button key={o.id} onClick={() => onPick(o.id)}>
+              {o.icon && <span className="m-icon">{o.icon}</span>}
+              <span className="m-main">{o.label}</span>
+            </button>
+          ))}
+        </div>
+        <button className="btn btn-ghost" onClick={onClose}>
+          Abbrechen
+        </button>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+/** Am unteren Rand schwebende Leiste (außerhalb der Seite gerendert, damit sie immer oben liegt) */
+export function FloatingBar({ children }: { children: React.ReactNode }) {
+  return createPortal(<div className="action-bar">{children}</div>, document.body)
 }
 
 /** Fortschritt als sich füllendes Bierglas (Balken mit Schaumkrone) */

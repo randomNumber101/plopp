@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { exportAll } from '../api'
-import { ErrorBox, toast } from '../components'
+import { exportAll, isAdmin, listSuggestions } from '../api'
+import { ErrorBox, toast, useAsync } from '../components'
 import { supabase } from '../supabase'
 import { go } from '../router'
 import { IconChevron } from '../ui/icons'
@@ -11,6 +11,10 @@ export default function Settings({ session }: { session: Session }) {
   const [error, setError] = useState<string | null>(null)
   const [pw, setPw] = useState('')
   const [pwOpen, setPwOpen] = useState(false)
+  const review = useAsync(async () => {
+    const admin = await isAdmin()
+    return { admin, open: admin ? (await listSuggestions('offen')).length : 0 }
+  }, [])
 
   async function download() {
     try {
@@ -38,6 +42,17 @@ export default function Settings({ session }: { session: Session }) {
         <button onClick={() => go('/catalog')}>
           <span className="m-icon">🔎</span>
           <span className="m-main">Bier suchen oder anlegen</span>
+          <IconChevron size={18} className="m-chev" />
+        </button>
+        <button onClick={() => go('/suggestions')}>
+          <span className="m-icon">📝</span>
+          <span className="m-main">
+            Änderungsvorschläge
+            <div className="row-sub">
+              {review.data?.admin ? 'prüfen & in den Katalog übernehmen' : 'was deine Runde geändert hat'}
+            </div>
+          </span>
+          {!!review.data?.open && <span className="m-badge">{review.data.open}</span>}
           <IconChevron size={18} className="m-chev" />
         </button>
         <button onClick={download}>
@@ -100,6 +115,9 @@ export default function Settings({ session }: { session: Session }) {
       <h3>Datenquellen</h3>
       <p className="muted small">
         Brauereien aus den Wikipedia-Listen aktiver Brauereien (CC BY-SA), Wikidata (CC0) und OpenStreetMap (© OpenStreetMap-Mitwirkende, ODbL); Adressen und Sortimente von den Websites der Brauereien; Biere und Barcodes aus Open Food Facts (ODbL). Karten © OpenStreetMap-Mitwirkende. Ortssuche über Nominatim.
+      </p>
+      <p className="app-footer">
+        <b>Plopp!</b> – Der Biertracker 🍻
       </p>
     </div>
   )

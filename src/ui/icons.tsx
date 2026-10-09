@@ -130,3 +130,11 @@ export const IconHistory = (p: P) => (
     <path d="M3 3v5h5M12 7v5l3 2" />
   </Svg>
 )
+
+export const IconEyeOff = (p: P) => (
+  <Svg {...p}>
+    <path d="M3 3l18 18" />
+    <path d="M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.3 2.4-2.6 3.7M6.1 6.2C3.9 7.6 2.5 9.8 2 12c1 2.5 5 7 10 7 1.7 0 3.3-.5 4.6-1.3" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+  </Svg>
+)

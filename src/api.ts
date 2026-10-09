@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { Beer, Brewery, BreweryProgress, Checkin, OffSuggestion } from './types'
+import type { Beer, Brewery, BreweryProgress, Checkin, HideReason, OffSuggestion, Suggestion } from './types'
 import { codeVariants } from './scanner'
 
 const BEER_SELECT = '*, brewery:breweries(*)'
@@ -9,54 +9,162 @@ function check<T>(res: { data: T | null; error: { message: string } | null }): T
   return res.data as T
 }
 
+// ---------------------------------------------------------------- Runde & Änderungen der Runde
+//
+// Änderungen am Katalog gelten nur für die eigene Runde (du + eingeladene Freunde). Sie liegen in
+// circle_overrides und werden hier über die Katalogdaten gelegt. Gleichzeitig entsteht ein Vorschlag
+// (catalog_suggestions), über den ein Admin entscheidet.
+
+type Overlay = { beer: Map<string, Record<string, unknown>>; brewery: Map<string, Record<string, unknown>> }
+let overlayPromise: Promise<Overlay> | null = null
+
+function loadOverlay(): Promise<Overlay> {
+  overlayPromise ??= (async () => {
+    const o: Overlay = { beer: new Map(), brewery: new Map() }
+    const res = await supabase.from('circle_overrides').select('kind, target_id, data')
+    if (!res.error) {
+      for (const r of res.data as { kind: 'beer' | 'brewery'; target_id: string; data: Record<string, unknown> }[]) {
+        o[r.kind].set(r.target_id, r.data)
+      }
+    }
+    return o
+  })().catch((e) => {
+    overlayPromise = null
+    throw e
+  })
+  return overlayPromise
+}
+
+function invalidateOverlay() {
+  overlayPromise = null
+}
+
+const BEER_FIELDS = ['name', 'style', 'abv'] as const
+const BREWERY_FIELDS = ['name', 'city', 'state', 'country', 'website', 'lat', 'lng'] as const
+
+function applyBrewery<T extends Brewery | null | undefined>(b: T, o: Overlay): T {
+  if (!b) return b
+  const d = o.brewery.get(b.id)
+  if (!d) return b
+  const x: Brewery = { ...b, _edited: true }
+  for (const f of BREWERY_FIELDS) if (f in d) (x as unknown as Record<string, unknown>)[f] = d[f]
+  return x as T
+}
+
+function applyBeer(b: Beer, o: Overlay): Beer {
+  const d = o.beer.get(b.id)
+  let x = b
+  if (d) {
+    x = { ...b }
+    let edited = false
+    for (const f of BEER_FIELDS)
+      if (f in d) {
+        ;(x as unknown as Record<string, unknown>)[f] = d[f]
+        edited = true
+      }
+    if ('hidden_at' in d) {
+      x.hidden_at = (d.hidden_at as string | null) ?? null
+      x.hidden_reason = (d.hidden_reason as Beer['hidden_reason']) ?? null
+      x._hiddenInCircle = true
+    }
+    x._edited = edited
+  }
+  if (x.brewery) x = { ...x, brewery: applyBrewery(x.brewery, o) }
+  return x
+}
+
+async function overlayBeers(list: Beer[]): Promise<Beer[]> {
+  const o = await loadOverlay()
+  return list.map((b) => applyBeer(b, o))
+}
+
+/** Beim Start: Konto ohne Runde bekommt eine eigene (Gründerkonto) */
+export async function ensureCircle() {
+  await supabase.rpc('ensure_circle')
+}
+
+export async function isAdmin(): Promise<boolean> {
+  const res = await supabase.rpc('is_admin')
+  return !res.error && res.data === true
+}
+
 // ---------------------------------------------------------------- Katalog
 
 export async function findBeerByEan(ean: string): Promise<Beer | null> {
-  // auch andere Schreibweisen finden (UPC-A mit/ohne führende 0)
+  // auch andere Schreibweisen finden (UPC-A mit/ohne führende 0); eigene Zuordnung der Runde zuerst
   const res = await supabase
     .from('beer_barcodes')
-    .select(`beer:beers(${BEER_SELECT})`)
+    .select(`circle_id, beer:beers(${BEER_SELECT})`)
     .in('ean', codeVariants(ean))
-    .limit(1)
-  const rows = check(res) as unknown as { beer: Beer }[] | null
-  return rows?.[0]?.beer ?? null
+    .limit(5)
+  const rows = (check(res) as unknown as { circle_id: string | null; beer: Beer | null }[] | null) ?? []
+  rows.sort((a, b) => Number(!a.circle_id) - Number(!b.circle_id))
+  const beer = rows.find((r) => r.beer)?.beer
+  return beer ? (await overlayBeers([beer]))[0] : null
 }
 
 export async function getBeer(id: string): Promise<Beer> {
-  return check(await supabase.from('beers').select(BEER_SELECT).eq('id', id).single()) as Beer
+  const b = check(await supabase.from('beers').select(BEER_SELECT).eq('id', id).single()) as Beer
+  return (await overlayBeers([b]))[0]
 }
 
 export async function searchBeers(q: string, limit = 30): Promise<Beer[]> {
   const term = q.trim()
   if (term) {
-    // Suche über Bier- UND Brauereinamen (Datenbankfunktion); Fallback: nur Biername
+    // Suche über Bier- UND Brauereinamen (Datenbankfunktion, kennt die Änderungen der Runde); Fallback: nur Biername
     const res = await supabase.rpc('search_beers', { q: term }).select(BEER_SELECT).limit(limit)
-    if (!res.error) return res.data as unknown as Beer[]
+    if (!res.error) return overlayBeers(res.data as unknown as Beer[])
   }
-  let query = supabase.from('beers').select(BEER_SELECT).order('name').limit(limit)
+  let query = supabase.from('beers').select(BEER_SELECT).order('name').limit(limit * 2)
   if (term) query = query.ilike('name', `%${term}%`)
-  return check(await query) as Beer[]
+  return (await overlayBeers(check(await query) as Beer[])).filter((b) => !b.hidden_at).slice(0, limit)
+}
+
+async function allBeersOfBrewery(breweryId: string): Promise<Beer[]> {
+  const rows = check(await supabase.from('beers').select(BEER_SELECT).eq('brewery_id', breweryId).order('name')) as Beer[]
+  return (await overlayBeers(rows)).sort((a, b) => a.name.localeCompare(b.name, 'de'))
 }
 
 export async function beersOfBrewery(breweryId: string): Promise<Beer[]> {
-  return check(
-    await supabase.from('beers').select(BEER_SELECT).eq('brewery_id', breweryId).order('name'),
-  ) as Beer[]
+  return (await allBeersOfBrewery(breweryId)).filter((b) => !b.hidden_at)
+}
+
+export async function hiddenBeersOfBrewery(breweryId: string): Promise<Beer[]> {
+  try {
+    return (await allBeersOfBrewery(breweryId)).filter((b) => b.hidden_at)
+  } catch {
+    return []
+  }
+}
+
+/** Für die eigene Runde ausblenden (Merch, Dubletten …) – zusätzlich als Vorschlag für den Katalog */
+export async function hideBeers(ids: string[], reason: HideReason) {
+  check(await supabase.rpc('hide_beers', { p_ids: ids, p_reason: reason }))
+  invalidateOverlay()
+}
+
+export async function unhideBeers(ids: string[]) {
+  check(await supabase.rpc('unhide_beers', { p_ids: ids }))
+  invalidateOverlay()
 }
 
 export async function getBrewery(id: string): Promise<Brewery> {
-  return check(await supabase.from('breweries').select('*').eq('id', id).single()) as Brewery
+  const b = check(await supabase.from('breweries').select('*').eq('id', id).single()) as Brewery
+  return applyBrewery(b, await loadOverlay())
 }
 
 export async function sitesOfBrewery(id: string): Promise<Brewery[]> {
   const res = await supabase.from('breweries').select('*').eq('parent_id', id).order('name')
-  return res.error ? [] : (res.data as Brewery[])
+  if (res.error) return []
+  const o = await loadOverlay()
+  return (res.data as Brewery[]).map((b) => applyBrewery(b, o))
 }
 
 export async function searchBreweries(q: string, limit = 10): Promise<Brewery[]> {
   let query = supabase.from('breweries').select('*').order('trust', { ascending: false }).order('name').limit(limit)
   if (q.trim()) query = query.ilike('name', `%${q.trim()}%`)
-  return check(await query) as Brewery[]
+  const o = await loadOverlay()
+  return (check(await query) as Brewery[]).map((b) => applyBrewery(b, o))
 }
 
 /** Supabase liefert pro Anfrage höchstens 1000 Zeilen – daher seitenweise laden */
@@ -95,12 +203,17 @@ export async function createBrewery(b: {
   ) as Brewery
 }
 
+/** Brauerei ändern – gilt für die eigene Runde und geht als Vorschlag an den Katalog */
 export async function updateBrewery(id: string, patch: Partial<Brewery>): Promise<void> {
   if (patch.city !== undefined && patch.city) {
     const coords = await geocode(patch.city, patch.country ?? 'Deutschland')
     if (coords) Object.assign(patch, coords)
   }
-  check(await supabase.from('breweries').update(patch).eq('id', id))
+  const changes = Object.fromEntries(
+    Object.entries(patch).filter(([k]) => (BREWERY_FIELDS as readonly string[]).includes(k)),
+  )
+  check(await supabase.rpc('edit_brewery', { p_brewery: id, p_changes: changes }))
+  invalidateOverlay()
 }
 
 export async function createBeer(b: {
@@ -114,8 +227,11 @@ export async function createBeer(b: {
   return check(await supabase.from('beers').insert(b).select(BEER_SELECT).single()) as Beer
 }
 
+/** Bier ändern – gilt für die eigene Runde und geht als Vorschlag an den Katalog */
 export async function updateBeer(id: string, patch: Partial<Beer>): Promise<void> {
-  check(await supabase.from('beers').update(patch).eq('id', id))
+  const changes = Object.fromEntries(Object.entries(patch).filter(([k]) => (BEER_FIELDS as readonly string[]).includes(k)))
+  check(await supabase.rpc('edit_beer', { p_beer: id, p_changes: changes }))
+  invalidateOverlay()
 }
 
 export async function addBarcode(ean: string, beerId: string): Promise<void> {
@@ -163,12 +279,14 @@ export async function restoreCheckin(c: Checkin) {
 }
 
 export async function myCheckins(): Promise<Checkin[]> {
-  return check(
+  const rows = check(
     await supabase
       .from('checkins')
       .select(`*, beer:beers(${BEER_SELECT})`)
       .order('drunk_at', { ascending: false }),
   ) as Checkin[]
+  const o = await loadOverlay()
+  return rows.map((c) => (c.beer ? { ...c, beer: applyBeer(c.beer, o) } : c))
 }
 
 export async function checkinsForBeer(beerId: string): Promise<Checkin[]> {
@@ -192,8 +310,8 @@ export async function myWishlist(): Promise<Beer[]> {
       .from('wishlist')
       .select(`beer:beers(${BEER_SELECT})`)
       .order('created_at', { ascending: false }),
-  ) as unknown as { beer: Beer }[]
-  return rows.map((r) => r.beer)
+  ) as unknown as { beer: Beer | null }[]
+  return overlayBeers(rows.map((r) => r.beer).filter((b): b is Beer => !!b))
 }
 
 export async function wishlistIds(): Promise<Set<string>> {
@@ -254,10 +372,10 @@ export async function inviteStatus(code: string): Promise<InviteStatus> {
 /** Link über das Teilen-Menü des Handys verschicken, sonst in die Zwischenablage */
 export async function shareInvite(code: string): Promise<'shared' | 'copied' | 'cancelled'> {
   const url = inviteLink(code)
-  const text = 'Komm in meinen Bier-Tracker! Mit diesem Link kannst du dir ein Konto anlegen (14 Tage gültig, nur einmal nutzbar):'
+  const text = 'Komm zu Plopp!, meinem Biertracker! Mit diesem Link kannst du dir ein Konto anlegen (14 Tage gültig, nur einmal nutzbar):'
   if (navigator.share) {
     try {
-      await navigator.share({ title: 'Einladung zum Bier-Tracker', text, url })
+      await navigator.share({ title: 'Einladung zu Plopp! – Der Biertracker', text, url })
       return 'shared'
     } catch (e) {
       if ((e as Error).name === 'AbortError') return 'cancelled'
@@ -269,6 +387,25 @@ export async function shareInvite(code: string): Promise<'shared' | 'copied' | '
     window.prompt('Link kopieren:', url)
   }
   return 'copied'
+}
+
+// ---------------------------------------------------------------- Änderungsvorschläge
+
+/** Vorschläge der eigenen Runde – Admins sehen alle */
+export async function listSuggestions(status: 'offen' | 'alle' = 'offen', limit = 200): Promise<Suggestion[]> {
+  let q = supabase.from('catalog_suggestions').select('*').order('created_at', { ascending: false }).limit(limit)
+  if (status === 'offen') q = q.eq('status', 'offen')
+  return check(await q) as Suggestion[]
+}
+
+export async function applySuggestion(id: number): Promise<string> {
+  const res = await supabase.rpc('apply_suggestion', { p_id: id })
+  if (res.error) throw new Error(res.error.message)
+  return res.data as string
+}
+
+export async function rejectSuggestion(id: number, note?: string) {
+  check(await supabase.rpc('reject_suggestion', { p_id: id, p_note: note ?? null }))
 }
 
 // ---------------------------------------------------------------- Externe Dienste

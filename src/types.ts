@@ -18,6 +18,10 @@ export interface Brewery {
   parent_id?: string | null
   street?: string | null
   postcode?: string | null
+  /** gesetzt = Eintrag existiert nur in einer Runde (noch nicht im Katalog) */
+  circle_id?: string | null
+  /** in der eigenen Runde geändert (Vorschlag) */
+  _edited?: boolean
 }
 
 export type Trust = 'verified' | 'unverified' | 'user'
@@ -41,6 +45,19 @@ export interface Beer {
   trust?: Trust
   brewery?: Brewery | null
   sources?: Record<string, unknown> | null
+  hidden_at?: string | null
+  hidden_reason?: HideReason | null
+  circle_id?: string | null
+  _edited?: boolean
+  /** Ausblenden/Einblenden gilt nur in der eigenen Runde */
+  _hiddenInCircle?: boolean
+}
+
+export type HideReason = 'kein_bier' | 'doppelt' | 'falsch'
+export const HIDE_REASONS: Record<HideReason, string> = {
+  kein_bier: 'Kein Bier (Merch, Gutschein, Limo …)',
+  doppelt: 'Doppelt vorhanden',
+  falsch: 'Falsch / gibt es nicht mehr',
 }
 
 export interface Checkin {
@@ -92,3 +109,32 @@ export const STATES = [
   'Rheinland-Pfalz', 'Saarland', 'Sachsen', 'Sachsen-Anhalt',
   'Schleswig-Holstein', 'Thüringen',
 ]
+
+export type SuggestionKind = 'beer_edit' | 'brewery_edit' | 'beer_hide' | 'beer_unhide' | 'beer_new' | 'brewery_new' | 'barcode'
+
+export interface Suggestion {
+  id: number
+  circle_id: string | null
+  created_by: string | null
+  created_by_email: string | null
+  created_at: string
+  updated_at: string
+  kind: SuggestionKind
+  target_id: string | null
+  target_name: string | null
+  payload: Record<string, unknown>
+  previous: Record<string, unknown>
+  status: 'offen' | 'übernommen' | 'abgelehnt' | 'zurückgezogen'
+  decided_at: string | null
+  note: string | null
+}
+
+export const SUGGESTION_KINDS: Record<SuggestionKind, { label: string; icon: string }> = {
+  beer_edit: { label: 'Bier geändert', icon: '✏️' },
+  brewery_edit: { label: 'Brauerei geändert', icon: '🏭' },
+  beer_hide: { label: 'Ausblenden', icon: '🙈' },
+  beer_unhide: { label: 'Wieder einblenden', icon: '👀' },
+  beer_new: { label: 'Neues Bier', icon: '🍺' },
+  brewery_new: { label: 'Neue Brauerei', icon: '🆕' },
+  barcode: { label: 'Barcode zugeordnet', icon: '🏷️' },
+}

@@ -77,8 +77,8 @@ export default function Login() {
   return (
     <div className="login">
       <div className="login-logo">🍻</div>
-      <h1>Bier-Tracker</h1>
-      <p className="tagline">Jedes Bier zählt. Prost!</p>
+      <h1 className="brand">Plopp!</h1>
+      <p className="tagline">Der Biertracker – jedes Bier zählt.</p>
 
       {status === 'checking' ? (
         <Spinner />

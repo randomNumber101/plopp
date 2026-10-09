@@ -331,6 +331,11 @@ def test_web_pipeline():
     assert rb["Rittmayer Kellerbier"]["trust"] == "unverified" and rb["Rittmayer Aischgründer Zoigl"]["trust"] == "unverified"
     assert st["website_beers"] == 3 and st["sites_with_beers"] == 1 and st["website_methods"]["fremd"] == 1, st
     assert "http://www.rittmayer.de/" in seen_sites
+    # In der App ausgeblendet → beim nächsten Lauf nicht wieder angelegt
+    _, beers2, st2 = merge.build(entries, wd_b, [], off, {}, osm=els, crawl=crawl,
+                                 hidden=[(rt["ext_id"], "Rittmayer Kellerbier")])
+    names2 = {b["name"] for b in beers2 if b["brewery_ext"] == rt["ext_id"]}
+    assert "Rittmayer Kellerbier" not in names2 and "Rittmayer Hefeweizen" in names2 and st2["hidden_skipped"] == 1, st2
 
 
 def test_pipeline():
@@ -408,14 +413,23 @@ def test_db(url: str):
         save_caches(conn, {"Aying, Bayern": {"lat": 1.0, "lng": 2.0, "state": "Bayern", "precision": "ort"}},
                     {"https://x.de/": {"logo_url": None, "status": 404}})
         save_caches(conn, {}, {}, {"https://site.de/": {"status": 200, "beers": [{"name": "Pils"}]}})
-        geo, web, over, site_c = load_caches(conn)
+        geo, web, over, site_c, hid = load_caches(conn)
         assert site_c["https://site.de/"]["beers"][0]["name"] == "Pils"
         s2 = load(conn, breweries, beers, prune=True)
+        with conn.cursor() as cur:
+            cur.execute("""insert into public.beers (brewery_id, name, ext_id, source, trust, hidden_at)
+                           select id, 'Merch-Tasse', 'beer:alt:merch', 'website', 'unverified', now()
+                           from public.breweries where ext_id is not null limit 1""")
+        conn.commit()
+        s_h = load(conn, breweries, beers, prune=True)
+        with conn.cursor() as cur:
+            cur.execute("select count(*) from public.beers where ext_id = 'beer:alt:merch'")
+            assert cur.fetchone()[0] == 1, s_h  # ausgeblendet = Grabstein, wird nicht aufgeräumt
         # Schlüssel der Biere ändern sich (z. B. neue Normalisierung) → vorhandene Biere werden neu zugeordnet, nicht gelöscht
         changed = [{**x, "ext_id": x["ext_id"] + "-v2"} for x in beers]
         s3 = load(conn, breweries, changed, prune=True)
         assert s3["beers_linked"] == s2["db_beers"] - 0 - 1 or s3["beers_linked"] >= len(beers) - 1, s3
-        assert s3.get("beers_pruned", 0) == 0 and s3["db_beers"] == s2["db_beers"], s3
+        assert s3.get("beers_pruned", 0) == 0 and s3["db_beers"] == s_h["db_beers"], s3
         with conn.cursor() as cur:
             cur.execute("select b.name, b.trust from public.checkins c join public.beers b on b.id = c.beer_id")
             moved = cur.fetchall()
@@ -444,6 +458,85 @@ def test_db(url: str):
     assert prog and prog[0][1] == "verified" and prog[0][4] == 1, prog
 
 
+def test_circles(url: str):
+    """Runden: Änderungen gelten nur für die eigene Runde und landen als Vorschlag; Admin übernimmt."""
+    import psycopg
+
+    from scraper.load import load
+
+    U1, U2 = "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"
+    with psycopg.connect(url, autocommit=True) as conn, conn.cursor() as cur:
+        cur.execute("select id, brewery_id, name from public.beers where circle_id is null and hidden_at is null order by name limit 1")
+        beer_id, brewery_id, beer_name = cur.fetchone()
+
+        def as_user(uid):
+            cur.execute("reset role")
+            cur.execute("select set_config('request.jwt.claim.sub', %s, false)", (uid,))
+            cur.execute("set role authenticated")
+
+        # Nutzer 2 gehört zu einer anderen Runde
+        as_user(U1)
+        cur.execute("select public.ensure_circle()")
+        cur.execute("select public.edit_beer(%s, %s::jsonb)", (beer_id, '{"name": "Runden-Name", "style": "Zwickel"}'))
+        cur.execute("select public.hide_beers(%s::uuid[], 'kein_bier')", ([beer_id],))
+        cur.execute("insert into public.breweries (name, city) values ('Garagenbräu', 'Testdorf') returning id")
+        own_brewery = cur.fetchone()[0]
+        cur.execute("insert into public.beers (brewery_id, name) values (%s, 'Garagen-Hell') returning id", (own_brewery,))
+        own_beer = cur.fetchone()[0]
+        cur.execute("insert into public.beer_barcodes (ean, beer_id) values ('4000000000017', %s)", (own_beer,))
+        cur.execute("select kind, status from public.catalog_suggestions order by id")
+        kinds = cur.fetchall()
+        cur.execute("select data from public.circle_overrides where target_id = %s", (beer_id,))
+        over = cur.fetchone()[0]
+        cur.execute("select total from public.brewery_progress() where id = %s", (brewery_id,))
+        total_u1 = cur.fetchone()[0]
+        # direkte Änderung am Katalog ist nicht mehr erlaubt
+        cur.execute("update public.beers set name = 'Hack' where id = %s", (beer_id,))
+        hacked = cur.rowcount
+
+        as_user(U2)
+        cur.execute("select public.ensure_circle()")
+        cur.execute("select count(*) from public.beers where id = %s", (own_beer,))
+        u2_sees_own = cur.fetchone()[0]
+        cur.execute("select total from public.brewery_progress() where id = %s", (brewery_id,))
+        total_u2 = cur.fetchone()[0]
+        cur.execute("select count(*) from public.circle_overrides")
+        u2_overrides = cur.fetchone()[0]
+
+        # Admin (Nutzer 2 ist hier auch Gründer/Admin) übernimmt die Namensänderung
+        cur.execute("select id from public.catalog_suggestions where kind = 'beer_edit' and target_id = %s", (beer_id,))
+        sid = cur.fetchone()[0]
+        cur.execute("select public.apply_suggestion(%s)", (sid,))
+        cur.execute("reset role")
+        cur.execute("select name, style, locked from public.beers where id = %s", (beer_id,))
+        applied = cur.fetchone()
+        cur.execute("select status from public.catalog_suggestions where id = %s", (sid,))
+        st = cur.fetchone()[0]
+        # Import darf gesperrte Felder nicht zurücksetzen
+        cur.execute("select ext_id from public.beers where id = %s", (beer_id,))
+        ext = cur.fetchone()[0]
+    print("Vorschläge:", kinds)
+    assert ("beer_edit", "offen") in kinds and ("beer_hide", "offen") in kinds, kinds
+    assert ("brewery_new", "offen") in kinds and ("beer_new", "offen") in kinds and ("barcode", "offen") in kinds, kinds
+    assert over["name"] == "Runden-Name" and over["hidden_reason"] == "kein_bier", over
+    assert hacked == 0
+    assert u2_sees_own == 0 and u2_overrides == 0
+    assert total_u2 == total_u1 + 1, (total_u1, total_u2)
+    assert applied[0] == "Runden-Name" and applied[1] == "Zwickel" and set(applied[2]) == {"name", "style"}, applied
+    assert st == "übernommen"
+    _, breweries, beers, _ = build_catalog()
+    with psycopg.connect(url) as conn:
+        load(conn, breweries, beers, prune=False)
+        with conn.cursor() as cur:
+            cur.execute("select name, style from public.beers where id = %s", (beer_id,))
+            after = cur.fetchone()
+            cur.execute("select count(*) from public.beers where id = %s", (own_beer,))
+            own_left = cur.fetchone()[0]
+    assert ext is None or after == ("Runden-Name", "Zwickel"), after
+    assert own_left == 1  # Runden-Einträge fasst der Import nicht an
+    print("Runden-Test OK")
+
+
 if __name__ == "__main__":
     test_util()
     test_wikipedia()
@@ -456,3 +549,4 @@ if __name__ == "__main__":
     if os.environ.get("TEST_DB_URL"):
         test_db(os.environ["TEST_DB_URL"])
         print("DB-Test OK")
+        test_circles(os.environ["TEST_DB_URL"])

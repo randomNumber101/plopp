@@ -1,4 +1,4 @@
-# Bier-Tracker
+# Plopp! – Der Biertracker
 
 Private Web-App (PWA) zum Tracken getrunkener Biere – mit Barcode-Scan, Brauerei-Sortimenten und Karte.
 

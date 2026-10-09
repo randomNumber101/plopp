@@ -99,7 +99,7 @@ def brand_word(name: str) -> str:
 
 def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict], off_products: list[dict],
           brand_overrides: dict[str, str | None] | None = None, osm: list[dict] | None = None,
-          crawl=None, geocoder=None):
+          crawl=None, geocoder=None, hidden: list[tuple[str, str]] | None = None):
     """→ (breweries, beers, stats). brand_overrides: Markenschlüssel → ext_id (Zuordnung) bzw. None (ablehnen).
     osm: Objekte aus OpenStreetMap; crawl: Funktion {website: [Brauereien]} → {website: Ergebnis}."""
     brand_overrides = brand_overrides or {}
@@ -247,9 +247,16 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         t = list(dict.fromkeys(t))  # „alkoholfrei alkoholfrei“ → „alkoholfrei“
         return " ".join(t) or key(name)
 
+    # In der App ausgeblendete Biere (Merch, Dubletten …) nicht wieder anlegen
+    hidden_keys = {(e, beer_key(e, n)) for e, n in (hidden or [])}
+    stats["hidden_skipped"] = 0
+
     def add_beer(brewery_ext, name, style, abv, image, source, trust, eans, create=True):
         bk = beer_key(brewery_ext, name)
         if not bk:
+            return None
+        if (brewery_ext, bk) in hidden_keys:
+            stats["hidden_skipped"] += 1
             return None
         ext = f"beer:{brewery_ext}:{bk.replace(' ', '-')}"
         b = beers.get(ext)

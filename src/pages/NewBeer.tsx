@@ -140,6 +140,10 @@ export default function NewBeer() {
       )}
       {prefill.imageUrl && <img className="hero-img" src={prefill.imageUrl} alt="" />}
 
+      <p className="muted small">
+        👥 Neue Biere, Brauereien und Barcodes siehst zuerst nur du und deine Runde. Sie gehen als Vorschlag an den
+        Katalog.
+      </p>
       <form className="form" onSubmit={save}>
         <label>
           Name des Biers *

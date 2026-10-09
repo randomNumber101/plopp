@@ -57,7 +57,8 @@ export function InviteSection() {
       <h3>Freunde einladen</h3>
       <p className="muted small">
         Neue Konten gibt es nur per Einladungslink. Jeder Link gilt 14 Tage und für genau ein Konto. Eingeladene haben
-        eigene Biere und Listen – nur der Katalog (Brauereien, Biere, Barcodes) ist gemeinsam.
+        eigene Check-ins und Listen und gehören zu deiner Runde: Was ihr am Katalog ändert, anlegt oder ausblendet, seht
+        nur ihr – als Vorschlag für alle wird es erst nach Prüfung übernommen.
       </p>
       <button className="btn btn-primary" onClick={create} disabled={busy}>
         {busy ? 'Erstelle Link …' : '✉️ Einladungslink erstellen & teilen'}
