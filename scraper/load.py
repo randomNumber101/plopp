@@ -77,13 +77,18 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
                     cp.write_row([b["ext_id"], a, _key(a)])
 
         # ---------------------------------------------------------------- Brauereien
+        # Vorhandene Einträge ohne bzw. mit veralteter ext_id über Name + Ort neu zuordnen
         cur.execute("""
-            update public.breweries b set ext_id = s.ext_id
-            from stg_breweries s
-            where b.ext_id is null
-              and lower(b.name) = lower(s.name)
-              and lower(coalesce(b.city, '')) = lower(coalesce(s.city, ''))
-              and not exists (select 1 from public.breweries x where x.ext_id = s.ext_id)
+            with cand as (
+              select distinct on (s.ext_id) b.id, s.ext_id
+              from public.breweries b
+              join stg_breweries s on lower(b.name) = lower(s.name)
+                                  and lower(coalesce(b.city, '')) = lower(coalesce(s.city, ''))
+              where (b.ext_id is null or not exists (select 1 from stg_breweries x where x.ext_id = b.ext_id))
+                and not exists (select 1 from public.breweries y where y.ext_id = s.ext_id)
+              order by s.ext_id, b.created_at
+            )
+            update public.breweries b set ext_id = cand.ext_id from cand where b.id = cand.id
         """)
         stats["breweries_linked"] = cur.rowcount
         cur.execute("""
@@ -156,10 +161,15 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
             from stg_beers s join public.breweries br on br.ext_id = s.brewery_ext
         """)
         cur.execute("""
-            update public.beers b set ext_id = s.ext_id
-            from stg_beers2 s
-            where b.ext_id is null and b.brewery_id = s.brewery_id and lower(b.name) = lower(s.name)
-              and not exists (select 1 from public.beers x where x.ext_id = s.ext_id)
+            with cand as (
+              select distinct on (s.ext_id) b.id, s.ext_id
+              from public.beers b
+              join stg_beers2 s on b.brewery_id = s.brewery_id and lower(b.name) = lower(s.name)
+              where (b.ext_id is null or not exists (select 1 from stg_beers x where x.ext_id = b.ext_id))
+                and not exists (select 1 from public.beers y where y.ext_id = s.ext_id)
+              order by s.ext_id, b.created_at
+            )
+            update public.beers b set ext_id = cand.ext_id from cand where b.id = cand.id
         """)
         stats["beers_linked"] = cur.rowcount
         cur.execute("""
@@ -231,6 +241,13 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
         """)
         cur.execute("delete from public.wishlist w using beer_moves m where w.beer_id = m.old_id")
 
+        # Sicherung: Wenn plötzlich mehr als die Hälfte des Katalogs „veraltet“ wäre, stimmt etwas nicht
+        cur.execute("select (select count(*) from stale_beers), (select count(*) from public.beers where source <> 'user')")
+        stale_n, catalog_n = cur.fetchone()
+        stats["beers_stale"] = stale_n
+        if prune and catalog_n and stale_n > 0.5 * catalog_n:
+            prune = False
+            stats["prune_skipped"] = f"{stale_n} von {catalog_n} Bieren wären gelöscht worden"
         if prune:
             # Veraltete Biere ohne Bezug zum Nutzer entfernen
             cur.execute("""

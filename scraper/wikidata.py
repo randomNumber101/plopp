@@ -214,7 +214,10 @@ SELECT ?item ?itemLabel ?isBrewery ?isCompany ?coord ?website ?logo ?dissolved W
 }
 """
 
-_BREWERY_WORDS = re.compile(r"brauerei|bräu|brau|brauhaus|brewery|brewing|bier", re.IGNORECASE)
+_BREWERY_WORDS = re.compile(r"brauerei|bräu|brau|brauhaus|brewery|brewing", re.IGNORECASE)
+# Links, die auf Orte/Gebäude zeigen, nicht auf die Brauerei
+_NOT_BREWERY = re.compile(r"kloster|abtei|schloss|bahnhof|zoo|museum|kirche|palais|postamt|lebenshilfe|malzfabrik|"
+                          r"freilicht|kirchweih|mauthalle|\(bier\)|\(marke\)|stadtpalais|ratskeller", re.IGNORECASE)
 
 
 def parse_check(rows: list[dict]) -> dict[str, dict]:
@@ -225,7 +228,9 @@ def parse_check(rows: list[dict]) -> dict[str, dict]:
                                  "dissolved": False, "label": _val(row, "itemLabel")})
         if _val(row, "isBrewery"):
             d["is_brewery"] = True
-        if _val(row, "isCompany") and _BREWERY_WORDS.search(d["label"] or ""):
+        label = d["label"] or ""
+        # Viele Brauereien sind in Wikidata nur als Unternehmen/Gebäude erfasst – dann entscheidet der Name
+        if _BREWERY_WORDS.search(label) and not _NOT_BREWERY.search(label):
             d["is_brewery"] = True
         if _val(row, "dissolved"):
             d["dissolved"] = True

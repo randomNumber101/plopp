@@ -38,7 +38,8 @@ def fold(s: str) -> str:
 
 
 def tokens(s: str) -> list[str]:
-    return [t for t in re.split(r"[^a-z0-9]+", fold(s)) if t and t not in STOPWORDS]
+    s = re.sub(r"['’`´]s\b", "", fold(s))  # „Beck's“ → „beck“
+    return [t for t in re.split(r"[^a-z0-9]+", s) if t and t not in STOPWORDS]
 
 
 def key(s: str) -> str:

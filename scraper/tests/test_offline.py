@@ -72,7 +72,7 @@ class FakeGeocoder:
     rejected_state = 0
     new: dict = {}
 
-    def locate(self, place, state, district=None):
+    def locate(self, place, state, district=None, street=None):
         table = {"Pretzfeld-Unterzaunsbach": (49.76, 11.18, "ort"), "Hallerndorf-Willersdorf": (49.75, 10.95, "ort"),
                  "Forchheim": (49.72, 11.06, "ort"), "Stuttgart": (48.78, 9.18, "ort")}
         return table.get(place)
@@ -89,7 +89,7 @@ def test_util():
 
 
 def test_wikipedia():
-    de = wikipedia.parse_germany((FIX / "de_sample.wiki").read_text(encoding="utf-8"))
+    de, _ = wikipedia.parse_germany((FIX / "de_sample.wiki").read_text(encoding="utf-8"))
     by = wikipedia.parse_bavaria((FIX / "by_sample.wiki").read_text(encoding="utf-8"))
     names = [e["name"] for e in de]
     assert names == ["Alpirsbacher Klosterbräu", "Rothaus", "Brauerei Schmid", "Dinkelacker-Schwaben Bräu",
@@ -115,6 +115,22 @@ def test_wikipedia():
     assert by[7]["type"] == "kommunbrauhaus" and by[7]["place"] == "Neuhaus an der Pegnitz"
     assert by[8]["name"] == "Brauerei Hebendanz"  # verschachtelte Liste
     return de, by
+
+
+def test_real_wikitext():
+    """Echter Quelltext beider Listen (Stand Oktober 2026)"""
+    de, main_pages = wikipedia.parse_germany((FIX / "real_de.wiki").read_text(encoding="utf-8"))
+    by = wikipedia.parse_bavaria((FIX / "real_by.wiki").read_text(encoding="utf-8"))
+    assert len(de) >= 300 and len(by) >= 700, (len(de), len(by))
+    assert {"Baden-Württemberg", "Hessen", "Niedersachsen", "Nordrhein-Westfalen"} <= set(main_pages), main_pages
+    assert all(e["place"] for e in by), [e["name"] for e in by if not e["place"]][:10]
+    n = {e["name"]: e for e in by}
+    assert "Augustiner-Bräu Wagner" in n and n["Augustiner-Bräu Wagner"]["place"] == "München"
+    assert n["Paulaner Bräuhaus"]["street"] == "Kapuzinerplatz" and n["Paulaner Bräuhaus"]["type"] == "gasthausbrauerei"
+    assert n["Riedenburger Brauhaus Michael Krieger"]["place"] == "Riedenburg"
+    berlin = [e for e in de if e["state"] == "Berlin"]
+    assert berlin and berlin[0]["brands"], berlin[0]
+    assert sum(1 for e in by if e["type"] == "kommunbrauhaus") >= 20
 
 
 def build_catalog():
@@ -207,6 +223,11 @@ def test_db(url: str):
                     {"https://x.de/": {"logo_url": None, "status": 404}})
         geo, web, over = load_caches(conn)
         s2 = load(conn, breweries, beers, prune=True)
+        # Schlüssel der Biere ändern sich (z. B. neue Normalisierung) → vorhandene Biere werden neu zugeordnet, nicht gelöscht
+        changed = [{**x, "ext_id": x["ext_id"] + "-v2"} for x in beers]
+        s3 = load(conn, breweries, changed, prune=True)
+        assert s3["beers_linked"] == s2["db_beers"] - 0 - 1 or s3["beers_linked"] >= len(beers) - 1, s3
+        assert s3.get("beers_pruned", 0) == 0 and s3["db_beers"] == s2["db_beers"], s3
         with conn.cursor() as cur:
             cur.execute("select b.name, b.trust from public.checkins c join public.beers b on b.id = c.beer_id")
             moved = cur.fetchall()
@@ -237,6 +258,7 @@ def test_db(url: str):
 if __name__ == "__main__":
     test_util()
     test_wikipedia()
+    test_real_wikitext()
     test_pipeline()
     print("Offline-Tests OK")
     if os.environ.get("TEST_DB_URL"):

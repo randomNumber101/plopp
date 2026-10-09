@@ -57,8 +57,24 @@ export async function searchBreweries(q: string, limit = 10): Promise<Brewery[]>
   return check(await query) as Brewery[]
 }
 
+/** Supabase liefert pro Anfrage höchstens 1000 Zeilen – daher seitenweise laden */
 export async function breweryProgress(): Promise<BreweryProgress[]> {
-  return check(await supabase.rpc('brewery_progress')) as BreweryProgress[]
+  const out: BreweryProgress[] = []
+  const seen = new Set<string>()
+  const page = 1000
+  for (let from = 0; from < 50000; ) {
+    const rows = check(await supabase.rpc('brewery_progress').range(from, from + page - 1)) as BreweryProgress[]
+    if (!rows.length) break
+    for (const r of rows) {
+      if (!seen.has(r.id)) {
+        seen.add(r.id)
+        out.push(r)
+      }
+    }
+    from += rows.length
+    if (rows.length < page) break
+  }
+  return out
 }
 
 export async function createBrewery(b: {

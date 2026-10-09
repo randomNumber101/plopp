@@ -4,3 +4,4 @@ dist
 __pycache__
 .DS_Store
 _workflows_zum_kopieren/
+Claude outputs/

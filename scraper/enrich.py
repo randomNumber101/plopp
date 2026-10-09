@@ -104,7 +104,7 @@ def apply_coords(entries: list[dict], geocoder) -> dict:
     for e in entries:
         if e["lat"] is not None:
             continue
-        hit = geocoder.locate(e.get("place"), e.get("state"), e.get("district")) if geocoder else None
+        hit = geocoder.locate(e.get("place"), e.get("state"), e.get("district"), e.get("street")) if geocoder else None
         if hit:
             e["lat"], e["lng"], e["geo_precision"] = hit
             stats["coords_geocoded"] += 1

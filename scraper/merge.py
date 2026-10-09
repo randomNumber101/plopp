@@ -13,7 +13,7 @@ from collections import Counter, defaultdict
 
 from rapidfuzz import fuzz, process
 
-from .enrich import place_city
+from .enrich import haversine_km, place_city
 from .util import STOPWORDS, clean_beer_name, fold, guess_style, key, tokens
 
 _BAD_STYLE = re.compile(r"verschied|saison|weitere|u\.\s?a\.|diverse|etc|sowie|wechselnd|spezialit|biere\b|sorten",
@@ -33,10 +33,11 @@ def _slug(s: str) -> str:
 class AliasIndex:
     """Markenname → Brauerei (ext_id). Mehrere Braustätten eines Unternehmens zählen als eins (Eltern)."""
 
-    def __init__(self, parent_of: dict[str, str]):
+    def __init__(self, parent_of: dict[str, str], breweries: dict[str, dict] | None = None):
         self.map: dict[str, set[str]] = defaultdict(set)
         self.parent_of = parent_of
         self.trust: dict[str, str] = {}
+        self.breweries = breweries or {}
 
     def add(self, alias: str, ext: str, trust: str):
         k = key(alias)
@@ -44,19 +45,30 @@ class AliasIndex:
             self.map[k].add(ext)
             self.trust[ext] = trust
 
-    def _resolve(self, exts: set[str]) -> str | None:
+    def _resolve(self, exts: set[str], alias_key: str | None = None) -> str | None:
         top = {self.parent_of.get(e, e) for e in exts}
         if len(top) == 1:
             return top.pop()
-        verified = {e for e in top if self.trust.get(e) == "verified"}
-        return verified.pop() if len(verified) == 1 else None
+        cands = {e for e in top if self.trust.get(e) == "verified"} or top
+        # Gleichstand auflösen: eigentliche Brauerei vor Gasthausbrauerei, Wikidata-Objekt, exakter Name
+        for rule in (
+            lambda e: self.breweries.get(e, {}).get("brewery_type") == "brauerei",
+            lambda e: e.startswith("wd:"),
+            lambda e: alias_key is not None and key(self.breweries.get(e, {}).get("name", "")) == alias_key,
+        ):
+            if len(cands) == 1:
+                break
+            narrowed = {e for e in cands if rule(e)}
+            if narrowed:
+                cands = narrowed
+        return next(iter(cands)) if len(cands) == 1 else None
 
     def find(self, brand: str) -> tuple[str | None, str]:
         k = key(brand)
         if not k:
             return None, "leer"
         if k in self.map:
-            return self._resolve(self.map[k]), "alias"
+            return self._resolve(self.map[k], k), "alias"
         bt = k.split()
         if len(bt[0]) >= 4:
             cands = set()
@@ -115,9 +127,38 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
     stats["wp_breweries"] = len(breweries)
 
     # ------------------------------------------------------------ 2. Weitere Brauereien nur aus Wikidata (ungeprüft)
-    extra = 0
+    # Dubletten (gleiche Brauerei unter anderem Namen/ohne Link in Wikipedia) über Nähe + Namensähnlichkeit erkennen
+    wp_by_state: dict[str, list[dict]] = defaultdict(list)
+    for b in breweries.values():
+        wp_by_state[b["state"] or ""].append(b)
+
+    def duplicate_of(wb: dict) -> dict | None:
+        nk = key(wb["name"])
+        best, best_score = None, 0
+        for b in wp_by_state.get(wb.get("state") or "", []) if wb.get("state") else breweries.values():
+            score = fuzz.token_set_ratio(nk, key(b["name"]))
+            if score < 75:
+                continue
+            if wb.get("lat") is not None and b.get("lat") is not None:
+                if haversine_km((wb["lat"], wb["lng"]), (b["lat"], b["lng"])) > 3:
+                    continue
+            elif not (score >= 90 and wb.get("city") and b.get("city")
+                      and set(tokens(wb["city"])) & set(tokens(b["city"]))):
+                continue
+            if score > best_score:
+                best, best_score = b, score
+        return best
+
+    extra = dupes = 0
     for wb in wd_breweries:
         if wb["ext_id"] in breweries:
+            continue
+        twin = duplicate_of(wb)
+        if twin:
+            twin["aliases"].add(wb["name"])
+            twin["logo_url"] = twin["logo_url"] or wb.get("logo_url")
+            twin["website"] = twin["website"] or wb.get("website")
+            dupes += 1
             continue
         breweries[wb["ext_id"]] = {
             **{k: wb.get(k) for k in ("ext_id", "name", "city", "state", "country", "lat", "lng", "website", "logo_url")},
@@ -127,13 +168,20 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         }
         extra += 1
     stats["wd_only_breweries"] = extra
+    stats["wd_duplicates_merged"] = dupes
     # Eltern, die selbst nicht im Katalog sind, ignorieren
     for b in breweries.values():
         if b["parent_ext"] and b["parent_ext"] not in breweries:
             b["parent_ext"] = None
             parent_of.pop(b["ext_id"], None)
 
-    index = AliasIndex(parent_of)
+    # Herkunftsform als Markenname: „Brauerei Aying“ in Aying → „Ayinger“, „Lübz“ → „Lübzer“
+    for b in breweries.values():
+        city_t = set(tokens(b.get("city") or ""))
+        for t in tokens(b["name"]):
+            if len(t) >= 4 and t in city_t and not t.endswith("er"):
+                b["aliases"].add(t + "er")
+    index = AliasIndex(parent_of, breweries)
     for b in breweries.values():
         for a in b["aliases"]:
             index.add(a, b["ext_id"], b["trust"])

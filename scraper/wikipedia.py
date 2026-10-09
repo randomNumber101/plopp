@@ -215,7 +215,7 @@ def _entry(**kw) -> dict:
     e = {
         "name": None, "place": None, "state": None, "region": None, "district": None, "founded": None,
         "brands": [], "styles": [], "note": None, "link_title": None, "logo_file": None,
-        "website": None, "coords": None, "type": None, "page": None,
+        "website": None, "coords": None, "type": None, "page": None, "street": None,
     }
     e.update(kw)
     e["type"] = e["type"] or brewery_type(e["name"] or "", e["note"] or "")
@@ -318,106 +318,201 @@ def _col(headers: list[str], *names: str) -> int | None:
     return None
 
 
-def parse_germany(text: str) -> list[dict]:
+_STREET = re.compile(r"(stra(ss|ß)e|str\.|weg|platz|gasse|allee|ring|damm|markt|berg|ufer)\b", re.IGNORECASE)
+_FOUNDED = re.compile(r"(gegr\.|gegründet|seit|gründung)\s*(\d{4})", re.IGNORECASE)
+_CLOSED = re.compile(r"^(geschlossen|stillgelegt|aufgegeben|insolvent|braubetrieb (wurde )?eingestellt|ehemalig)",
+                     re.IGNORECASE)
+_CLOSED_COL = re.compile(r"schließ|geschlossen|stilllegung|ende|status", re.IGNORECASE)
+_DISTRICT_PREFIX = re.compile(r"^(landkreis|kreis|region|städteregion|rhein-|erzgebirgskreis|vogtlandkreis|"
+                              r"rhein-kreis|oberbergischer|sonstig)", re.IGNORECASE)
+
+
+def is_city_district(district: str | None) -> bool:
+    """„München“, „Ingolstadt“ (kreisfreie Stadt) → True; „Landkreis Forchheim“ → False"""
+    return bool(district) and not _DISTRICT_PREFIX.search(district) and "kreis" not in district.lower()
+
+
+def _note_info(note: str | None) -> tuple[str | None, str | None]:
+    """(Straße, Gründungsjahr) aus Anmerkungen wie „Gasthausbrauerei; Kapuzinerplatz; seit 1989“"""
+    street = founded = None
+    for part in re.split(r"[;,]", note or ""):
+        p = part.strip()
+        m = _FOUNDED.search(p)
+        if m and not founded:
+            founded = m.group(2)
+        elif p and _STREET.search(p) and len(p) < 40 and not street and not re.search(r"\d{4}", p):
+            street = p
+    return street, founded
+
+
+def _link_texts(code) -> list[str]:
     out = []
+    for l in code.filter_wikilinks(recursive=True):
+        t = str(l.title)
+        if FILE_PREFIX.match(t):
+            continue
+        txt = mwp.parse(str(l.text)).strip_code().strip() if l.text else t.split("#")[0].strip()
+        if 2 < len(txt) <= 40:
+            out.append(txt)
+    return out
+
+
+def _table_entries(block: str, state: str, district: str | None, page: str) -> list[dict]:
+    out = []
+    headers, rows = _table_rows(block)
+    ci_name = _col(headers, "unternehmen", "brauerei", "name", "betrieb")
+    ci_place = _col(headers, "standort", "ortsteil", "ort", "sitz", "gemeinde", "stadt")
+    ci_found = _col(headers, "gründung", "gegründet", "seit")
+    ci_brands = _col(headers, "marke")
+    ci_styles = _col(headers, "sorte", "biere")
+    ci_note = _col(headers, "anmerkung", "bemerkung", "hinweis")
+    ci_closed = next((i for i, h in enumerate(headers) if _CLOSED_COL.search(h)), None)
+    if ci_name is None:
+        ci_name = 0
+    for row in rows:
+        def cell(i):
+            return row[i] if i is not None and i < len(row) else mwp.parse("")
+
+        if ci_closed is not None and re.search(r"\d{4}|ja|geschlossen", _flatten(cell(ci_closed)), re.IGNORECASE):
+            continue
+        name_c = cell(ci_name)
+        name = _flatten(name_c)
+        if not name or len(name) > 120 or name.lower() in ("unternehmen", "brauerei"):
+            continue
+        note_c = cell(ci_note)
+        note = _flatten(note_c) or None
+        if note and _CLOSED.search(note):
+            continue
+        link_title, link_text = _first_link(mwp.parse(str(name_c)))
+        if link_text and len(link_text) >= 3 and link_text.lower() in name.lower():
+            name = link_text if len(name) > len(link_text) + 25 else name
+        place_c = cell(ci_place)
+        place = _flatten(place_c) or None
+        if not place and state in CITY_STATES:
+            place = state
+        if not place and is_city_district(district):
+            place = district
+        urls = _urls_from(name_c) + _urls_from(place_c) + _urls_from(note_c)
+        brands = _split_list(_flatten(cell(ci_brands)))
+        if not brands and note and re.match(r"(u\.\s*a\.|marken)", note, re.IGNORECASE):
+            brands = _link_texts(mwp.parse(str(note_c)))
+        street, founded_note = _note_info(note)
+        founded = _flatten(cell(ci_found)) or founded_note
+        out.append(_entry(
+            name=name, place=place, state=state, district=district, founded=founded or None,
+            brands=brands, styles=_split_list(_flatten(cell(ci_styles))),
+            note=note, link_title=link_title, street=street,
+            logo_file=_logo_file(mwp.parse(str(name_c))), website=pick_website(urls, name),
+            coords=_coords_from(mwp.parse(str(place_c))) or _coords_from(mwp.parse(str(name_c))),
+            page=page,
+        ))
+    return out
+
+
+def _list_entries(lines: list[str], state: str, region: str | None, district: str | None, page: str) -> list[dict]:
+    out = []
+    for line in lines:
+        s = line.strip()
+        if not s.startswith("*"):
+            continue
+        raw = s.lstrip("*:# ").strip()
+        if not raw or re.match(r"(siehe|vgl\.|hinweis|\d+ brauereien)", raw, re.IGNORECASE):
+            continue
+        code = mwp.parse(raw)
+        urls = _urls_from(code)
+        coords = _coords_from(code)
+        link_title = None
+        first = code.nodes[0] if code.nodes else None
+        if isinstance(first, mwp.nodes.Wikilink) and not FILE_PREFIX.match(str(first.title)):
+            link_title = str(first.title).split("#")[0].strip()
+        text = _flatten(code)
+        notes = re.findall(r"\(([^()]*)\)", text)
+        text_wo = re.sub(r"\s*\([^()]*\)", "", text).strip(" ,")
+        parts = [p.strip() for p in text_wo.split(",") if p.strip()]
+        if not parts:
+            continue
+        # Name = alles bis zum ersten Komma („[[Augustiner-Bräu]] Wagner“ → „Augustiner-Bräu Wagner“)
+        name = parts[0]
+        place = ", ".join(parts[1:]) or None
+        if not place and is_city_district(district):
+            place = district
+        if len(name) < 3 or len(name) > 120:
+            continue
+        note = "; ".join(n.strip() for n in notes if n.strip()) or None
+        if note and _CLOSED.search(note):
+            continue
+        street, founded = _note_info(note)
+        out.append(_entry(
+            name=name, place=place, state=state, region=region, district=district, note=note,
+            founded=founded, street=street, link_title=link_title, website=pick_website(urls, name),
+            coords=coords, page=page,
+        ))
+    return out
+
+
+def parse_germany(text: str) -> tuple[list[dict], dict[str, str]]:
+    """→ (Einträge, {Bundesland: Hauptartikel}) – Bundesländer mit eigener Liste verweisen per {{Hauptartikel}}"""
+    out: list[dict] = []
+    main_pages: dict[str, str] = {}
     for heads, lines in _sections(text):
         if any(SKIP_SECTIONS.search(h) for h in heads):
             continue
         state = next((h for h in heads if h in STATES), None)
         if not state:
             continue
+        for t in mwp.parse("\n".join(lines)).filter_templates(recursive=False):
+            if str(t.name).strip().lower() in ("hauptartikel", "main") and t.params:
+                main_pages.setdefault(state, str(t.params[0].value).strip())
+        sub = heads[-1] if heads and heads[-1] != state else None
+        district = None if not sub or sub.lower().startswith("sonstig") else sub
         for block in _tables(lines):
-            headers, rows = _table_rows(block)
-            ci_name = _col(headers, "unternehmen", "brauerei", "name")
-            ci_place = _col(headers, "standort", "ort", "sitz")
-            ci_found = _col(headers, "gründung", "gegründet")
-            ci_brands = _col(headers, "marke")
-            ci_styles = _col(headers, "sorte")
-            ci_note = _col(headers, "anmerkung", "bemerkung")
-            if ci_name is None:
-                ci_name = 0
-            for row in rows:
-                def cell(i):
-                    return row[i] if i is not None and i < len(row) else mwp.parse("")
-
-                name_c = cell(ci_name)
-                name = _flatten(name_c)
-                if not name or len(name) > 120:
-                    continue
-                link_title, link_text = _first_link(mwp.parse(str(name_c)))
-                if link_text and len(link_text) >= 3 and link_text.lower() in name.lower():
-                    name = link_text if len(name) > len(link_text) + 25 else name
-                place_c = cell(ci_place)
-                place = _flatten(place_c) or (state if state in CITY_STATES else None)
-                urls = _urls_from(name_c) + _urls_from(place_c) + _urls_from(cell(ci_note))
-                out.append(_entry(
-                    name=name, place=place, state=state, founded=_flatten(cell(ci_found)) or None,
-                    brands=_split_list(_flatten(cell(ci_brands))), styles=_split_list(_flatten(cell(ci_styles))),
-                    note=_flatten(cell(ci_note)) or None, link_title=link_title,
-                    logo_file=_logo_file(mwp.parse(str(name_c))), website=pick_website(urls, name),
-                    coords=_coords_from(mwp.parse(str(place_c))) or _coords_from(mwp.parse(str(name_c))),
-                    page="de",
-                ))
-    return out
+            out += _table_entries(block, state, district, "de")
+    return out, main_pages
 
 
-def parse_bavaria(text: str) -> list[dict]:
+def parse_state_page(text: str, state: str, page: str, regions: list[str] | None = None) -> list[dict]:
+    """Eigene Landesliste (Bayern, Baden-Württemberg, Hessen …): Tabellen und/oder Listen."""
     out = []
     for heads, lines in _sections(text):
         if any(SKIP_SECTIONS.search(h) for h in heads):
             continue
-        region = next((h for h in heads if h in BY_REGIONS), None)
-        if not region:
+        region = next((h for h in heads if regions and h in regions), None)
+        if regions and not region:
             continue
-        district = heads[-1] if heads and heads[-1] != region else None
-        for line in lines:
-            s = line.strip()
-            if not s.startswith("*"):
-                continue
-            raw = s.lstrip("*:# ").strip()
-            if not raw or re.match(r"(siehe|vgl\.|hinweis)", raw, re.IGNORECASE):
-                continue
-            code = mwp.parse(raw)
-            urls = _urls_from(code)
-            coords = _coords_from(code)
-            link_title, link_text = (None, None)
-            # Der Name steht vorne; ein Link am Anfang ist der Brauerei-Artikel
-            first = code.nodes[0] if code.nodes else None
-            if isinstance(first, mwp.nodes.Wikilink) and not FILE_PREFIX.match(str(first.title)):
-                link_title = str(first.title).split("#")[0].strip()
-                link_text = mwp.parse(str(first.text)).strip_code().strip() if first.text else link_title
-            text = _flatten(code)
-            notes = re.findall(r"\(([^()]*)\)", text)
-            text_wo = re.sub(r"\s*\([^()]*\)", "", text).strip(" ,")
-            parts = [p.strip() for p in text_wo.split(",") if p.strip()]
-            if not parts:
-                continue
-            name = parts[0]
-            if link_text and text.startswith(link_text):
-                name = re.sub(r"\s*\([^()]*\)", "", link_text).strip()
-                rest = text_wo[len(name):].strip(" ,")
-                parts = [name] + [p.strip() for p in rest.split(",") if p.strip()]
-            place = ", ".join(parts[1:]) or None
-            if len(name) < 3 or len(name) > 120:
-                continue
-            note = "; ".join(n.strip() for n in notes if n.strip()) or None
-            out.append(_entry(
-                name=name, place=place, state="Bayern", region=region, district=district, note=note,
-                link_title=link_title, website=pick_website(urls, name), coords=coords, page="by",
-            ))
+        district = heads[-1] if heads and heads[-1] not in (region, state) else None
+        if district and district.lower().startswith(("sonstig", "übersicht", "allgemein")):
+            district = None
+        for block in _tables(lines):
+            out += _table_entries(block, state, district, page)
+        out += _list_entries(lines, state, region, district, page)
     return out
 
 
+def parse_bavaria(text: str) -> list[dict]:
+    return parse_state_page(text, "Bayern", "by", BY_REGIONS)
+
+
 def fetch() -> tuple[list[dict], dict]:
-    """Liefert (Einträge, Rohtexte) – Bayern aus der eigenen Liste, Rest aus der Deutschland-Liste."""
+    """Liefert (Einträge, Rohtexte). Bayern aus der eigenen Liste, weitere Landeslisten über {{Hauptartikel}}."""
     s = http_session()
     raw = {"de": fetch_wikitext(PAGE_DE, s), "by": fetch_wikitext(PAGE_BY, s)}
-    de = [e for e in parse_germany(raw["de"]) if e["state"] != "Bayern"]
+    de, main_pages = parse_germany(raw["de"])
+    entries = [e for e in de if e["state"] != "Bayern"]
     by = parse_bavaria(raw["by"])
-    # Bayern-Einträge, die nur in der Deutschland-Liste stehen, trotzdem übernehmen
+    entries += by
+    for state, title in main_pages.items():
+        if state == "Bayern":
+            continue
+        try:
+            txt = fetch_wikitext(title, s)
+        except Exception:  # noqa: BLE001
+            continue
+        raw[f"land:{state}"] = txt
+        known = {key(e["name"]) for e in entries if e["state"] == state}
+        entries += [e for e in parse_state_page(txt, state, f"land:{state}") if key(e["name"]) not in known]
+    # Bayern-Einträge, die nur in der Deutschland-Liste stehen
     by_keys = {key(e["name"]) for e in by}
-    de_by = [e for e in parse_germany(raw["de"]) if e["state"] == "Bayern" and key(e["name"]) not in by_keys]
-    entries = de + by + de_by
+    entries += [e for e in de if e["state"] == "Bayern" and key(e["name"]) not in by_keys]
     qids = resolve_qids([e["link_title"] for e in entries if e["link_title"]], s)
     for e in entries:
         e["qid"] = qids.get(e["link_title"]) if e["link_title"] else None

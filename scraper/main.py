@@ -216,6 +216,7 @@ def main() -> int:
             "report.md": report,
             "wiki_de.txt": raw_pages.get("de", ""),
             "wiki_by.txt": raw_pages.get("by", ""),
+            **{f"wiki_{k.replace(':', '_').replace(' ', '_')}.txt": v for k, v in raw_pages.items() if k.startswith("land:")},
             "entries.json": json.dumps([{k: v for k, v in e.items() if k != "wd"} | {"wd": (e.get("wd") or {}).get("qid")}
                                         for e in wp_entries], ensure_ascii=False, indent=1, default=list),
         }

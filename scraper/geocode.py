@@ -16,38 +16,58 @@ ADDRESS_TYPES = {"house", "building", "amenity", "shop", "craft", "tourism", "of
 PLACE_TYPES = {"hamlet", "village", "suburb", "neighbourhood", "quarter", "town", "city", "isolated_dwelling",
                "city_district", "borough", "locality", "farm", "allotments", "croft"}
 
-_ADDR = re.compile(r"\b\d{5}\b|(stra(ss|ß)e|str\.|weg|platz|gasse|allee|ring|damm)\s*\d", re.IGNORECASE)
+_ADDR = re.compile(r"\b\d{5}\b|(stra(ss|ß)e|str\.|weg|platz|gasse|allee|ring|damm)\s*\d|\s\d{1,4}\s?[a-z]?$",
+                   re.IGNORECASE)
+_PREFIX_WORDS = {"alt", "neu", "bad", "groß", "gross", "klein", "ober", "unter", "nieder", "hohen", "sankt", "st."}
 
 
-def query_variants(place: str | None, state: str | None, district: str | None = None) -> list[str]:
+def query_variants(place: str | None, state: str | None, district: str | None = None,
+                   street: str | None = None) -> list[str]:
     """Mögliche Suchanfragen, vom genauesten zum gröbsten."""
-    if not place:
-        return []
-    p = re.sub(r"\s+", " ", place).strip(" ,")
-    out: list[str] = []
+    from .wikipedia import is_city_district
+
     st = f", {state}" if state else ""
+    city_district = district if is_city_district(district) else None
+    lk = re.sub(r"^(Landkreis|Kreis)\s+", "", district) if district and not city_district else None
+    out: list[str] = []
+    if not place:
+        if street and city_district:
+            out.append(f"{street}, {city_district}{st}")
+        if city_district:
+            out.append(f"{city_district}{st}")
+        return out
+    p = re.sub(r"\s+", " ", place).strip(" ,")
+    p = p.split(" / ")[0].split("/")[0].strip()
     if _ADDR.search(p):
         out.append(f"{p}{st}")
-        # Nur Ort aus der Adresse („60314 Frankfurt am Main“)
         m = re.search(r"\b\d{5}\s+([^,]+)", p)
         if m:
             out.append(f"{m.group(1).strip()}{st}")
         return out
     parts = [x.strip() for x in p.split(",") if x.strip()]
     head = parts[0]
-    # „Gemeinde-Ortsteil“ → „Ortsteil, Gemeinde“ (nur wenn beide Teile mit Großbuchstaben beginnen)
-    m = re.match(r"^([A-ZÄÖÜ][^-]+?)-([A-ZÄÖÜ].+)$", head)
+    if street:
+        out.append(f"{street}, {city_district or head}{st}")
+    if city_district and head != city_district:
+        out.append(f"{head}, {city_district}{st}")  # Stadtteil einer kreisfreien Stadt
+    # „Gemeinde – Ortsteil“ (Bayern) bzw. „Gemeinde-Ortsteil“
+    m = re.match(r"^(.+?)\s+[–-]\s+(.+)$", head) or re.match(r"^([A-ZÄÖÜ][^-]+?)-([A-ZÄÖÜ].+)$", head)
     if m:
         gemeinde, ortsteil = m.group(1).strip(), m.group(2).strip()
-        out.append(f"{ortsteil}, {gemeinde}{st}")
-        out.append(f"{head}{st}")  # z. B. „Garmisch-Partenkirchen“
-        out.append(f"{gemeinde}{st}")
+        if gemeinde.lower() in _PREFIX_WORDS:  # „Alt-Hohenschönhausen“ ist ein Name, kein Ortsteil
+            out.append(f"{head}{st}")
+        else:
+            out.append(f"{ortsteil}, {gemeinde}{st}")
+            if " – " not in head and " - " not in head:
+                out.append(f"{head}{st}")  # z. B. „Garmisch-Partenkirchen“
+            out.append(f"{gemeinde}{st}")
     else:
         out.append(f"{', '.join(parts)}{st}")
         if len(parts) > 1:
+            out.append(f"{parts[-1]}{st}")
             out.append(f"{parts[0]}{st}")
-    if district and not district.startswith(("München", "Nürnberg")):
-        out.append(f"{head}, {district}{st}")
+    if lk:
+        out.append(f"{head}, {lk}{st}")
     seen, uniq = set(), []
     for q in out:
         if q not in seen:
@@ -113,9 +133,9 @@ class Geocoder:
         self.new[q] = res
         return res
 
-    def locate(self, place: str | None, state: str | None, district: str | None = None):
+    def locate(self, place: str | None, state: str | None, district: str | None = None, street: str | None = None):
         """→ (lat, lng, precision) oder None"""
-        for q in query_variants(place, state, district):
+        for q in query_variants(place, state, district, street):
             res = self._search(q)
             if res.get("skip"):
                 return None
