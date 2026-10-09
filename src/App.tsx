@@ -2,7 +2,9 @@ import { Suspense, lazy, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { go, useRoute } from './router'
-import { Spinner, Toaster } from './components'
+import { Celebration, Spinner, Toaster } from './components'
+import { IconBack, IconBrewery, IconMap, IconMore, IconMug, IconScan } from './ui/icons'
+import { haptic } from './ui/fx'
 import Login from './pages/Login'
 import MyBeers from './pages/MyBeers'
 import NewBeer from './pages/NewBeer'
@@ -11,17 +13,19 @@ import Breweries from './pages/Breweries'
 import BreweryDetail from './pages/BreweryDetail'
 import Catalog from './pages/Catalog'
 import Settings from './pages/Settings'
+import { InviteWhileLoggedIn } from './pages/Invites'
 
 // Kamera- und Kartenbibliotheken erst bei Bedarf laden
 const Scan = lazy(() => import('./pages/Scan'))
 const MapPage = lazy(() => import('./pages/MapPage'))
+const Stats = lazy(() => import('./pages/Stats'))
 
 const NAV = [
-  { path: '', icon: '🍺', label: 'Meine' },
-  { path: 'scan', icon: '📷', label: 'Scannen' },
-  { path: 'breweries', icon: '🏭', label: 'Brauereien' },
-  { path: 'map', icon: '🗺️', label: 'Karte' },
-  { path: 'settings', icon: '⚙️', label: 'Mehr' },
+  { path: '', Icon: IconMug, label: 'Meine' },
+  { path: 'breweries', Icon: IconBrewery, label: 'Brauereien' },
+  { path: 'scan', Icon: IconScan, label: 'Scannen', fab: true },
+  { path: 'map', Icon: IconMap, label: 'Karte' },
+  { path: 'settings', Icon: IconMore, label: 'Mehr' },
 ]
 
 export default function App() {
@@ -34,7 +38,7 @@ export default function App() {
     return () => data.subscription.unsubscribe()
   }, [])
 
-  if (session === undefined) return <Spinner />
+  if (session === undefined) return <div className="boot"><Spinner /></div>
   if (!session) return <Login />
 
   const [page, id] = route
@@ -67,35 +71,62 @@ export default function App() {
     case 'settings':
       content = <Settings session={session} />
       break
+    case 'stats':
+      content = <Stats />
+      break
+    case 'invite':
+      content = id ? <InviteWhileLoggedIn session={session} code={id} /> : <MyBeers />
+      break
     default:
       content = <MyBeers />
   }
 
   const active = page ?? ''
-  const isSub = ['beer', 'brewery', 'new', 'catalog'].includes(active)
+  const isSub = ['beer', 'brewery', 'new', 'catalog', 'stats', 'invite'].includes(active)
+  const navActive = isSub ? (active === 'brewery' ? 'breweries' : active === 'catalog' || active === 'new' ? 'scan' : '') : active
 
   return (
-    <div className="app">
+    <div className={`app ${active === 'map' ? 'app-map' : ''}`}>
       <header className="topbar">
         {isSub ? (
           <button className="back" onClick={() => history.back()} aria-label="Zurück">
-            ‹
+            <IconBack size={22} />
           </button>
         ) : (
           <span className="back" />
         )}
-        <span className="title">Bier-Tracker</span>
+        <button className="title" onClick={() => go('/')} aria-label="Bier-Tracker – zur Startseite">
+          <span className="title-glass" aria-hidden="true">
+            <span className="tg-foam" />
+            <span className="tg-beer" />
+          </span>
+          Bier-Tracker
+        </button>
         <span className="back" />
       </header>
       <main>
-        <Suspense fallback={<Spinner />}>{content}</Suspense>
+        <div className="page-anim" key={route.join('/')}>
+          <Suspense fallback={<Spinner />}>{content}</Suspense>
+        </div>
       </main>
       <Toaster />
+      <Celebration />
       <nav className="bottomnav">
-        {NAV.map((n) => (
-          <button key={n.path} className={active === n.path ? 'on' : ''} onClick={() => go(`/${n.path}`)}>
-            <span className="icon">{n.icon}</span>
-            <span>{n.label}</span>
+        {NAV.map(({ path, Icon, label, fab }) => (
+          <button
+            key={path}
+            className={`${navActive === path ? 'on' : ''} ${fab ? 'fab' : ''}`}
+            aria-current={navActive === path ? 'page' : undefined}
+            onClick={() => {
+              haptic(6)
+              if (active === path) window.scrollTo({ top: 0, behavior: 'smooth' })
+              else go(`/${path}`)
+            }}
+          >
+            <span className="icon">
+              <Icon size={fab ? 28 : 23} />
+            </span>
+            <span className="label">{label}</span>
           </button>
         ))}
       </nav>

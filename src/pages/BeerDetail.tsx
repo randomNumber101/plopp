@@ -1,21 +1,48 @@
 import { useState } from 'react'
-import { addCheckin, checkinsForBeer, deleteCheckin, getBeer, setWishlist, updateBeer, wishlistIds } from '../api'
-import { ErrorBox, Spinner, Stars, TrustBadge, dateInputToIso, formatDate, toast, todayInput, useAsync } from '../components'
+import {
+  checkinsForBeer,
+  deleteCheckin,
+  getBeer,
+  restoreCheckin,
+  setWishlist,
+  updateBeer,
+  updateCheckin,
+  wishlistIds,
+} from '../api'
+import {
+  CountUp,
+  ErrorBox,
+  Spinner,
+  Stars,
+  TrustBadge,
+  dateInputToIso,
+  isoToDateInput,
+  quickCheckin,
+  relDate,
+  toast,
+  todayInput,
+  useAsync,
+} from '../components'
 import { go } from '../router'
 import { STYLES } from '../types'
+import { haptic } from '../ui/fx'
+import { IconTrash } from '../ui/icons'
+
+const RATING_WORDS = ['', 'Naja …', 'Geht so', 'Gut', 'Sehr gut!', 'Hammer! 🤩']
 
 export default function BeerDetail({ id }: { id: string }) {
   const beer = useAsync(() => getBeer(id), [id])
   const checkins = useAsync(() => checkinsForBeer(id), [id])
   const wish = useAsync(() => wishlistIds().then((s) => s.has(id)), [id])
 
-  const [adding, setAdding] = useState(false)
-  const [rating, setRating] = useState<number | null>(null)
-  const [note, setNote] = useState('')
-  const [date, setDate] = useState(todayInput)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
+  /** gerade eingetragener Check-in → „Wie war's?“ */
+  const [fresh, setFresh] = useState<string | null>(null)
+  const [rating, setRating] = useState<number | null>(null)
+  const [note, setNote] = useState('')
+  const [date, setDate] = useState(todayInput)
 
   if (beer.loading && !beer.data) return <Spinner />
   if (beer.error || !beer.data) return <ErrorBox msg={beer.error ?? 'Bier nicht gefunden.'} />
@@ -24,103 +51,140 @@ export default function BeerDetail({ id }: { id: string }) {
   const rated = list.filter((c) => c.rating != null)
   const avg = rated.length ? rated.reduce((s, c) => s + (c.rating ?? 0), 0) / rated.length : null
 
-  async function saveCheckin() {
+  async function prost() {
     setBusy(true)
     setError(null)
     try {
-      await addCheckin(id, rating, note, dateInputToIso(date))
-      setAdding(false)
+      const cid = await quickCheckin(b, {
+        big: true,
+        onUndo: () => {
+          setFresh(null)
+          checkins.reload()
+        },
+      })
+      setFresh(cid)
       setRating(null)
       setNote('')
       setDate(todayInput())
-      toast(list.length ? `Prost! Das ${list.length + 1}. Mal 🍺` : 'Prost! Neues Bier eingetragen 🍺')
       checkins.reload()
-      wish.reload()
+      wish.setData(false)
     } catch (e) {
       setError((e as Error).message)
     }
     setBusy(false)
   }
 
+  async function saveRating() {
+    if (!fresh) return
+    try {
+      await updateCheckin(fresh, { rating, note: note.trim() || null, drunk_at: dateInputToIso(date) })
+      haptic()
+      toast({ icon: rating ? '⭐' : '📝', msg: rating ? `${rating} von 5 – gespeichert` : 'Gespeichert' })
+      setFresh(null)
+      checkins.reload()
+    } catch (e) {
+      setError((e as Error).message)
+    }
+  }
+
+  const sources =
+    b.trust === 'user'
+      ? undefined
+      : [
+          b.sources?.website ? 'Website der Brauerei' : null,
+          b.sources?.wikipedia ? 'Wikipedia' : null,
+          b.sources?.off ? 'Open Food Facts' : null,
+          b.sources?.wikidata ? 'Wikidata' : null,
+        ]
+          .filter(Boolean)
+          .join(' · ') || (b.trust === 'verified' ? 'von der Brauerei bzw. Wikipedia' : 'automatisch erkannt')
+
   return (
     <div className="page">
-      {b.image_url && <img className="hero-img" src={b.image_url} alt="" />}
-      <h2>{b.name}</h2>
-      <div className="badge-row">
-        <TrustBadge
-          trust={b.trust}
-          detail={
-            b.trust === 'user'
-              ? undefined
-              : [
-                  b.sources?.website ? 'Website der Brauerei' : null,
-                  b.sources?.wikipedia ? 'Wikipedia' : null,
-                  b.sources?.off ? 'Open Food Facts' : null,
-                  b.sources?.wikidata ? 'Wikidata' : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ') || (b.trust === 'verified' ? 'von der Brauerei bzw. Wikipedia' : 'automatisch erkannt')
-          }
-        />
-      </div>
-      <p className="meta">
+      <div className="beer-hero">
+        {b.image_url ? (
+          <img className="hero-img" src={b.image_url} alt="" referrerPolicy="no-referrer" />
+        ) : (
+          <div className="beer-hero-emoji" aria-hidden="true">
+            🍺
+          </div>
+        )}
+        <h2>{b.name}</h2>
         {b.brewery && (
           <button className="link" onClick={() => go(`/brewery/${b.brewery!.id}`)}>
             {b.brewery.name}
+            {b.brewery.city ? ` · ${b.brewery.city}` : ''}
           </button>
         )}
-        {b.brewery?.city && <span> · {b.brewery.city}</span>}
-        {b.style && <span> · {b.style}</span>}
-        {b.abv != null && <span> · {b.abv} %</span>}
-      </p>
+        <div className="tagrow">
+          {b.style && <span className="tag">{b.style}</span>}
+          {b.abv != null && <span className="tag">{b.abv} % vol</span>}
+          <TrustBadge trust={b.trust} detail={sources} />
+        </div>
+      </div>
 
       <div className="stat-row">
         <div className="stat">
-          <b>{list.length}×</b>
+          <b>
+            <CountUp value={list.length} />×
+          </b>
           <span>getrunken</span>
         </div>
         <div className="stat">
-          <b>{avg != null ? avg.toFixed(1) : '–'}</b>
+          <b>{avg != null ? <CountUp value={avg} decimals={1} /> : '–'}</b>
           <span>Ø Bewertung</span>
         </div>
         <div className="stat">
-          <b>{list[0] ? formatDate(list[0].drunk_at) : '–'}</b>
+          <b>{list[0] ? relDate(list[0].drunk_at) : '–'}</b>
           <span>zuletzt</span>
         </div>
       </div>
 
-      {!adding ? (
-        <div className="btn-row">
-          <button className="btn btn-primary btn-big" onClick={() => setAdding(true)}>
-            🍺 Getrunken
-          </button>
-          <button
-            className={`btn ${wish.data ? 'btn-active' : ''}`}
-            onClick={async () => {
-              await setWishlist(id, !wish.data)
-              toast(wish.data ? 'Von der Merkliste entfernt' : 'Auf die Merkliste gesetzt ★')
-              wish.reload()
-            }}
-          >
-            {wish.data ? '★ Auf Merkliste' : '☆ Merken'}
-          </button>
-        </div>
-      ) : (
-        <div className="card">
-          <Stars value={rating} onChange={setRating} />
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Notiz (optional)" />
+      {fresh ? (
+        <div
+          className="card rate-card"
+          ref={(el) => {
+            if (el && !el.dataset.shown) {
+              el.dataset.shown = '1'
+              setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250)
+            }
+          }}
+        >
+          <div className="rate-q">Wie war's?</div>
+          <Stars value={rating} onChange={setRating} size="lg" />
+          <div className="rate-label">{rating ? RATING_WORDS[rating] : ' '}</div>
+          <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Notiz (optional) – wo, mit wem, wie?" />
           <label className="date-row">
             Wann?
             <input type="date" value={date} max={todayInput()} onChange={(e) => setDate(e.target.value)} />
           </label>
-          <div className="btn-row">
-            <button className="btn btn-primary" disabled={busy} onClick={saveCheckin}>
-              Eintragen
+          <div className="btn-row" style={{ width: '100%' }}>
+            <button className="btn btn-primary" onClick={saveRating}>
+              Speichern
             </button>
-            <button className="btn" onClick={() => setAdding(false)}>
-              Abbrechen
+            <button className="btn btn-ghost" onClick={() => setFresh(null)}>
+              Später
             </button>
           </div>
+        </div>
+      ) : (
+        <div className="btn-row">
+          <button className="btn btn-primary btn-big prost-big" disabled={busy} onClick={prost}>
+            🍻 Prost!
+          </button>
+          <button
+            className={`btn wish-btn ${wish.data ? 'btn-active on' : ''}`}
+            style={{ flex: '0 0 auto' }}
+            onClick={async () => {
+              const on = !wish.data
+              haptic()
+              wish.setData(on)
+              await setWishlist(id, on)
+              toast({ icon: on ? '⭐' : '☆', msg: on ? 'Auf die Merkliste gesetzt' : 'Von der Merkliste genommen' })
+            }}
+          >
+            {wish.data ? '★ Gemerkt' : '☆ Merken'}
+          </button>
         </div>
       )}
       <ErrorBox msg={error} />
@@ -129,21 +193,44 @@ export default function BeerDetail({ id }: { id: string }) {
         <>
           <h3>Verlauf</h3>
           <ul className="history">
-            {list.map((c) => (
-              <li key={c.id}>
-                <span>{formatDate(c.drunk_at)}</span>
-                <Stars value={c.rating} size="sm" />
-                {c.note && <span className="muted">„{c.note}“</span>}
+            {list.map((c, i) => (
+              <li key={c.id} style={{ animationDelay: `${Math.min(i, 10) * 30}ms` }}>
+                <span className="h-date" title={new Date(c.drunk_at).toLocaleString('de-DE')}>
+                  {relDate(c.drunk_at)}
+                </span>
+                {c.rating != null ? (
+                  <Stars value={c.rating} size="sm" />
+                ) : (
+                  <button
+                    className="link small"
+                    onClick={() => {
+                      setFresh(c.id)
+                      setRating(null)
+                      setNote(c.note ?? '')
+                      setDate(isoToDateInput(c.drunk_at))
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    }}
+                  >
+                    bewerten
+                  </button>
+                )}
                 <button
-                  className="link danger"
+                  className="icon-btn"
+                  aria-label="Eintrag löschen"
                   onClick={async () => {
-                    if (!confirm('Diesen Eintrag löschen?')) return
+                    haptic()
+                    checkins.setData(list.filter((x) => x.id !== c.id))
                     await deleteCheckin(c.id)
-                    checkins.reload()
+                    toast({
+                      icon: '🗑️',
+                      msg: 'Eintrag gelöscht',
+                      action: { label: 'Rückgängig', run: async () => (await restoreCheckin(c), checkins.reload()) },
+                    })
                   }}
                 >
-                  löschen
+                  <IconTrash size={16} />
                 </button>
+                {c.note && <span className="h-note">„{c.note}“</span>}
               </li>
             ))}
           </ul>
@@ -166,6 +253,7 @@ export default function BeerDetail({ id }: { id: string }) {
               abv: v.abv ? Number(v.abv.replace(',', '.')) : null,
             })
             setEditing(false)
+            toast({ icon: '✏️', msg: 'Gespeichert' })
             beer.reload()
           }}
         />

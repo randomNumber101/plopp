@@ -495,6 +495,8 @@ function BrewerySheet({ b, onClose }: { b: BreweryProgress; onClose: () => void 
           <BeerRow
             key={beer.id}
             beer={beer}
+            quick={!drunkSet.has(beer.id)}
+            onChanged={() => drunk.reload()}
             sub={[beer.style, beer.abv != null ? `${beer.abv} %` : null].filter(Boolean).join(' · ')}
             right={
               drunkSet.has(beer.id) ? (

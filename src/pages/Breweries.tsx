@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { breweryProgress } from '../api'
-import { ErrorBox, Progress, Spinner, TrustDot, TrustLegend, useAsync } from '../components'
+import { ChipBar, EmptyState, ErrorBox, Progress, SearchInput, SkeletonList, TrustDot, TrustLegend, useAsync } from '../components'
+import { load, save } from '../ui/fx'
 import { go } from '../router'
 import { initials } from '../brewery'
 import { BREWERY_TYPES, STATES, type BreweryType } from '../types'
 
 export default function Breweries() {
   const data = useAsync(breweryProgress, [])
+  const prefs = load('bier-breweries', { state: '', filter: 'beers' })
   const [q, setQ] = useState('')
-  const [state, setState] = useState('')
-  const [filter, setFilter] = useState<'beers' | 'all' | 'open' | 'started'>('beers')
+  const [state, setStateRaw] = useState(prefs.state)
+  const [filter, setFilterRaw] = useState<'beers' | 'all' | 'open' | 'started'>(prefs.filter as 'beers')
+  const setState = (v: string) => (setStateRaw(v), save('bier-breweries', { state: v, filter }))
+  const setFilter = (v: typeof filter) => (setFilterRaw(v), save('bier-breweries', { state, filter: v }))
   const [limit, setLimit] = useState(100)
   const [type, setType] = useState<'' | BreweryType>('')
   const [onlyVerified, setOnlyVerified] = useState(false)
@@ -27,7 +31,17 @@ export default function Breweries() {
   return (
     <div className="page">
       <h2>Brauereien</h2>
-      <input className="search" placeholder="Brauerei oder Ort suchen …" value={q} onChange={(e) => setQ(e.target.value)} />
+      <SearchInput value={q} onChange={setQ} placeholder="Brauerei oder Ort suchen …" />
+      <ChipBar
+        value={filter}
+        onChange={(v) => setFilter((v || 'beers') as typeof filter)}
+        options={[
+          { id: 'beers', label: 'Mit Bieren' },
+          { id: 'started', label: 'Probiert' },
+          { id: 'open', label: 'Noch offen' },
+          { id: 'all', label: 'Alle' },
+        ]}
+      />
       <div className="two">
         <select value={state} onChange={(e) => setState(e.target.value)}>
           <option value="">Alle Bundesländer</option>
@@ -35,14 +49,6 @@ export default function Breweries() {
             <option key={s}>{s}</option>
           ))}
         </select>
-        <select value={filter} onChange={(e) => setFilter(e.target.value as typeof filter)}>
-          <option value="beers">Mit Bieren</option>
-          <option value="all">Alle Brauereien</option>
-          <option value="started">Schon probiert</option>
-          <option value="open">Noch Biere offen</option>
-        </select>
-      </div>
-      <div className="two">
         <select value={type} onChange={(e) => setType(e.target.value as typeof type)}>
           <option value="">Alle Typen</option>
           {Object.entries(BREWERY_TYPES).map(([k, v]) => (
@@ -51,19 +57,24 @@ export default function Breweries() {
             </option>
           ))}
         </select>
-        <label className="check small">
-          <input type="checkbox" checked={onlyVerified} onChange={(e) => setOnlyVerified(e.target.checked)} />
-          Nur geprüfte
-        </label>
       </div>
       <TrustLegend />
-      {data.loading && !data.data && <Spinner />}
+      <label className="check small">
+        <input type="checkbox" checked={onlyVerified} onChange={(e) => setOnlyVerified(e.target.checked)} />
+        Nur geprüfte (Wikipedia-Liste)
+      </label>
+      {data.loading && !data.data && <SkeletonList rows={8} />}
       <ErrorBox msg={data.error} />
-      {data.data?.length === 0 && <p className="empty">Noch keine Brauereien. Sie entstehen automatisch, wenn du Biere anlegst.</p>}
+      {data.data && list.length === 0 && (
+        <EmptyState icon="🏭" title="Keine Brauerei gefunden">
+          <p>Filter ändern oder Suchbegriff kürzen.</p>
+        </EmptyState>
+      )}
       <div className="list">
-        {list.slice(0, limit).map((b) => (
+        {list.slice(0, limit).map((b, i) => (
           <button
             key={b.id}
+            style={{ '--i': i % 20 } as React.CSSProperties}
             className={`row ${b.trust === 'unverified' ? 'row-unverified' : ''}`}
             onClick={() => go(`/brewery/${b.id}`)}
           >

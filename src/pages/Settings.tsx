@@ -3,6 +3,9 @@ import type { Session } from '@supabase/supabase-js'
 import { exportAll } from '../api'
 import { ErrorBox, toast } from '../components'
 import { supabase } from '../supabase'
+import { go } from '../router'
+import { IconChevron } from '../ui/icons'
+import { InviteSection } from './Invites'
 
 export default function Settings({ session }: { session: Session }) {
   const [error, setError] = useState<string | null>(null)
@@ -26,18 +29,34 @@ export default function Settings({ session }: { session: Session }) {
   return (
     <div className="page">
       <h2>Mehr</h2>
-      <div className="card">
-        <div className="row-sub">Angemeldet als</div>
-        <div>{session.user.email}</div>
-      </div>
-      <button className="btn" onClick={download}>
-        ⬇️ Meine Daten exportieren (JSON)
-      </button>
-      {!pwOpen ? (
-        <button className="btn" onClick={() => setPwOpen(true)}>
-          🔑 Passwort ändern
+      <div className="menu">
+        <button onClick={() => go('/stats')}>
+          <span className="m-icon">🏆</span>
+          <span className="m-main">Statistik & Abzeichen</span>
+          <IconChevron size={18} className="m-chev" />
         </button>
-      ) : (
+        <button onClick={() => go('/catalog')}>
+          <span className="m-icon">🔎</span>
+          <span className="m-main">Bier suchen oder anlegen</span>
+          <IconChevron size={18} className="m-chev" />
+        </button>
+        <button onClick={download}>
+          <span className="m-icon">⬇️</span>
+          <span className="m-main">Meine Daten exportieren (JSON)</span>
+        </button>
+        <button onClick={() => setPwOpen(!pwOpen)}>
+          <span className="m-icon">🔑</span>
+          <span className="m-main">Passwort ändern</span>
+        </button>
+        <button onClick={() => supabase.auth.signOut()}>
+          <span className="m-icon">👋</span>
+          <span className="m-main">
+            Abmelden
+            <div className="row-sub">{session.user.email}</div>
+          </span>
+        </button>
+      </div>
+      {pwOpen && (
         <form
           className="card"
           onSubmit={async (e) => {
@@ -67,10 +86,9 @@ export default function Settings({ session }: { session: Session }) {
           </div>
         </form>
       )}
-      <button className="btn" onClick={() => supabase.auth.signOut()}>
-        Abmelden
-      </button>
       <ErrorBox msg={error} />
+
+      <InviteSection />
 
       <h3>Als App installieren</h3>
       <p className="muted">

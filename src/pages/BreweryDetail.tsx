@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { beersOfBrewery, drunkBeerIds, getBrewery, setWishlist, sitesOfBrewery, updateBrewery, wishlistIds } from '../api'
-import { BeerRow, ErrorBox, Progress, Spinner, TrustBadge, TrustDot, useAsync } from '../components'
+import { BeerRow, ErrorBox, Progress, SkeletonList, Spinner, TrustBadge, TrustDot, toast, useAsync } from '../components'
+import { haptic } from '../ui/fx'
 import { go } from '../router'
 import { setPrefill } from '../store'
 import { BREWERY_TYPES, STATES } from '../types'
@@ -28,6 +29,7 @@ export default function BreweryDetail({ id }: { id: string }) {
 
   return (
     <div className="page">
+      <div className="brew-hero">
       <div className="brew-head">
         <div className={`bpin ${drunkCount && drunkCount >= list.length ? 'st-all' : drunkCount ? 'st-some' : ''} ${b.logo_url ? 'has-logo' : ''}`}>
           <span className="bpin-ini">{initials(b.name)}</span>
@@ -98,6 +100,7 @@ export default function BreweryDetail({ id }: { id: string }) {
       {b.lat == null && !editing && (
         <p className="muted small">Kein Standort hinterlegt – über „bearbeiten“ einen Ort eintragen, dann erscheint die Brauerei auf der Karte.</p>
       )}
+      </div>
       {editing && (
         <EditBrewery
           initial={{ name: b.name, city: b.city ?? '', state: b.state ?? '', country: b.country ?? '', website: b.website ?? '' }}
@@ -136,33 +139,52 @@ export default function BreweryDetail({ id }: { id: string }) {
         </>
       )}
 
-      <div className="card">
-        <div className="row-sub">Sortiment probiert</div>
-        <Progress drunk={drunkCount} total={list.length} />
-      </div>
+      {list.length > 0 && (
+        <div className="card">
+          <div className="section-title">
+            <b>Sortiment probiert</b>
+            <span className="muted small">
+              {drunkCount >= list.length ? '🏆 alles probiert!' : `noch ${list.length - drunkCount} offen`}
+            </span>
+          </div>
+          <Progress drunk={drunkCount} total={list.length} wide />
+        </div>
+      )}
 
+      {beers.loading && !beers.data && <SkeletonList rows={4} />}
       <div className="list">
-        {beers.loading && !beers.data && <Spinner />}
-        {list.map((beer) => (
+        {list.map((beer, i) => (
           <BeerRow
             key={beer.id}
             beer={beer}
+            index={i}
+            quick
+            onChanged={() => drunk.reload()}
+            sub={[beer.style, beer.abv != null ? `${beer.abv} %` : null].filter(Boolean).join(' · ') || ' '}
             right={
               drunkSet.has(beer.id) ? (
-                <span className="badge ok">✓</span>
+                <span className="badge ok" title="Schon probiert">
+                  ✓
+                </span>
               ) : (
-                <span
-                  role="button"
+                <button
                   className={`badge ${wishSet.has(beer.id) ? 'wish' : ''}`}
                   title="Merken"
+                  aria-label={wishSet.has(beer.id) ? 'Von der Merkliste nehmen' : 'Merken'}
                   onClick={async (e) => {
                     e.stopPropagation()
-                    await setWishlist(beer.id, !wishSet.has(beer.id))
-                    wish.reload()
+                    haptic()
+                    const on = !wishSet.has(beer.id)
+                    const next = new Set(wishSet)
+                    if (on) next.add(beer.id)
+                    else next.delete(beer.id)
+                    wish.setData(next)
+                    await setWishlist(beer.id, on)
+                    toast({ icon: on ? '⭐' : '☆', msg: on ? `${beer.name} gemerkt` : 'Von der Merkliste genommen' })
                   }}
                 >
                   {wishSet.has(beer.id) ? '★' : '☆'}
-                </span>
+                </button>
               )
             }
           />

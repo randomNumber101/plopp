@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { addBarcode, addCheckin, createBeer, createBrewery, getBrewery, searchBeers, searchBreweries } from '../api'
-import { BeerRow, ErrorBox, Stars, TrustDot, dateInputToIso, toast, todayInput } from '../components'
+import { BeerRow, ErrorBox, Stars, TrustDot, dateInputToIso, prostWord, toast, todayInput } from '../components'
+import { checkNewAchievements } from '../achievements'
+import { celebrate } from '../ui/fx'
 import { go } from '../router'
 import { takePrefill } from '../store'
 import { STATES, STYLES, type Beer, type Brewery } from '../types'
@@ -68,7 +70,8 @@ export default function NewBeer() {
     try {
       if (ean) await addBarcode(ean, beer.id)
       if (drunk) await addCheckin(beer.id, rating, note, dateInputToIso(date))
-      toast(ean ? 'Barcode mit dem Bier verknüpft ✓' : drunk ? 'Prost! Eingetragen 🍺' : 'Übernommen')
+      if (drunk) (celebrate({ title: prostWord(), sub: beer.name }), checkNewAchievements())
+      toast(ean ? 'Barcode mit dem Bier verknüpft ✓' : drunk ? 'Eingetragen 🍺' : 'Übernommen')
       go(`/beer/${beer.id}`)
     } catch (err) {
       setError((err as Error).message)
@@ -117,7 +120,8 @@ export default function NewBeer() {
       }
       if (ean) await addBarcode(ean, beerId)
       if (drunk) await addCheckin(beerId, rating, note, dateInputToIso(date))
-      toast(drunk ? 'Prost! Neues Bier eingetragen 🍺' : 'Bier angelegt')
+      if (drunk) (celebrate({ title: prostWord(), sub: name.trim() }), checkNewAchievements())
+      toast(drunk ? 'Neues Bier eingetragen 🍺' : 'Bier angelegt')
       go(`/beer/${beerId}`)
     } catch (err) {
       setError((err as Error).message)

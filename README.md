@@ -10,8 +10,14 @@ Private Web-App (PWA) zum Tracken getrunkener Biere – mit Barcode-Scan, Brauer
 ## Einrichtung
 
 Einmalig `setup.bat` (Windows) bzw. `python setup.py` ausführen. Das Skript
-legt die Datenbank an, erstellt dein App-Konto, sperrt weitere Registrierungen,
+legt die Datenbank an, erstellt dein App-Konto, sperrt freie Registrierungen,
 lädt den Code ins Repo und schaltet GitHub Pages ein.
+
+## Einladungen
+
+Neue Konten gibt es nur per Einladungslink (Mehr → „Freunde einladen“). Jeder Link gilt 14 Tage
+für genau ein Konto. Die Prüfung passiert in der Datenbank (`007_invites.sql`), daher muss in
+Supabase unter *Authentication → Sign In / Providers* „Allow new users to sign up“ eingeschaltet sein.
 
 ## Bier-Katalog
 

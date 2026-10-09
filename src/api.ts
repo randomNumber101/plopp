@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Beer, Brewery, BreweryProgress, Checkin, OffSuggestion } from './types'
+import { codeVariants } from './scanner'
 
 const BEER_SELECT = '*, brewery:breweries(*)'
 
@@ -11,13 +12,14 @@ function check<T>(res: { data: T | null; error: { message: string } | null }): T
 // ---------------------------------------------------------------- Katalog
 
 export async function findBeerByEan(ean: string): Promise<Beer | null> {
+  // auch andere Schreibweisen finden (UPC-A mit/ohne führende 0)
   const res = await supabase
     .from('beer_barcodes')
     .select(`beer:beers(${BEER_SELECT})`)
-    .eq('ean', ean)
-    .maybeSingle()
-  const row = check(res) as unknown as { beer: Beer } | null
-  return row?.beer ?? null
+    .in('ean', codeVariants(ean))
+    .limit(1)
+  const rows = check(res) as unknown as { beer: Beer }[] | null
+  return rows?.[0]?.beer ?? null
 }
 
 export async function getBeer(id: string): Promise<Beer> {
@@ -124,18 +126,40 @@ export async function addBarcode(ean: string, beerId: string): Promise<void> {
 
 // ---------------------------------------------------------------- Persönlich
 
-export async function addCheckin(beerId: string, rating: number | null, note: string | null, drunkAt?: string) {
-  check(
+/** Check-in anlegen → ID (für „Rückgängig“ und nachträgliches Bewerten) */
+export async function addCheckin(
+  beerId: string,
+  rating: number | null = null,
+  note: string | null = null,
+  drunkAt?: string,
+): Promise<string> {
+  const row = check(
     await supabase
       .from('checkins')
-      .insert({ beer_id: beerId, rating, note: note || null, ...(drunkAt ? { drunk_at: drunkAt } : {}) }),
-  )
+      .insert({ beer_id: beerId, rating, note: note || null, ...(drunkAt ? { drunk_at: drunkAt } : {}) })
+      .select('id')
+      .single(),
+  ) as { id: string }
   // getrunken → von der Merkliste nehmen
   await supabase.from('wishlist').delete().eq('beer_id', beerId)
+  return row.id
+}
+
+export async function updateCheckin(id: string, patch: Partial<Pick<Checkin, 'rating' | 'note' | 'drunk_at'>>) {
+  check(await supabase.from('checkins').update(patch).eq('id', id))
 }
 
 export async function deleteCheckin(id: string) {
   check(await supabase.from('checkins').delete().eq('id', id))
+}
+
+/** Gelöschten Check-in wiederherstellen (Rückgängig) */
+export async function restoreCheckin(c: Checkin) {
+  check(
+    await supabase
+      .from('checkins')
+      .insert({ id: c.id, beer_id: c.beer_id, drunk_at: c.drunk_at, rating: c.rating, note: c.note }),
+  )
 }
 
 export async function myCheckins(): Promise<Checkin[]> {
@@ -185,6 +209,66 @@ export async function setWishlist(beerId: string, on: boolean) {
 export async function exportAll() {
   const [checkins, wishlist] = await Promise.all([myCheckins(), myWishlist()])
   return { exportiert_am: new Date().toISOString(), checkins, merkliste: wishlist }
+}
+
+// ---------------------------------------------------------------- Einladungen
+
+export interface Invite {
+  code: string
+  created_at: string
+  expires_at: string
+  used_email: string | null
+  used_at: string | null
+}
+
+export type InviteStatus = 'ok' | 'used' | 'expired' | 'unknown'
+
+export function inviteLink(code: string) {
+  return `${location.origin}${location.pathname}#/invite/${code}`
+}
+
+export async function createInvite(): Promise<Invite> {
+  return check(await supabase.rpc('create_invite').single()) as Invite
+}
+
+export async function myInvites(): Promise<Invite[]> {
+  return check(
+    await supabase
+      .from('invites')
+      .select('code, created_at, expires_at, used_email, used_at')
+      .order('created_at', { ascending: false })
+      .limit(50),
+  ) as Invite[]
+}
+
+export async function deleteInvite(code: string) {
+  check(await supabase.from('invites').delete().eq('code', code))
+}
+
+export async function inviteStatus(code: string): Promise<InviteStatus> {
+  const res = await supabase.rpc('invite_status', { invite_code: code })
+  if (res.error) throw new Error(res.error.message)
+  return res.data as InviteStatus
+}
+
+/** Link über das Teilen-Menü des Handys verschicken, sonst in die Zwischenablage */
+export async function shareInvite(code: string): Promise<'shared' | 'copied' | 'cancelled'> {
+  const url = inviteLink(code)
+  const text = 'Komm in meinen Bier-Tracker! Mit diesem Link kannst du dir ein Konto anlegen (14 Tage gültig, nur einmal nutzbar):'
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Einladung zum Bier-Tracker', text, url })
+      return 'shared'
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return 'cancelled'
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url)
+  } catch {
+    window.prompt('Link kopieren:', url)
+  }
+  return 'copied'
 }
 
 // ---------------------------------------------------------------- Externe Dienste
