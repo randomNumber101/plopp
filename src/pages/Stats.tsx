@@ -171,7 +171,7 @@ export default function Stats() {
                 </div>
                 <div className="row-right">
                   <span className="count">{a.count}×</span>
-                  {a.avg != null && <Stars value={Math.round(a.avg)} size="sm" />}
+                  {a.avg != null && <Stars value={Math.round(a.avg * 10) / 10} size="sm" />}
                 </div>
               </div>
             ))}

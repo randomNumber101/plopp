@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { addBarcode, addCheckin, createBeer, createBrewery, getBrewery, searchBeers, searchBreweries } from '../api'
-import { BeerRow, ErrorBox, Stars, TrustDot, dateInputToIso, prostWord, toast, todayInput } from '../components'
+import { BeerRow, ErrorBox, RatingInput, TrustDot, dateInputToIso, prostWord, toast, todayInput } from '../components'
 import { checkNewAchievements } from '../achievements'
 import { celebrate } from '../ui/fx'
 import { go } from '../router'
@@ -245,7 +245,7 @@ export default function NewBeer() {
         </label>
         {drunk && (
           <div className="subform">
-            <Stars value={rating} onChange={setRating} />
+            <RatingInput value={rating} onChange={setRating} />
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Notiz (optional)" />
             <label className="date-row">
               Wann?

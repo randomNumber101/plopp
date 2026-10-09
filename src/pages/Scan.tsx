@@ -3,7 +3,7 @@ import { findBeerByEan, offLookup } from '../api'
 import { ErrorBox, Spinner } from '../components'
 import { go } from '../router'
 import { setPrefill } from '../store'
-import { beep, getEngine, gtinValid, normalizeCode, unlockAudio, type Engine, type Hit, type Point } from '../scanner'
+import { beep, getEngine, gtinValid, normalizeCode, unlockAudio, type Engine, type Hit, type Point, type Rect } from '../scanner'
 
 type Status = 'idle' | 'starting' | 'scanning' | 'found' | 'looking'
 
@@ -93,10 +93,13 @@ export default function Scan() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function openStream(deviceId: string | null) {
+  async function openStream(deviceId: string | null, engine: Engine | null) {
+    // 720p reicht für EAN-Codes und hält die Vorschau flüssig; ZXing bekommt etwas mehr für kleine Codes
+    const hd = engine && engine.kind !== 'native'
     const base: MediaTrackConstraints = {
-      width: { ideal: 1920 },
-      height: { ideal: 1080 },
+      width: { ideal: hd ? 1920 : 1280 },
+      height: { ideal: hd ? 1080 : 720 },
+      frameRate: { ideal: 30 },
       // @ts-expect-error – nicht in allen TS-DOM-Typen enthalten
       advanced: [{ focusMode: 'continuous' }],
     }
@@ -119,7 +122,9 @@ export default function Scan() {
     setStatus('starting')
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('Dieser Browser unterstützt keinen Kamerazugriff.')
-      const [stream, engine] = await Promise.all([openStream(deviceId), getEngine()])
+      const engine = await getEngine().catch(() => null)
+      const stream = await openStream(deviceId, engine)
+      if (!engine) throw new Error('Barcode-Erkennung konnte nicht geladen werden')
       if (run !== runRef.current) return stream.getTracks().forEach((t) => t.stop())
       streamRef.current = stream
       const video = videoRef.current!
@@ -158,37 +163,34 @@ export default function Scan() {
     }
   }
 
-  /** Erkennungsschleife: abwechselnd der Suchrahmen in voller Auflösung und das ganze Bild */
+  /** Erkennungsschleife: immer nur ein Bild gleichzeitig, im Takt der Kamerabilder, ohne die Vorschau zu blockieren */
   async function loop(run: number, engine: Engine) {
     const video = videoRef.current!
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!
     const seen = new Map<string, { n: number; t: number }>()
     const startedAt = Date.now()
+    const interval = engine.kind === 'native' ? 80 : engine.kind === 'worker' ? 110 : 220
+    // Systemerkennung (ML Kit) liest praktisch fehlerfrei → ein Treffer mit gültiger Prüfziffer genügt
+    const needed = engine.kind === 'native' ? 1 : 2
     let frame = 0
     let lastHitAt = 0
+    let last = 0
+    let shownOutline = ''
+    let shownCandidate = false
+    let shownHint = false
 
     while (run === runRef.current) {
-      const vw = video.videoWidth
-      const vh = video.videoHeight
-      if (!vw || !vh || video.readyState < 2) {
-        await sleep(100)
-        continue
-      }
+      await nextFrame(video)
+      if (run !== runRef.current) return
+      if (!video.videoWidth || !video.videoHeight || video.readyState < 2) continue
+      const t0 = performance.now()
+      if (t0 - last < interval) continue
+      last = t0
       frame++
       let hits: Hit[] = []
       try {
-        const crop = frame % 2 === 1
-        const r = crop ? frameRect(video) : { x: 0, y: 0, w: vw, h: vh }
-        // Große Bilder verkleinern (Tempo), den Suchrahmen in Originalauflösung lesen (kleine Barcodes)
-        const scale = Math.min(1, (crop ? 1600 : 1280) / Math.max(r.w, r.h))
-        canvas.width = Math.round(r.w * scale)
-        canvas.height = Math.round(r.h * scale)
-        ctx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, canvas.width, canvas.height)
-        hits = (await engine.detect(canvas)).map((h) => ({
-          ...h,
-          points: h.points.map((p) => ({ x: r.x + p.x / scale, y: r.y + p.y / scale })),
-        }))
+        // ZXing: meist der Suchrahmen in voller Auflösung, jedes dritte Mal das ganze Bild
+        const r: Rect | null = engine.kind === 'native' || frame % 3 === 0 ? null : frameRect(video)
+        hits = await engine.scan(video, r)
       } catch {
         /* einzelnes Bild fehlgeschlagen – weiter */
       }
@@ -200,11 +202,18 @@ export default function Scan() {
         lastHitAt = now
         const c = normalizeCode(hit.code, hit.format)
         const s = seen.get(c)
-        const n = s && now - s.t < 1500 ? s.n + 1 : 1
+        const n = s && now - s.t < 2500 ? s.n + 1 : 1
         seen.set(c, { n, t: now })
-        const confirmed = n >= 2
-        setOutline({ pts: toScreen(hit.points, video), ok: confirmed })
-        setCandidate(true)
+        const confirmed = n >= needed
+        const pts = toScreen(hit.points, video)
+        if (pts !== shownOutline || confirmed) {
+          shownOutline = pts
+          setOutline({ pts, ok: confirmed })
+        }
+        if (!shownCandidate) {
+          shownCandidate = true
+          setCandidate(true)
+        }
         if (confirmed) {
           runRef.current++
           if (navigator.vibrate) navigator.vibrate(60)
@@ -212,17 +221,20 @@ export default function Scan() {
           setCode(c)
           setStatus('found')
           video.pause() // Standbild mit markiertem Barcode stehen lassen
-          await sleep(450)
+          await sleep(350)
           return handle(c)
         }
-      } else if (now - lastHitAt > 500) {
+      } else if (now - lastHitAt > 600 && shownCandidate) {
+        shownCandidate = false
+        shownOutline = ''
         setOutline(null)
         setCandidate(false)
       }
-      if (now - startedAt > HINT_AFTER_MS && now - lastHitAt > 3000) setHint(true)
-      else if (hit) setHint(false)
-
-      await sleep(engine.kind === 'native' ? 50 : 15)
+      const wantHint = now - startedAt > HINT_AFTER_MS && now - lastHitAt > 3000
+      if (wantHint !== shownHint) {
+        shownHint = wantHint
+        setHint(wantHint)
+      }
     }
   }
 
@@ -409,6 +421,15 @@ export default function Scan() {
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
+}
+
+/** Auf das nächste Kamerabild warten (bzw. den nächsten Bildschirm-Frame) */
+function nextFrame(video: HTMLVideoElement) {
+  return new Promise<void>((resolve) => {
+    const v = video as HTMLVideoElement & { requestVideoFrameCallback?: (cb: () => void) => number }
+    if (v.requestVideoFrameCallback && !video.paused) v.requestVideoFrameCallback(() => resolve())
+    else requestAnimationFrame(() => resolve())
+  })
 }
 
 /** Codes mit Prüfziffer müssen stimmen; sonst mind. 8 Ziffern */

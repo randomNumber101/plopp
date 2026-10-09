@@ -2988,3 +2988,102 @@ button.tag {
   text-align: center;
   margin-top: 8px;
 }
+
+/* Sterne mit Zwischenwerten */
+.stars button {
+  position: relative;
+}
+
+.star-part {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  overflow: hidden;
+  color: var(--accent);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.stars-lg .star-part {
+  left: 4px;
+}
+
+.stars-sm .star-part {
+  left: 1px;
+}
+
+/* Bewertung mit Regler */
+.rating-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.rating-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.rating-row input[type='range'] {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--beer-1), var(--beer-2)) 0 0 / var(--p) 100% no-repeat, var(--surface-2);
+  box-shadow: none;
+}
+
+.rating-row input[type='range'].unset {
+  background: var(--surface-2);
+}
+
+.rating-row input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--accent);
+  box-shadow: 0 2px 6px rgb(74 44 10 / 0.3);
+  cursor: grab;
+}
+
+.rating-row input[type='range']::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--accent);
+  cursor: grab;
+}
+
+.rating-row input[type='range']:focus {
+  box-shadow: none;
+}
+
+.rating-num {
+  min-width: 2.6em;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 1.6rem;
+  color: var(--accent-strong);
+}
+
+.h-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text);
+}

@@ -287,6 +287,7 @@ export function ErrorBox({ msg }: { msg: string | null }) {
   return <div className="error">⚠️ {msg}</div>
 }
 
+/** Sterne – zeigt auch Zwischenwerte (z. B. 3,7 = drei volle Sterne und 70 % vom vierten) */
 export function Stars({
   value,
   onChange,
@@ -298,27 +299,79 @@ export function Stars({
 }) {
   const [popped, setPopped] = useState<number | null>(null)
   return (
-    <span className={`stars stars-${size}`} role={onChange ? 'radiogroup' : undefined}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          disabled={!onChange}
-          className={`${value != null && n <= value ? 'on' : ''} ${popped != null && n <= popped ? 'pop' : ''}`}
-          style={{ animationDelay: `${(n - 1) * 40}ms` }}
-          onClick={() => {
-            const v = value === n ? null : n
-            setPopped(v)
-            haptic(8)
-            setTimeout(() => setPopped(null), 450)
-            onChange?.(v)
-          }}
-          aria-label={`${n} Sterne`}
-        >
-          ★
-        </button>
-      ))}
+    <span
+      className={`stars stars-${size}`}
+      role={onChange ? 'radiogroup' : 'img'}
+      aria-label={value != null ? `${formatRating(value)} von 5 Sternen` : 'nicht bewertet'}
+    >
+      {[1, 2, 3, 4, 5].map((n) => {
+        const fill = value == null ? 0 : Math.max(0, Math.min(1, value - (n - 1)))
+        return (
+          <button
+            key={n}
+            type="button"
+            disabled={!onChange}
+            className={`${fill >= 1 ? 'on' : ''} ${popped != null && n <= popped ? 'pop' : ''}`}
+            style={{ animationDelay: `${(n - 1) * 40}ms` }}
+            onClick={() => {
+              const v = value === n ? null : n
+              setPopped(v)
+              haptic(8)
+              setTimeout(() => setPopped(null), 450)
+              onChange?.(v)
+            }}
+            aria-label={`${n} Sterne`}
+          >
+            ★{fill > 0 && fill < 1 && <span className="star-part" style={{ width: `${fill * 100}%` }}>★</span>}
+          </button>
+        )
+      })}
     </span>
+  )
+}
+
+/** 4,3 statt 4.3 – ganze Zahlen ohne Komma */
+export function formatRating(v: number) {
+  return Number.isInteger(v) ? String(v) : v.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+}
+
+const RATING_WORDS: [number, string][] = [
+  [1.5, 'Naja …'],
+  [2.5, 'Geht so'],
+  [3.3, 'Ordentlich'],
+  [3.9, 'Gut'],
+  [4.4, 'Sehr gut!'],
+  [4.8, 'Richtig stark! 🔥'],
+  [5.01, 'Hammer! 🤩'],
+]
+export const ratingWord = (v: number) => RATING_WORDS.find(([max]) => v < max)?.[1] ?? ''
+
+/** Bewertung mit Sternen (ganze Sterne antippen) und Regler für Zwischenwerte in Zehnteln */
+export function RatingInput({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
+  const v = value ?? 0
+  return (
+    <div className="rating-input">
+      <Stars value={value} onChange={onChange} size="lg" />
+      <div className="rating-row">
+        <input
+          type="range"
+          min={0.5}
+          max={5}
+          step={0.1}
+          value={value ?? 3}
+          className={value == null ? 'unset' : ''}
+          style={{ '--p': `${(((value ?? 3) - 0.5) / 4.5) * 100}%` } as React.CSSProperties}
+          aria-label="Bewertung feinjustieren"
+          onChange={(e) => {
+            const n = Math.round(Number(e.target.value) * 10) / 10
+            if (Math.round(n * 2) !== Math.round(v * 2)) haptic(4)
+            onChange(n)
+          }}
+        />
+        <span className="rating-num">{value != null ? formatRating(value) : '–'}</span>
+      </div>
+      <div className="rate-label">{value != null ? ratingWord(value) : 'Sterne antippen oder Regler schieben'}</div>
+    </div>
   )
 }
 

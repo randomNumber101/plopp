@@ -13,8 +13,10 @@ import {
   CountUp,
   ErrorBox,
   Spinner,
+  RatingInput,
   Stars,
   TrustBadge,
+  formatRating,
   dateInputToIso,
   isoToDateInput,
   quickCheckin,
@@ -28,7 +30,6 @@ import { STYLES } from '../types'
 import { haptic } from '../ui/fx'
 import { IconTrash } from '../ui/icons'
 
-const RATING_WORDS = ['', 'Naja …', 'Geht so', 'Gut', 'Sehr gut!', 'Hammer! 🤩']
 
 export default function BeerDetail({ id }: { id: string }) {
   const beer = useAsync(() => getBeer(id), [id])
@@ -79,7 +80,7 @@ export default function BeerDetail({ id }: { id: string }) {
     try {
       await updateCheckin(fresh, { rating, note: note.trim() || null, drunk_at: dateInputToIso(date) })
       haptic()
-      toast({ icon: rating ? '⭐' : '📝', msg: rating ? `${rating} von 5 – gespeichert` : 'Gespeichert' })
+      toast({ icon: rating ? '⭐' : '📝', msg: rating ? `${formatRating(rating)} von 5 – gespeichert` : 'Gespeichert' })
       setFresh(null)
       checkins.reload()
     } catch (e) {
@@ -151,8 +152,7 @@ export default function BeerDetail({ id }: { id: string }) {
           }}
         >
           <div className="rate-q">Wie war's?</div>
-          <Stars value={rating} onChange={setRating} size="lg" />
-          <div className="rate-label">{rating ? RATING_WORDS[rating] : ' '}</div>
+          <RatingInput value={rating} onChange={setRating} />
           <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Notiz (optional) – wo, mit wem, wie?" />
           <label className="date-row">
             Wann?
@@ -198,22 +198,24 @@ export default function BeerDetail({ id }: { id: string }) {
                 <span className="h-date" title={new Date(c.drunk_at).toLocaleString('de-DE')}>
                   {relDate(c.drunk_at)}
                 </span>
-                {c.rating != null ? (
-                  <Stars value={c.rating} size="sm" />
-                ) : (
-                  <button
-                    className="link small"
-                    onClick={() => {
-                      setFresh(c.id)
-                      setRating(null)
-                      setNote(c.note ?? '')
-                      setDate(isoToDateInput(c.drunk_at))
-                      window.scrollTo({ top: 0, behavior: 'smooth' })
-                    }}
-                  >
-                    bewerten
-                  </button>
-                )}
+                <button
+                  className={c.rating != null ? 'h-rating' : 'link small'}
+                  title="Bewertung ändern"
+                  onClick={() => {
+                    setFresh(c.id)
+                    setRating(c.rating)
+                    setNote(c.note ?? '')
+                    setDate(isoToDateInput(c.drunk_at))
+                  }}
+                >
+                  {c.rating != null ? (
+                    <>
+                      <Stars value={c.rating} size="sm" /> <b>{formatRating(c.rating)}</b>
+                    </>
+                  ) : (
+                    'bewerten'
+                  )}
+                </button>
                 <button
                   className="icon-btn"
                   aria-label="Eintrag löschen"
