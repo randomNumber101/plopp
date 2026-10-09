@@ -28,6 +28,7 @@ from bs4 import BeautifulSoup
 from .util import USER_AGENT, clean_beer_name, fold, http_session, parse_abv
 
 MAX_REQUESTS = 8
+EXTRACT_VERSION = 2  # erhöhen, wenn sich die Erkennung ändert → alte Cache-Einträge werden neu geholt
 TTL_OK_DAYS = 30
 TTL_FAIL_DAYS = 7
 
@@ -48,7 +49,12 @@ _NONBEER = re.compile(
     r"seidel|\w*shirt|hoodie|pullover|kappe|cap|mutze|tasche|merch\w*|fanartikel|ticket\w*|seminar\w*|braukurs\w*|"
     r"kurs\w*|\w*fuhrung\w*|\w*fuehrung\w*|besichtigung|event\w*|veranstaltung\w*|zimmer|ubernachtung|uebernachtung|"
     r"speisekarte|mittagstisch|versand\w*|lieferung|pfand|bierdeckel|kronkorken|treber\w*|adventskalender|"
-    r"verkostung\w*|tasting|jobs?|stellen\w*|ausbildung)\b"
+    r"verkostung\w*|tasting|jobs?|stellen\w*|ausbildung|\w*beutel|\w*kiste|\w*schorle|\w*limonade|praesent\w*|"
+    r"prasent\w*|kalender|\w*kissen|schurze|schuerze|\w*offner|\w*oeffner|naehrwert\w*|nahrwert\w*|"
+    r"auszeichnung\w*|europameister|award\w*|medaille\w*|siegel|urkunde|preistrager\w*|zutaten|allergene|"
+    r"rezept\w*|gewinnspiel|\w*brot|honig|pralinen|schokolade|seife|kosmetik|grill\w*|\w*tasche|feiern|feier|"
+    r"tagung\w*|hochzeit\w*|catering|reservier\w*|brotzeit|speisen|essen|kuche|kueche|menue|buffet|biergarten\w*|"
+    r"anfahrt|offnungszeiten|oeffnungszeiten|impressionen|team|geschichte|historie)\b"
 )
 _NAV = re.compile(
     r"^(startseite|home|impressum|datenschutz\w*|kontakt|agb|warenkorb|anmelden|login|registrieren|newsletter|news|"
@@ -131,6 +137,140 @@ def name_from_file(src: str) -> str | None:
     for rx, rep in _UMLAUT:
         s = rx.sub(rep, s)
     return " ".join(w.capitalize() for w in s.split())
+
+
+_JUNK_ANY = re.compile(r"^(teaser|detail\d*|csm|typo|thumb|thumbnail|preview|uai|hover|positiv|negativ|freisteller|"
+                       r"mockup|packshot|render|neu|new|final|web|wide|key|relaunch|website|content|location|"
+                       r"\d+x\d+(px)?|v\d+(\.\w+)?|[0-9a-f]{6,}|[a-z]*\d[a-z\d]{6,})$", re.I)
+_JUNK_FILE = re.compile(r"^(\d+|[a-z]|home|start|startseite|labels?|etikett\w*|produkt\w*|product|bild|bierbild|flasche|bottle|img|image|"
+                        r"foto|photo|dsc|sta|wb|fw|ci)$", re.I)
+_LEAD_JUNK = re.compile(r"^(produkt(-?bild)?|product|labels?|etikett|bierbild|bild|foto)\b[\s_:'\"„-]*", re.I)
+_SENTENCE = {"ist", "sind", "können", "konnen", "kann", "sie", "wir", "unsern", "unser", "unsere", "genießen", "geniessen",
+             "entdecken", "erfahren", "hier", "jetzt", "mehr", "bei", "für", "fur", "zum", "zur", "aus", "und", "oder",
+             "mit", "ihr", "ihre", "dein", "deine", "euer", "wird", "werden", "haben", "gibt", "noch", "der", "die",
+             "das", "dem", "den", "des", "ein", "eine", "einen", "von", "vom", "im", "in", "auf", "an", "am"}
+_GENERIC = {"das", "der", "die", "aktiv", "erlebnisse", "erlebnis", "location", "produkte", "produkt", "kontakt",
+            "willkommen", "home", "start", "highlights", "neuheiten", "klassiker", "spezialitäten", "sortiment",
+            "flaschen", "dosen", "fass", "fässer", "galerie", "bilder", "video", "info", "infos", "details"}
+
+
+def _dedupe_words(words: list[str]) -> list[str]:
+    """„Alkoholfrei Alkoholfrei“ → „Alkoholfrei“, „Helles Hefeweizen Helles Hefeweizen“ → „Helles Hefeweizen“"""
+    changed = True
+    while changed:
+        changed = False
+        low = [fold(w) for w in words]
+        for n in range(min(4, len(words) // 2), 0, -1):
+            for i in range(0, len(words) - 2 * n + 1):
+                if low[i:i + n] == low[i + n:i + 2 * n]:
+                    words = words[:i + n] + words[i + 2 * n:]
+                    changed = True
+                    break
+            if changed:
+                break
+    return words
+
+
+def polish(name: str | None, from_file: bool = False) -> str | None:
+    """Letzter Schliff für Namen: Dopplungen, Bilddatei-Reste, Satzfetzen entfernen."""
+    if not name:
+        return None
+    t = _LEAD_JUNK.sub("", name.strip())
+    t = re.split(r"(?<=[a-zäöüß]{3})\.\s+(?=[A-ZÄÖÜ])", t)[0]  # „Gaffel Kölsch. Besonders Kölsch“
+    if re.search(r"\b\d{1,2}\.\d{1,2}\.(\d{2,4})?\b|\s\+\s|\b\d+\s*[x×]\s", t):
+        return None  # Termine („21.11.2026“) und Bündel („+ 6 Pils“, „6 x“)
+    t = clean_beer_name(t)
+    t = re.sub(r"[\s–-]+\d+\s*[/x×]\s*\d+([.,]\d+)?\s*\w{0,2}$", "", t)  # „Wiesener Helles – 6 / 12“
+    words = [w for w in re.split(r"\s+", t) if w]
+    words = [w for w in words if not _JUNK_ANY.match(w.strip(".,'\"„“"))]
+    if from_file:
+        words = [re.sub(r"(?<=[a-zäöüß])\d+$", "", w) for w in words]  # „Dunkel2“
+        words = [w for w in words if w and not _JUNK_FILE.match(w.strip(".,'\"„“"))]
+    words = _dedupe_words(words)
+    t = " ".join(words).strip(" -–_,.:;'\"„“")
+    if len(t) < 2 or not re.search(r"[A-Za-zÄÖÜäöüß]{2}", t):
+        return None
+    low = [fold(w) for w in words]
+    if sum(1 for w in low if w in {fold(x) for x in _SENTENCE}) >= (1 if len(words) >= 3 else 2):
+        return None
+    if len(words) == 1 and (fold(t) in {fold(x) for x in _GENERIC} or (t[:1].islower() and not is_beerish(t))):
+        return None
+    if len(t) > 50 or len(words) > 7:
+        return None
+    return t
+
+
+def img_key(src: str | None) -> str | None:
+    """Gleiches Produktbild in verschiedenen Varianten (teaser-1/-2, Hover, Größen) → ein Schlüssel"""
+    if not src:
+        return None
+    path = unquote(urlparse(src).path).lower()
+    d, _, f = path.rpartition("/")
+    stem = re.sub(r"\.(jpe?g|png|webp|gif|avif)$", "", f)
+    prev = None
+    while prev != stem:
+        prev = stem
+        stem = re.sub(r"[-_ ]+(teaser|detail|hover|positiv|negativ|neu|new|klein|gross|small|large|thumb|preview|scaled|"
+                      r"copy|kopie|gelb|v?\d{1,2}|\d+x\d+)_*$", "", stem)
+        stem = re.sub(r"(detail|teaser)\d+$", "", stem)
+    stem = re.sub(r"_+$", "", stem)
+    return f"{d}/{stem}" if stem else None
+
+
+_PRIO = {"jsonld": 5, "shopify": 5, "woocommerce": 5, "txt": 4, "linktitle": 4, "link": 3, "alt": 2, "ki": 2, "file": 0}
+
+
+def cluster_items(items: list[dict]) -> list[dict]:
+    """Einträge, die dasselbe Produkt meinen (gleicher Link, gleiches Bild oder gleicher Name), zusammenfassen
+    und den besten Namen wählen (Überschrift vor Linktext vor alt-Text vor Dateiname)."""
+    parent = list(range(len(items)))
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    seen: dict[tuple, int] = {}
+    for i, it in enumerate(items):
+        keys = [("n", re.sub(r"[^a-z0-9]", "", fold(it["name"])))]
+        if it.get("href"):
+            keys.append(("h", it["href"].rstrip("/").lower()))
+        k = img_key(it.get("image"))
+        if k:
+            keys.append(("i", k))
+        for key in keys:
+            if key in seen:
+                parent[find(i)] = find(seen[key])
+            else:
+                seen[key] = i
+    groups: dict[int, list[dict]] = defaultdict(list)
+    for i, it in enumerate(items):
+        groups[find(i)].append(it)
+    out = []
+    for members in groups.values():
+        best = max(members, key=lambda m: (_PRIO.get(m.get("src_kind", "txt"), 1), -len(m["name"])))
+        merged = dict(best)
+        # „Baisinger Helles“ mit Untertitel „Alkoholfrei“: den wichtigen Unterschied nicht verlieren
+        if not re.search(r"alkoholfrei|0[,.]0", fold(best["name"])) and any(
+                re.search(r"alkoholfrei|0[,.]0", fold(m.get("sub") or m["name"])) for m in members):
+            merged["name"] = f"{best['name']} alkoholfrei"
+        merged["abv"] = next((m["abv"] for m in members if m.get("abv") is not None), None)
+        merged["image"] = best.get("image") or next((m["image"] for m in members if m.get("image")), None)
+        if any(m.get("conf") == "hoch" for m in members):
+            merged["conf"] = "hoch"
+        out.append(merged)
+    return out
+
+
+def postprocess(beers: list[dict]) -> list[dict]:
+    """Auch auf ältere Cache-Einträge anwendbar: Namen säubern, Dubletten zusammenfassen."""
+    cleaned = []
+    for b in beers or []:
+        name = polish(b.get("name"), from_file=b.get("src_kind") == "file")
+        if name and not is_nonbeer(name):
+            cleaned.append({**b, "name": name})
+    return cluster_items(cleaned)
 
 
 # ------------------------------------------------------------------------------------------------ Adressen
@@ -356,11 +496,15 @@ def extract_items(html: str, url: str) -> tuple[list[dict], dict]:
         if _in_skipped(el):
             continue
         raw = el.get_text(" ", strip=True)
-        name = clean_item(raw)
+        name = polish(clean_item(raw))
         if not name:
             continue
+        a = el if el.name == "a" else el.find_parent("a")
+        sib = el.find_next_sibling(class_=re.compile(r"sub-?title|untertitel|subline", re.I))
         sig = ("txt", el.name, re.sub(r"\d+", "", cls)[:60])
-        groups[sig].append({"name": name, "el": el, "raw": raw})
+        groups[sig].append({"name": name, "el": el, "raw": raw, "kind": "txt",
+                            "sub": sib.get_text(" ", strip=True) if sib is not None else None,
+                            "href": urljoin(url, a["href"]) if a is not None and a.get("href") else None})
 
     # b) Linkgruppen (z. B. /de/produkte/warburger-pils) – auch in der Navigation
     seen_href = set()
@@ -378,15 +522,28 @@ def extract_items(html: str, url: str) -> tuple[list[dict], dict]:
                      r"karriere|author|page|seite|wp-content|media|uploads)(/|$)", parent):
             continue
         text = a.get_text(" ", strip=True)
-        name = clean_item(text) if text else None
+        kind = "link"
+        # Produktkarten: <a title="Helles"><div class="title">Helles</div><div class="subtitle">Mild süffig</div></a>
+        head = a.find(["h1", "h2", "h3", "h4", "h5", "h6", "strong"]) or a.find(
+            class_=re.compile(r"(^|[-_])(title|name|titel|heading)($|[-_])", re.I))
+        name = None
+        if a.get("title"):
+            name, kind = polish(clean_item(a["title"])), "linktitle"
+        if not name and head is not None:
+            name, kind = polish(clean_item(head.get_text(" ", strip=True))), "linktitle"
+        sub_el = a.find(class_=re.compile(r"sub-?title|untertitel|subline", re.I))
+        sub = sub_el.get_text(" ", strip=True) if sub_el is not None else None
+        if not name:
+            kind = "link"
+            name = polish(clean_item(text)) if text else None
         if not name:
             slug = re.sub(r"\.(html?|php)$", "", segs[-1])
             slug = re.sub(r"[-_]+", " ", unquote(slug)).strip()
             for rx, rep in _UMLAUT:
                 slug = rx.sub(rep, slug)
-            name = clean_item(" ".join(w.capitalize() for w in slug.split()))
+            name = polish(clean_item(" ".join(w.capitalize() for w in slug.split())), from_file=True)
         if name:
-            groups[("link", parent)].append({"name": name, "el": a, "raw": text, "href": href})
+            groups[("link", parent)].append({"name": name, "el": a, "raw": text, "href": href, "kind": kind, "sub": sub})
 
     # c) Bildergalerien (Name aus alt-Text oder Dateiname)
     for img in soup.find_all("img"):
@@ -396,12 +553,17 @@ def extract_items(html: str, url: str) -> tuple[list[dict], dict]:
         if not src or src.lower().endswith(".svg"):
             continue
         alt = (img.get("alt") or img.get("title") or "").strip()
-        name = clean_item(alt) if alt and not _BAD_IMG.search(alt.lower()) else None
-        name = name or name_from_file(src)
+        name = polish(clean_item(alt)) if alt and not _BAD_IMG.search(alt.lower()) else None
+        kind = "alt"
+        if not name:
+            name, kind = polish(name_from_file(src), from_file=True), "file"
         if not name:
             continue
+        a = img.find_parent("a")
         box = img.find_parent(["article", "section", "main", "ul", "table"])
-        groups[("img", id(box) if box is not None else 0)].append({"name": name, "el": img, "raw": alt, "src": src})
+        groups[("img", id(box) if box is not None else 0)].append({
+            "name": name, "el": img, "raw": alt, "src": src, "kind": kind,
+            "href": urljoin(url, a["href"]) if a is not None and a.get("href") else None})
 
     # Gruppen bewerten
     items: list[dict] = []
@@ -430,11 +592,18 @@ def extract_items(html: str, url: str) -> tuple[list[dict], dict]:
                 img = _img_src(im) if im else None
             if img and (img.lower().endswith(".svg") or _BAD_IMG.search(img.lower().rsplit("/", 1)[-1])):
                 img = None
+            href = m.get("href")
+            if href and href.rstrip("/") in (url.rstrip("/"), urljoin(url, "/").rstrip("/")):
+                href = None
             items.append({"name": m["name"], "abv": find_abv(ctext) or find_abv(m.get("raw") or ""),
                           "image": urljoin(url, img) if img else None, "method": f"html-{sig[0]}", "conf": conf,
-                          "page": url})
-    items += [{**p, "conf": "hoch", "page": url} for p in jsonld_products(docs, url)]
-    return items, {"docs": docs, **diag}
+                          "page": url, "href": href, "src_kind": m.get("kind", "txt"), "sub": m.get("sub")})
+    items += [{**p, "conf": "hoch", "page": url, "src_kind": "jsonld"} for p in jsonld_products(docs, url)]
+    # Gibt es echte Textnamen, werden reine Dateinamen-Funde nicht gebraucht
+    if any(i["src_kind"] != "file" for i in items):
+        keep_keys = {img_key(i.get("image")) for i in items if i["src_kind"] != "file"} - {None}
+        items = [i for i in items if i["src_kind"] != "file" or img_key(i.get("image")) in keep_keys]
+    return cluster_items(items), {"docs": docs, **diag}
 
 
 def page_links(html: str, url: str) -> tuple[list[str], str | None]:
@@ -503,7 +672,7 @@ def shopify_items(data: dict) -> list[dict]:
             continue
         body = BeautifulSoup(p.get("body_html") or "", "html.parser").get_text(" ", strip=True)
         imgs = p.get("images") or []
-        out.append({"name": name, "abv": find_abv(title + " " + body), "method": "shopify", "conf": "hoch",
+        out.append({"name": name, "abv": find_abv(title + " " + body), "method": "shopify", "src_kind": "shopify", "conf": "hoch",
                     "image": imgs[0].get("src") if imgs and isinstance(imgs[0], dict) else None})
     return out
 
@@ -521,7 +690,7 @@ def woo_items(data: list) -> list[dict]:
         desc = BeautifulSoup((p.get("short_description") or "") + " " + (p.get("description") or ""),
                              "html.parser").get_text(" ", strip=True)
         imgs = p.get("images") or []
-        out.append({"name": name, "abv": find_abv(title + " " + desc), "method": "woocommerce", "conf": "hoch",
+        out.append({"name": name, "abv": find_abv(title + " " + desc), "method": "woocommerce", "src_kind": "woocommerce", "conf": "hoch",
                     "image": imgs[0].get("src") if imgs else None})
     return out
 
@@ -642,21 +811,9 @@ def crawl_site(session, site: str) -> dict:
             break
     data["sortiment"] = cands
 
-    # Zusammenfassen: gleiche Namen nur einmal, bessere Angaben behalten
-    merged: dict[str, dict] = {}
-    for it in items:
-        k = re.sub(r"[^a-z0-9]", "", _f(it["name"]))
-        if not k:
-            continue
-        cur = merged.get(k)
-        if cur is None:
-            merged[k] = dict(it)
-        else:
-            cur["abv"] = cur.get("abv") if cur.get("abv") is not None else it.get("abv")
-            cur["image"] = cur.get("image") or it.get("image")
-            if it.get("conf") == "hoch":
-                cur["conf"] = "hoch"
-    data["beers"] = list(merged.values())[:80]
+    # Zusammenfassen: gleicher Link, gleiches Bild oder gleicher Name = ein Produkt
+    data["beers"] = postprocess(items)[:80]
+    data["v"] = EXTRACT_VERSION
     # Für die KI bzw. die Fehlersuche: Text der Sortiment-Seiten, wenn die Regeln wenig gefunden haben
     if len(data["beers"]) < 2 and texts:
         data["text"] = "\n---\n".join(texts)[:9000]
@@ -680,7 +837,7 @@ def crawl(sites: list[str], cache: dict[str, dict], budget_s: float = 1200, work
     new: dict[str, dict] = {}
     todo = []
     for s in sorted(set(sites)):
-        if s in cache:
+        if s in cache and cache[s].get("v") == EXTRACT_VERSION:
             out[s] = cache[s]
         else:
             todo.append(s)
@@ -754,7 +911,7 @@ def llm_extract(results: dict[str, dict], names: dict[str, str], max_calls: int 
         for b in beers[:60]:
             name = clean_item(str(b.get("name") or ""))
             if name and not is_nonbeer(name):
-                d["beers"].append({"name": name, "abv": parse_abv(b.get("alkohol")), "image": None, "method": "ki",
+                d["beers"].append({"name": name, "abv": parse_abv(b.get("alkohol")), "image": None, "method": "ki", "src_kind": "ki",
                                    "conf": "mittel", "style": b.get("sorte")})
         time.sleep(4.5)  # max. 15 Anfragen pro Minute
     return calls, "ok"

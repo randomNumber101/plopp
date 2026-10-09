@@ -15,7 +15,7 @@ from rapidfuzz import fuzz, process
 
 from .enrich import haversine_km, place_city
 from .util import STOPWORDS, clean_beer_name, fold, guess_style, key, tokens
-from .sites import is_beerish
+from .sites import is_beerish, postprocess
 from .web import WEAK_GEO, apply_osm, choose_address
 
 _BAD_STYLE = re.compile(r"verschied|saison|weitere|u\.\s?a\.|diverse|etc|sowie|wechselnd|spezialit|biere\b|sorten",
@@ -244,6 +244,7 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
 
     def beer_key(brewery_ext: str, name: str) -> str:
         t = [x for x in tokens(name) if x not in alias_tokens[brewery_ext]]
+        t = list(dict.fromkeys(t))  # „alkoholfrei alkoholfrei“ → „alkoholfrei“
         return " ".join(t) or key(name)
 
     def add_beer(brewery_ext, name, style, abv, image, source, trust, eans, create=True):
@@ -289,13 +290,14 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         d = site_results.get(site) or {}
         if not d.get("beers"):
             continue
+        site_beers = postprocess(d["beers"])  # auch ältere Cache-Einträge säubern
         # Mehrere Braustätten mit derselben Website → Biere zum Unternehmen bzw. zur Hauptbrauerei
         owner = next((breweries[b["parent_ext"]] for b in bs if b.get("parent_ext") in breweries), None) or \
             sorted(bs, key=lambda b: (b["trust"] != "verified", b["brewery_type"] != "brauerei", len(b["name"])))[0]
         oext = owner["ext_id"]
         brand = brand_word(owner["name"])
         own = ({oext, owner.get("parent_ext")} | {b["ext_id"] for b in bs}) - {None}
-        for it in d["beers"]:
+        for it in site_beers:
             name = it["name"]
             # Biere anderer Brauereien (Getränkekarte, Handel) überspringen: „Augustiner Hell“ auf fremder Seite
             first = name.split()[0]

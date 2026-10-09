@@ -200,6 +200,25 @@ def test_sites():
     assert not names & {"Warburger Brewhouse Gin", "Warburger Diemelbrand", "Kohlschein-Brause Orange",
                         "Warburger White Cider", "Warburger Bierspezialitäten", "Landbier-Comics"}, names
 
+    # Produktkarten mit Titel, Untertitel und Hover-Bild: jedes Bier genau einmal, sauberer Name
+    items, _ = S.extract_items((SITES / "baisinger_home.html").read_text(encoding="utf-8"), "https://baisinger.de/")
+    assert [i["name"] for i in items] == ["Baisinger Helles alkoholfrei", "Alkoholfrei", "Helles",
+                                          "Teufels Weisse alkoholfrei", "Weihnachtsbier",
+                                          "Teufels Weisse Helles Hefeweizen", "Pils"], [i["name"] for i in items]
+    for raw, want in [("Alkoholfrei Alkoholfrei", "Alkoholfrei"), ("Helles Hefeweizen Helles Hefeweizen", "Helles Hefeweizen"),
+                      ("Wiesener Helles – 6 / 12", "Wiesener Helles"), ("Gaffel Kölsch. Besonders Kölsch", "Gaffel Kölsch"),
+                      ("St. Georgen Kellerbier", "St. Georgen Kellerbier"), ("Hell 1516", "Hell 1516"),
+                      ("So können Sie unsern Hopfen-Engel genießen", None), ("Aus der", None),
+                      ("Weißwurst & Brezn drehn 21.11.2026", None), ("Männerhandtasche Filz + 6 Zwönitzer Pilsner", None)]:
+        assert S.polish(raw) == want, (raw, S.polish(raw))
+    assert S.polish("Sta Website Relaunch Content Teaser Kellerbier V2.7547774a", from_file=True) == "Kellerbier"
+    assert S.img_key("/a/helles-teaser-1.png") == S.img_key("/a/helles-teaser-2.png")
+    assert S.img_key("/a/x_detail1_neu.png") == S.img_key("/a/x_detail2_neu.png")
+    dup = S.postprocess([{"name": "Alkoholfrei", "src_kind": "txt", "href": "/a"},
+                         {"name": "Alkoholfrei Alkoholfrei", "src_kind": "link", "href": "/a"},
+                         {"name": "Baisinger Alkoholfrei Detail1", "src_kind": "file", "image": "/p/alk_detail1_neu.png", "href": "/a"}])
+    assert [d["name"] for d in dup] == ["Alkoholfrei"], dup
+
     a = S.find_addresses((SITES / "loewen_impressum.txt").read_text(encoding="utf-8"))
     assert a[0]["street"] == "Marktstraße 8" and a[0]["postcode"] == "96155" and a[0]["city"] == "Buttenheim", a
     assert a[1]["city"] == "Kehl" and a[1]["foreign"]  # Schlichtungsstelle

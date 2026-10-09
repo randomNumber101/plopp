@@ -247,12 +247,29 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
         cur.execute("delete from public.wishlist w using beer_moves m where w.beer_id = m.old_id")
 
         # Sicherung: Wenn plötzlich mehr als die Hälfte des Katalogs „veraltet“ wäre, stimmt etwas nicht
-        cur.execute("select (select count(*) from stale_beers), (select count(*) from public.beers where source <> 'user')")
-        stale_n, catalog_n = cur.fetchone()
+        # Website-Biere dürfen sich stark ändern (bessere Erkennung räumt Dubletten auf), der übrige Katalog nicht
+        cur.execute("""
+            select count(*) filter (where b.source not like '%%website%%'),
+                   count(*) filter (where b.source like '%%website%%')
+            from public.beers b where b.id in (select id from stale_beers)
+        """)
+        stale_core, stale_web = cur.fetchone()
+        cur.execute("""
+            select count(*) filter (where source not like '%%website%%' and source <> 'user'),
+                   count(*) filter (where source like '%%website%%')
+            from public.beers
+        """)
+        core_n, web_n = cur.fetchone()
+        new_web = sum(1 for b in beers if "website" in (b.get("source") or ""))
+        stale_n = stale_core + stale_web
         stats["beers_stale"] = stale_n
-        if prune and catalog_n and stale_n > 0.5 * catalog_n:
+        stats["beers_stale_website"] = stale_web
+        if prune and core_n and stale_core > 0.5 * core_n:
             prune = False
-            stats["prune_skipped"] = f"{stale_n} von {catalog_n} Bieren wären gelöscht worden"
+            stats["prune_skipped"] = f"{stale_core} von {core_n} Katalog-Bieren wären gelöscht worden"
+        elif prune and web_n > 200 and new_web < 0.2 * web_n:
+            prune = False
+            stats["prune_skipped"] = f"nur {new_web} Website-Biere statt bisher {web_n} – Websites offenbar nicht erreicht"
         if prune:
             # Veraltete Biere ohne Bezug zum Nutzer entfernen
             cur.execute("""
