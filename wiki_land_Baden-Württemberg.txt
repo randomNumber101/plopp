@@ -1,0 +1,1156 @@
+[[Datei:Baden-Württemberg, administrative divisions - de - colored.svg|mini|Regierungsbezirke und Landkreise Baden-Württembergs]]
+Die '''Liste aktiver Brauereien in Baden-Württemberg''' führt [[Brauerei]]en in [[Baden-Württemberg]] auf, sortiert nach [[Regierungsbezirk]].<ref name="IBV2024">Dirk Habicht: ''IBV-Brauereiverzeichnis Deutschland 2024'', Hrsg.: Internationaler Brauereikultur-Verband</ref>
+
+== Regierungsbezirk Freiburg ==
+{| class="wikitable sortable toptextcells"
+!Unternehmen
+!Standort
+!Lage
+!Gründung
+!Anmerkungen
+|-
+|Löwenbrauerei Friedrich Kalb
+|[[Bräunlingen]]
+|{{Coordinate|NS=47.9271|EW=8.4504|type=building|region=DE-BW|name=Bräunlinger Löwenbrauerei|text=ICON0}}
+|1803
+|
+|-
+|[[Fürstlich Fürstenbergische Brauerei]] 
+|[[Donaueschingen]]
+|{{Coordinate|NS=47.9516|EW=8.499|type=building|region=DE-BW|name=Fürstlich Fürstenbergische Brauerei|text=ICON0}}
+|1283
+|zu [[Paulaner Brauerei Gruppe]].
+|-
+|Löwenbrauerei Otto Dold
+|Elzach
+|{{Coordinate|NS=48.1751|EW=8.0696|type=building|region=DE-BW|name=Löwenbrauerei O. Dold|text=ICON0}}
+|1856
+|
+|-
+|Hausbrauerei Ostel
+|[[Endingen am Kaiserstuhl]]
+|{{Coordinate|NS=48.1415|EW=7.7081|type=building|region=DE-BW|name=Ostel Bräu|text=ICON0}}
+|2011
+|
+|-
+|Microbrauerei A. Grüner
+|Endingen am Kaiserstuhl
+|{{Coordinate|NS=48.1444|EW=7.6914|type=building|region=DE-BW|name=A. Grüner|text=ICON0}}
+|2018
+|
+|-
+|Hausbrauerei Feierling 
+|[[Freiburg im Breisgau]]
+|{{Coordinate|NS=47.993303|EW=7.852754|type=building|region=DE-BW|name=Hausbrauerrei Feierling|text=ICON0}}
+|1877 / 1989
+|
+|-
+|[[Brauerei Ganter]] 
+|[[Freiburg im Breisgau]]
+|{{Coordinate|NS=47.9898|EW=7.8598|type=building|region=DE-BW|name=Brauerei Ganter|text=ICON0}}
+|1865
+|
+|-
+|Martin's Bräu
+|Freiburg im Breisgau
+|{{Coordinate|NS=47.9936|EW=7.8496|type=building|region=DE-BW|name=Martin's Bräu Freiburg|text=ICON0}}
+|1989
+|
+|-
+|[[Badische Staatsbrauerei Rothaus]]
+|[[Grafenhausen]]
+|{{Coordinate|NS=47.7972|EW=8.2457|type=building|region=DE-BW|name=Brauerei Rothaus|text=ICON0}}
+|1791
+|
+|-
+|[[Brauerei M. Ketterer]]
+|[[Hornberg]]
+|{{Coordinate|NS=48.2015538|EW=8.2336|type=building|region=DE-BW|name=Familienbrauerei M. Ketterer|text=ICON0}}
+|1877
+|
+|-
+|Markgräfler Brauwerk
+|[[Kandern]]
+|{{Coordinate|NS=47.7107|EW=7.6071|type=building|region=DE-BW|name=Markgräfler Brauwerk|text=ICON0}}
+|2017
+|
+|-
+|Schloßbrauerei Stöckle
+|[[Kippenheim]]-Schmieheim
+|{{Coordinate|NS=48.2792|EW=7.8599|type=building|region=DE-BW|name=Schlossbrauerei Stöckle Schmieheim|text=ICON0}}
+|1843
+|
+|-
+|Brauhaus Johannes Albrecht
+|[[Konstanz]]
+|{{Coordinate|NS=47.6648|EW=9.1751|type=building|region=DE-BW|name=Brauhaus Joh. Albrecht|text=ICON0}}
+|1992
+|
+|-
+|[[Ruppaner-Brauerei Gebrüder Ruppaner]]
+|Konstanz
+|{{Coordinate|NS=47.6856|EW=9.208|type=building|region=DE-BW|name=Ruppaner-Brauerei Gebr. Ruppaner|text=ICON0}}
+|1795
+|
+|-
+|Landhotel Dammenmühle
+|[[Lahr/Schwarzwald]]
+|{{Coordinate|NS=48.3252|EW=7.8602|type=building|region=DE-BW|name=Dammenmühle-Brauhaus|text=ICON0}}
+|2012
+|
+|-
+|Privatbrauerei Rogg
+|Lenzkirch
+|{{Coordinate|NS=47.8614|EW=8.2238|type=building|region=DE-BW|name=Brauerei Rogg|text=ICON0}}
+|1846
+|
+|-
+|[[Brauerei Lasser]]
+|[[Lörrach]]
+|{{Coordinate|NS=47.6107|EW=7.6645|type=building|region=DE-BW|name=Brauhaus Lasser Lörrach|text=ICON0}}
+|1850
+|
+|-
+|Hausbrauerei Mülhaupt
+|Lörrach
+|{{Coordinate|NS=47.6314|EW=7.6931|type=building|region=DE-BW|name=Hausbrauerei Mülhaupt|text=ICON0}}
+|1999
+|
+|-
+|Brauerei Hirtler
+|[[March (Breisgau)|March]]
+|{{Coordinate|NS=48.069|EW=7.7702|type=building|region=DE-BW|name=Brauerei Hirtler|text=ICON0}}
+|2015
+|
+|-
+|[[Kronenbrauerei Offenburg|Brauwerk Baden]]
+|[[Offenburg]]
+|{{Coordinate|NS=48.4876|EW=7.9565|type=building|region=DE-BW|name=Brauwerk - das Wirtshaus|text=ICON0}} 
+|1847 / 2017
+|ehemals Kronenbrauerei Offenburg
+|-
+|Friedrich Bier
+|Offenburg
+|{{Coordinate|NS=48.4701|EW=7.9496|type=building|region=DE-BW|name=friedrich bier|text=ICON0}}
+|2017
+|
+|-
+|Schnitzerbräu
+|Offenburg
+|{{Coordinate|NS=48.4694|EW=7.9263|type=building|region=DE-BW|name=Schnitzerbräu|text=ICON0}}
+|2007
+|
+|-
+|Reichenauer Inselbier
+|[[Reichenau (Landkreis Konstanz)|Reichenau]]
+|{{Coordinate|NS=47.6939|EW=9.069|type=building|region=DE-BW|name=Reichenauer Inselbier|text=ICON0}}
+|2018
+|
+|-
+|Familienbrauerei Bauhöfer
+|[[Renchen]]
+|{{Coordinate|NS=48.5803|EW=8.049|type=building|region=DE-BW|name=Familienbrauerei Bauhöfer|text=ICON0}}
+|1852
+|
+|-
+|Römerbräu Riegel
+|[[Riegel am Kaiserstuhl]]
+|{{Coordinate|NS=48.1483|EW=7.7534|type=building|region=DE-BW|name=Römerbräu Riegel|text=ICON0}}
+|2006
+|
+|-
+|Brauerei Löwen
+|[[Sasbach]]
+|{{Coordinate|NS=48.632|EW=8.1044|type=building|region=DE-BW|name=Landgasthof Löwen|text=ICON0}}
+|2013
+|
+|-
+|Bürgerstüble
+|[[Sulz am Neckar]]
+|{{Coordinate|NS=48.3295|EW=8.6148|type=building|region=DE-BW|name=Bürgerstüble Sigmarswangen|text=ICON0}}
+|2010
+|
+|-
+|Köndringer Dorfbrauerei
+|[[Teningen]]
+|{{Coordinate|NS=48.136|EW=7.8022|type=building|region=DE-BW|name=Köndringer Dorfbrauerrei|text=ICON0}}
+|2006
+|
+|-
+|Krokodil
+|[[Trossingen]]
+|{{Coordinate|NS=48.0716|EW=8.6285|type=building|region=DE-BW|name=Krokodil|text=ICON0}}
+|2014
+|
+|-
+|HopfiX
+|[[Tuttlingen]]
+|{{Coordinate|NS=47.9833|EW=8.8138|type=building|region=DE-BW|name=HopfiX Bräu|text=ICON0}}
+|2016
+|
+|-
+|Hader Karle
+|[[Villingen-Schwenningen]]
+|{{Coordinate|NS=48.0945|EW=8.5011|type=building|region=DE-BW|name=Wirtshaus beim Hader-Karle|text=ICON0}}
+|2018
+|
+|-
+|Enkendörfler Hausbräu
+|[[Wehr (Baden)|Wehr]]
+|{{Coordinate|NS=47.618|EW=7.9013|type=building|region=DE-BW|name=Enkendörfler Hausbräu|text=ICON0}}
+|2005
+|
+|-
+|Brauhaus Meier
+|Wehr
+|{{Coordinate|NS=47.6131|EW=7.9073|type=building|region=DE-BW|name=Brauhaus Meier|text=ICON0}}
+|2014
+|
+|-
+|[[Privatbrauerei Waldhaus]]
+|[[Weilheim (Baden)]] / Waldhaus
+|{{Coordinate|NS=47.6829|EW=8.1573|type=building|region=DE-BW|name=Waldhaus Brauerei|text=ICON0}}
+|1833
+|
+|-
+|[[Hirsch-Brauerei Honer]]
+|[[Wurmlingen (Landkreis Tuttlingen)|Wurmlingen]]
+|{{Coordinate|NS=48.0052|EW=8.7777|type=building|region=DE-BW|name=Hirsch-Brauerei Honer|text=ICON0}}
+|1782
+|
+|-
+|Gasthaus und Brauerei Krone
+|[[Zell im Wiesental]]
+|{{Coordinate|NS=47.706962|EW=7.852211|type=building|region=DE-BW|name=Zur Krone - Gasthaus, Brauerei|text=ICON0}}
+|2023
+|
+|-
+|Hirschbrauerei Flözlingen, Rolf Schittenhelm
+|[[Zimmern ob Rottweil]]
+|{{Coordinate|NS=48.1667|EW=8.5321|type=building|region=DE-BW|name=Hirschbrauerei Flözlingen|text=ICON0}}
+|1793
+|
+|}
+
+== Regierungsbezirk Karlsruhe ==
+{| class="wikitable sortable toptextcells"
+!Unternehmen
+!Standort
+!Lage
+!Gründung
+!Anmerkungen
+|-
+|[[Alpirsbacher Klosterbräu Glauner]]
+|[[Alpirsbach]]
+|{{Coordinate|NS=48.3408|EW=8.3964|type=building|region=DE-BW|name=Alpirsbacher Klosterbräu|text=ICON0}}
+|1877
+|
+|-
+|Brauhaus Wallhall
+|Bruchsal
+|{{Coordinate|NS=49.1229|EW=8.5991|type=building|region=DE-BW|name=Brauhaus Wallhall|text=ICON0}}
+| 1995
+|
+|-
+|Andreasbräu
+|[[Eggenstein-Leopoldshafen]]
+|{{Coordinate|NS=49.0904|EW=8.3987|type=building|region=DE-BW|name=Andreasbräu|text=ICON0}}
+|1996
+|
+|-
+|Turm-Bräu
+|[[Freudenstadt]]
+|{{Coordinate|NS=48.464|EW=8.4123|type=building|region=DE-BW|name=Turm-Bräu|text=ICON0}}
+| 1999
+|
+|-
+|Christoph-Bräu
+|[[Gaggenau]]
+|{{Coordinate|NS=48.8046|EW=8.3164|type=building|region=DE-BW|name=Christoph-Bräu|text=ICON0}}
+|1995
+|
+|-
+|Brauerei zum Klosterhof
+|[[Heidelberg]]
+|{{Coordinate|NS=49.4204|EW=8.7401|type=building|region=DE-BW|name=Brauerei zum Klosterhof|text=ICON0}}
+|2007
+|bei [[Benediktinerabtei Stift Neuburg]]
+|-
+|[[Heidelberger Brauerei]]
+|Heidelberg
+|{{Coordinate|NS=49.4049|EW=8.6398|type=building|region=DE-BW|name=Heidelberger Brauerei|text=ICON0}}
+|1753
+|zu [[Weldebräu]]
+|-
+|Kulturbrauerei
+|Heidelberg
+|{{Coordinate|NS=49.4131|EW=8.7133|type=building|region=DE-BW|name=Kulturbrauerei|text=ICON0}}
+|2000
+|
+|-
+|Vetters Alt Heidelberger Brauhaus
+|Heidelberg
+|{{Coordinate|NS=49.4126|EW=8.7098|type=building|region=DE-BW|name=Vetters Alt Heidelberger Brauhaus|text=ICON0}}
+|1987
+|
+|-
+|Brauhaus Kühler Krug
+|[[Karlsruhe]]
+|{{Coordinate|NS=49.0041|EW=8.3685|type=building|region=DE-BW|name=Brauhaus Kühler Krug|text=ICON0}}
+|2002
+|
+|-
+|Badisches Brauhaus
+|Karlsruhe
+|{{Coordinate|NS=49.0119|EW=8.3939|type=building|region=DE-BW|name=Badisches Brauhaus|text=ICON0}}
+|1999
+|
+|-
+|Brauhaus 2.0
+|Karlsruhe
+|{{Coordinate|NS=48.9522|EW=8.5707|type=building|region=DE-BW|name=Brauhaus 2.0 GmbH|text=ICON0}}
+|
+|seit 2024 geschl.<br /> Weiterbetrieb vorgesehen
+|-
+|[[Hatz-Moninger Brauhaus]]
+|Karlsruhe
+|{{Coordinate|NS=49.0019|EW=8.3577|type=building|region=DE-BW|name=Hatz-Moninger Brauhaus|text=ICON0}}
+|1856
+|zu Familie Scheidtweiler
+|-
+|Neureuter Braumanufaktur
+|Karlsruhe
+|{{Coordinate|NS=49.0535|EW=8.3837|type=building|region=DE-BW|name=Neureuter Braumanufaktur|text=ICON0}}
+|2016
+|
+|-
+|[[Privatbrauerei Hoepfner]]
+|Karlsruhe
+|{{Coordinate|NS=49.0124|EW=8.4266|type=building|region=DE-BW|name=Privatbrauerei Hoepfner|text=ICON0}}
+|1798
+|zu Paulaner Gruppe
+|-
+|Vogelbräu
+|Karlsruhe
+|{{Coordinate|NS=49.0075|EW=8.4141|type=building|region=DE-BW|name=Vogelbräu GmbH|text=ICON0}}
+|2000
+|
+|-
+|Vogelbräu
+|Karlsruhe-Durlach<br />[[Ettlingen]]
+|{{Coordinate|NS=48.9417|EW=8.405|type=building|region=DE-BW|name=Vogelbräu Hausbräu|text=ICON0}}
+|2004
+|
+|-
+|Lobdengau-Brauerei Kiefer & Müller
+|[[Ladenburg]]
+|{{Coordinate|NS=49.4695|EW=8.6362|type=building|region=DE-BW|name=Lobdengau-Brauerei|text=ICON0}}
+|2007
+|
+|-
+|[[Bahnhof Malsch|Alter Bahnhof]]
+|[[Malsch (Landkreis Karlsruhe)|Malsch]]
+|{{Coordinate|NS=48.8894|EW=8.3238|type=building|region=DE-BW|name=Alter Bahnhof|text=ICON0}}
+|2002
+|
+|-
+|Schumis Meckserbräu
+|[[Meckesheim]]
+|{{Coordinate|NS=49.3213|EW=8.8052|type=building|region=DE-BW|name=Schumis Meckserbräu|text=ICON0}}
+| 2021
+|
+|-
+|Mosbacher Brauhaus
+|[[Mosbach]]
+|{{Coordinate|NS=49.3512|EW=9.1416|type=building|region=DE-BW|name=Mosbacher Brauhaus|text=ICON0}}
+|1996
+|
+|-
+|Hochdorfer Kronenbrauerei Otto Haizmann
+|[[Nagold]]
+|{{Coordinate|NS=48.4941|EW=8.7216|type=building|region=DE-BW|name=Hochdorfer Kronenbrauerei|text=ICON0}}
+|1654
+|
+|-
+|Brauhaus Rößle
+|[[Neubulach]]
+|{{Coordinate|NS=48.6618|EW=8.695|type=building|region=DE-BW|name=Brauhaus Rößle|text=ICON0}}
+|
+|
+|-
+|Brauhaus Pforzheim 
+|[[Pforzheim]]
+|{{Coordinate|NS=48.8867|EW=8.7046|type=building|region=DE-BW|name=Brauhaus Pforzheim|text=ICON0}} 
+|1889
+|zu Familie Scheidtweiler
+|-
+|Platzhirsch
+|Pforzheim
+|{{Coordinate|NS=48.8884|EW=8.6977|type=building|region=DE-BW|name=Platzhirsch|text=ICON0}}
+|
+|
+|-
+|Privatbrauerei Wilhelm Ketterer
+|Pforzheim
+|{{Coordinate|NS=48.2015|EW=8.2338|type=building|region=DE-BW|name=Privatbrauerei Ketterer|text=ICON0}}
+|1888
+|
+|-
+|BIERkulturGUT
+|[[Philippsburg]]
+|{{Coordinate|NS=49.2367|EW=8.4535|type=building|region=DE-BW|name=BIERkulturGUT|text=ICON0}}
+|2018
+|
+|-
+|[[Weldebräu]]
+|[[Plankstadt]]
+|{{Coordinate|NS=49.4016|EW=8.5781|type=building|region=DE-BW|name=Weldebräu|text=ICON0}}
+|1752
+|
+|-
+|[[Brauerei C. Franz]]
+|[[Rastatt]]
+|{{Coordinate|NS=48.8571|EW=8.2092|type=building|region=DE-BW|name=Brauerei C. Franz|text=ICON0}} 
+|1842
+|zu Familie Scheidtweiler
+|-
+|Hausbrauerei Engel
+|Rastatt
+|{{Coordinate|NS=48.8596|EW=8.2003|type=building|region=DE-BW|name=Hausbrauerei Engel|text=ICON0}}
+|
+|
+|-
+|Hopfenschlingel
+|Rastatt
+|{{Coordinate|NS=48.8494|EW=8.2116|type=building|region=DE-BW|name=Hopfenschlingel|text=ICON0}}
+|
+|
+|-
+|Brauerei Jürgen Spall
+|[[Ballenberg (Ravenstein)]]
+|{{Coordinate|NS=49.4002|EW=9.5513|type=building|region=DE-BW|name=Ochsenbrauerei Albert Spall Ballenberg|text=ICON0}}
+|1883
+|
+|-
+|Brauereigasthof Egolf
+|[[Schefflenz]]
+|{{Coordinate|NS=49.3904|EW=9.2657|type=building|region=DE-BW|name=Brauereigasthof Egolf|text=ICON0}}
+|1987
+|
+|-
+|Brauhaus zum Ritter
+|[[Schwetzingen]]
+|{{Coordinate|NS=49.3847|EW=8.572|type=building|region=DE-BW|name=Brauhaus zum Ritter|text=ICON0}}
+|1998
+|
+|-
+|Hausbrauerei Mönchwasen
+|[[Simmozheim]]
+|{{Coordinate|NS=48.7459|EW=8.8064|type=building|region=DE-BW|name=Hausbrauerei Mönchwasen|text=ICON0}}
+|1999
+|
+|-
+|Prestelbräu
+|[[Ubstadt-Weiher]]
+|{{Coordinate|NS=49.1829|EW=8.6490|type=building|region=DE-BW|name=Prestelbräu|text=ICON0}}
+|2018
+|
+|-
+|Hausbrauerei Rega
+|[[Waibstadt]]
+|{{Coordinate|NS=49.2976|EW=8.9180|type=building|region=DE-BW|name=Hausbrauerei Rega|text=ICON0}}
+|2009
+|
+|-
+|Lindenbräu
+|[[Waldbronn]]
+|{{Coordinate|NS=48.9255|EW=8.4781|type=building|region=DE-BW|name=Lindenbräu|text=ICON0}}
+|2000
+|
+|-
+|Woinemer Hausbrauerei Hardt&Andreas
+|[[Weinheim]]
+|{{Coordinate|NS=49.5537|EW=8.6697|type=building|region=DE-BW|name=Woinemer Hausbrauerei|text=ICON0}}
+|1986
+|
+|-
+|[[Adler-Bräu (Wiernsheim)|Adler-Bräu Volk]]
+|[[Wiernsheim]]
+|{{Coordinate|NS=48.8879|EW=8.8512|type=building|region=DE-BW|name=Adler-Bräu|text=ICON0}}
+|1865
+|
+|-
+|Dachsenfranz Biermanufaktur
+|[[Zuzenhausen]]
+|{{Coordinate|NS=49.2957|EW=8.8243|type=building|region=DE-BW|name=Dachsenfranz Biermanufaktur|text=ICON0}}
+|
+|
+|}
+
+== Regierungsbezirk Stuttgart ==
+{| class="wikitable sortable toptextcells"
+!Unternehmen
+!Standort
+!Lage
+!Gründung
+!Anmerkungen
+|-
+|Aalener Löwenbräu Gebr. Barth
+|[[Aalen]]
+|{{Coordinate|NS=48.8385|EW=10.0986|type=building|region=DE-BW|name=Aalener Löwenbräu|text=ICON0}}
+|1668
+|
+|-
+|Löwenbrauerei Wasseralfingen
+|Aalen
+|{{Coordinate|NS=48.8508|EW=10.0988|type=building|region=DE-BW|name=Löwenbrauerei Wasseralfingen|text=ICON0}}
+|1864
+|
+|-
+|Wielands Bierbrauerei
+|[[Abtsgmünd]]
+|{{Coordinate|NS=48.8938|EW=10.0072|type=building|region=DE-BW|name=Wielands Bierbrauerei|text=ICON0}}
+|2010
+|
+|-
+|Lammbrauerei Untergröningen
+|Abtsgmünd
+|{{Coordinate|NS=48.9188|EW=9.8921|type=building|region=DE-BW|name=Lammbrauerei Untergröningen|text=ICON0}}
+|1830
+|
+|-
+|Brauerei Dörzbacher
+|[[Ahorn (Baden)|Ahorn]]
+|{{Coordinate|NS=49.4605|EW=9.5744|type=building|region=DE-BW|name=Brauerei Dörzbacher|text=ICON0}}
+|1760
+|
+|-
+|[[Herbsthäuser Brauerei Wunderlich]]
+|[[Bad Mergentheim]]
+|{{Coordinate|NS=49.4039|EW=9.8296|type=building|region=DE-BW|name=Herbsthäuser Brauerei Wunderlich|text=ICON0}}
+|1581
+|
+|-
+|Häffner Bräu
+|[[Bad Rappenau]]
+|{{Coordinate|NS=49.2381|EW=9.1121|type=building|region=DE-BW|name=Häffner Bräu|text=ICON0}}
+|1908
+|
+|-
+|Beurener Fels Brauerei
+|Beuren
+|{{Coordinate|NS=48.5674|EW=9.3977|type=building|region=DE-BW|name=Beurener Fels Brauerei|text=ICON0}}
+|2017
+|
+|-
+|Hausbrauerei Wichtel
+|[[Böblingen]]
+|{{Coordinate|NS=48.69|EW=9.0037|type=building|region=DE-BW|name=Hausbrauerei Wichtel Böblingen|text=ICON0}}
+|1989
+|auch in [[Ditzingen]] und [[Stuttgart]]
+|-
+|[[Schönbuch Braumanufaktur]]
+|Böblingen
+|{{Coordinate|NS=48.6854|EW=9.0164|type=building|region=DE-BW|name=Schönbuch Braumanufaktur|text=ICON0}}
+|1823
+|
+|-
+|Quellmalz
+|Böblingen
+|{{Coordinate|NS=48.6927|EW=9.0259|type=building|region=DE-BW|name=Quellmalz|text=ICON0}}
+|2022
+|
+|-
+|[[Biermanufaktur Engel]]
+|[[Crailsheim]]
+|{{Coordinate|NS=49.1416|EW=10.0585|type=building|region=DE-BW|name=Biermanufaktur Engel|text=ICON0}}
+|1738
+|
+|-
+|Hausbrauerei Wichtel
+|[[Ditzingen]]
+|{{Coordinate|NS=48.8265|EW=9.0666|type=building|region=DE-BW|name=Hausbrauerei Wichtel Ditzingen|text=ICON0}}
+|
+|
+|-
+|[[Härtsfelder Familienbrauerei Hald]]
+|[[Dischingen]]
+|{{Coordinate|NS=48.7229|EW=10.4132|type=building|region=DE-BW|name=Härtsfelder Familienbrauerei Hald|text=ICON0}}
+|1664
+|
+|-
+|[[Rotochsenbrauerei Hermann Veit]]
+|[[Ellwangen (Jagst)|Ellwangen]]
+|{{Coordinate|NS=48.9599|EW=10.1382|type=building|region=DE-BW|name=Rotochsenbrauerei Hermann Veit|text=ICON0}}
+|1680
+|
+|-
+|[[Palmbräu]]
+|[[Eppingen]]
+|{{Coordinate|NS=49.1378|EW=8.9083|type=building|region=DE-BW|name=Palmbräu|text=ICON0}}
+|1835
+|
+|-
+|Brauhaus Zum Schwanen
+|[[Esslingen am Neckar]]
+|{{Coordinate|NS=48.7413|EW=9.3101|type=building|region=DE-BW|name=Brauhaus Zum Schwanen|text=ICON0}}
+|1987
+|
+|-
+|Schwanen-Bräu Bernhausen
+|[[Filderstadt]]
+|{{Coordinate|NS=48.6795|EW=9.2183|type=building|region=DE-BW|name=Schwanen-Bräu Bernhausen|text=ICON0}}
+|1988
+|
+|-
+|Hausbrauerei Reiner Rosine Flein
+|[[Flein]]
+|{{Coordinate|NS=49.1021|EW=9.2173|type=building|region=DE-BW|name=Hausbrauerei Reiner Rosine|text=ICON0}}
+|
+|
+|-
+|Brauerei Georg Häberlen
+|Gaildorf
+|{{Coordinate|NS=48.9984|EW=9.7724|type=building|region=DE-BW|name=Brauerei Georg Häberlen|text=ICON0}}
+|1875
+|
+|-
+|[[Kaiser Brauerei (Geislingen an der Steige)|Kaiser Brauerei]]
+|[[Geislingen an der Steige|Geislingen (Steige)]]
+|{{Coordinate|NS=48.6135|EW=9.8409|type=building|region=DE-BW|name=Kaiser Brauerei|text=ICON0}}
+|1881
+|
+|-
+|Schlüsselbräu Privatbrauerei Helmut Bosch
+|Giengen an der Brenz
+|{{Coordinate|NS=48.6256|EW=10.2447|type=building|region=DE-BW|name=Schlüsselbräu Privatbrauerei Helmut Bosch|text=ICON0}}
+|1838
+|
+|-
+|Barfüßer Hausbrauerei
+|[[Göppingen]]
+|{{Coordinate|NS=48.701|EW=9.6537|type=building|region=DE-BW|name=Barfüßer Hausbrauerei Göppingen|text=ICON0}} 
+|
+|auch in [[Pfullendorf]], [[Reutlingen]] und [[Ulm]]
+|-
+|[[Lammbrauerei Hilsenbeck]]
+|[[Gruibingen]]
+|{{Coordinate|NS=48.5954|EW=9.6423|type=building|region=DE-BW|name=Lammbrauerei Hilsenbeck|text=ICON0}}
+|1728
+|
+|-
+|Königsbräu Majer
+|[[Heidenheim an der Brenz]]
+|{{Coordinate|NS=48.6702|EW=10.236|type=building|region=DE-BW|name=Königsbräu Majer|text=ICON0}}
+|1827
+|
+|-
+|Hirschbrauerei Heubach
+|[[Heubach]]
+|{{Coordinate|NS=48.7855|EW=9.9369|type=building|region=DE-BW|name=Hirschbrauerei Heubach|text=ICON0}}
+|1725
+|
+|-
+|derr HOF
+|[[Holzbronn (Igersheim)]]
+|{{Coordinate|NS=49.5222|EW=9.8135|type=building|region=DE-BW|name=derr HOF|text=ICON0}}
+|2023
+|
+|-
+|Stiftsscheuer Kirchheim-Teck
+|[[Kirchheim unter Teck]]
+|{{Coordinate|NS=48.649|EW=9.4523|type=building|region=DE-BW|name=Stiftsscheuer Kirchheim-Teck|text=ICON0}}
+|2006
+|
+|-
+|Echterdinger Brauhaus
+|[[Leinfelden-Echterdingen]]
+|{{Coordinate|NS=48.6916|EW=9.1677|type=building|region=DE-BW|name=Echterdinger Brauhaus|text=ICON0}} 
+|2011
+|
+|-
+|Hey Brow.
+|[[Leonberg]]
+|{{Coordinate|NS=48.7992|EW=9.003|type=building|region=DE-BW|name=Brauhaus Sacher|text=ICON0}}
+|
+|
+|-
+|Weilermer Lamm Brauhaus
+|[[Leutenbach (Württemberg)]]
+|{{Coordinate|NS=48.9005|EW=9.3724|type=building|region=DE-BW|name=Weilermer Lamm Brauhaus|text=ICON0}}
+|
+|
+|-
+|Brauerei zum Rossknecht
+|[[Ludwigsburg]]
+|{{Coordinate|NS=48.8992|EW=9.1888|type=building|region=DE-BW|name=Brauerei zum Rossknecht (Ludwigsburg)|text=ICON0}}
+|1989
+|auch in Stuttgart
+|-
+|Hausbrauerei Salzscheuer Bräu
+|[[Marbach am Neckar]]
+|{{Coordinate|NS=48.9411|EW=9.2574|type=building|region=DE-BW|name=Hausbrauerei Salzscheuer Bräu|text=ICON0}}
+|
+|
+|-
+|Hey Joe Brewing
+|[[Murrhardt]]
+|{{Coordinate|NS=48.9901|EW=9.5885|type=building|region=DE-BW|name=Hey Joe Brewing|text=ICON0}}
+|2002
+|
+|-
+|[[Privatbrauerei Schlumberger]]
+|[[Nattheim]]
+|{{Coordinate|NS=48.6995|EW=10.2398|type=building|region=DE-BW|name=Privatbrauerei Schlumberger|text=ICON0}}
+|1847
+|
+|-
+|Neckarsulmer Brauhaus
+|[[Neckarsulm]]
+|{{Coordinate|NS=49.1935|EW=9.2251|type=building|region=DE-BW|name=Neckarsulmer Brauhaus|text=ICON0}}
+|2001
+|
+|-
+|Neuenstädter Biermanufaktur
+|[[Neuenstadt am Kocher]]
+|{{Coordinate|NS=49.2365|EW=9.3278|type=building|region=DE-BW|name=Neuenstädter Biermanufaktur|text=ICON0}}
+|
+|
+|-
+|Brauerei Ladenburger
+|[[Neuler]]
+|{{Coordinate|NS=48.9276|EW=10.0674|type=building|region=DE-BW|name=Brauerei Ladenburger|text=ICON0}}
+|1789
+|
+|-
+|Schlachthof Bräu
+|Nürtingen
+|{{Coordinate|NS=48.6297|EW=9.3339|type=building|region=DE-BW|name=Schlachthof Bräu|text=ICON0}}
+|
+|
+|-
+|Braustüble Michel Bräu
+|[[Sachsenheim]]
+|{{Coordinate|NS=48.9606|EW=9.0676|type=building|region=DE-BW|name=Braustüble Michel Bräu|text=ICON0}}
+|
+|
+|-
+|Kesselhaus
+|[[Schorndorf]]
+|{{Coordinate|NS=48.8068|EW=9.5315|type=building|region=DE-BW|name=Kesselhaus|text=ICON0}}
+|
+|
+|-
+|Frankenbräu Krauß
+|[[Schrozberg]]
+|{{Coordinate|NS=49.3496|EW=9.9162|type=building|region=DE-BW|name=Frankenbräu Krauß|text=ICON0}}
+|1807
+|
+|-
+|Gold Ochsen Brauerei
+|Schrozberg
+|{{Coordinate|NS=49.3856|EW=10.0676|type=building|region=DE-BW|name=Gold Ochsen Brauerei|text=ICON0}}
+|1668
+|
+|-
+|[[Löwenbrauerei Hall]]
+|[[Schwäbisch Hall]]
+|{{Coordinate|NS=49.1055|EW=9.7332|type=building|region=DE-BW|name=Löwenbrauerei Hall|text=ICON0}}
+|1724
+|
+|-
+|Sudhaus an der [[Kunsthalle Würth]]
+|Schwäbisch Hall
+|{{Coordinate|NS=49.1108|EW=9.7331|type=building|region=DE-BW|name=Sudhaus an der Kunsthalle Würth|text=ICON0}}
+|2004
+|
+|-
+|Felsenbergbräu
+|Schwieberdingen
+|{{Coordinate|NS=48.8807|EW=9.0783|type=building|region=DE-BW|name=Felsenbergbräu|text=ICON0}}
+|2020
+|
+|-
+|Hirschbrauerei Söhnstetten
+|[[Steinheim am Albuch]]
+|{{Coordinate|NS=48.6711|EW=9.9893|type=building|region=DE-BW|name=Hirschbrauerei Söhnstetten|text=ICON0}}
+|1896
+|
+|-
+|Birkenwäldle
+|[[Stuttgart]]
+|{{Coordinate|NS=48.7319|EW=9.1084|type=building|region=DE-BW|name=Birkenwäldle|text=ICON0}}
+|2025
+|
+|-
+|Brauerei zum Rossknecht
+|Stuttgart
+|{{Coordinate|NS=48.8188|EW=9.1700|type=building|region=DE-BW|name=Brauerei zum Rossknecht (Stuttgart)|text=ICON0}}
+|
+|
+|-
+|Cannstatter Keller
+|Stuttgart
+|{{Coordinate|NS=48.8251|EW=9.2722|type=building|region=DE-BW|name=Cannstatter Keller|text=ICON0}}
+|2020
+|
+|-
+|[[Dinkelacker-Schwaben Bräu]] 
+|Stuttgart
+|{{Coordinate|NS=48.7678|EW=9.1696|type=building|region=DE-BW|name=Dinkelacker-Schwaben Bräu|text=ICON0}} 
+|1878/1888
+|1878 Gründung [[Schwaben Bräu|Schwaben-Bräu]], 1888 Gründung [[Dinkelacker]]
+|-
+|Hausbrauerei Wichtel
+|Stuttgart
+|{{Coordinate|NS=48.8105|EW=9.1659|type=building|region=DE-BW|name=Hausbrauerei Wichtel|text=ICON0}}
+|
+|
+|-
+|[[Stuttgarter Hofbräu]]
+|Stuttgart
+|{{Coordinate|NS=48.762|EW=9.1547|type=building|region=DE-BW|name=Stuttgarter Hofbräu|text=ICON0}} 
+|1872
+|zu [[Radeberger Gruppe]]
+|-
+|Sophie's Brauhaus
+|Stuttgart
+|{{Coordinate|NS=48.7729|EW=9.1724|type=building|region=DE-BW|name=Sophie's Brauhaus|text=ICON0}}
+|1993
+|
+|-
+|Brauhaus am Schlößle
+|[[Sulzbach an der Murr]]
+|{{Coordinate|NS=49.0042|EW=9.4968|type=building|region=DE-BW|name=Brauhaus am Schlößle|text=ICON0}}
+|
+|
+|-
+|[[Distelhäuser Brauerei Ernst Bauer]]
+|[[Tauberbischofsheim]]
+|{{Coordinate|NS=49.5993|EW=9.6939|type=building|region=DE-BW|name=Distelhäuser Brauerei|text=ICON0}}
+|1811
+|
+|-
+|Gerber Bräu
+|[[Uhingen]]
+|{{Coordinate|NS=48.7081|EW=9.576|type=building|region=DE-BW|name=Gerber Bräu|text=ICON0}}
+|2003
+|
+|-
+|Adlerbrauerei
+|[[Wallhausen (Württemberg)|Wallhausen]]
+|{{Coordinate|NS=49.2346|EW=10.1186|type=building|region=DE-BW|name=Adlerbrauerei (Wallhausen)|text=ICON0}}
+|1716
+|
+|-
+|Singhbräu
+|[[Weilheim an der Teck]]
+|{{Coordinate|NS=48.6146|EW=9.5408|type=building|region=DE-BW|name=Singhbräu|text=ICON0}}
+|2018
+|
+|}
+
+== Regierungsbezirk Tübingen ==
+{| class="wikitable tabelle-kopf-fixiert sortable"
+!Unternehmen
+!Standort
+!Lage
+!Gründung
+!Anmerkungen
+|-
+|Brauhaus Zollernalb
+|[[Albstadt]]
+|{{Coordinate|NS=48.210557|EW=9.025786|type=building|region=DE-BW|name=Brauhaus Zollernalb GmbH|text=ICON0}}
+|2011
+|
+|-
+|Schlossbrauerei Aulendorf
+|[[Aulendorf]]
+|{{Coordinate|NS=47.954815|EW=9.638211|type=building|region=DE-BW|name=Schlossbrauerei Aulendorf GmbH|text=ICON0}}
+|2008
+|
+|-
+|Steinacher Hausbräu, Inh.: Armin Sauter
+|[[Bad Waldsee]]
+|{{Coordinate|NS=47.919816|EW=9.737065|type=building|region=DE-BW|name=Steinacher Hausbräu|text=ICON0}}
+|2004
+|
+|-
+|[[Schussenrieder Brauerei Ott]]
+|[[Bad Schussenried]]
+|{{Coordinate|NS=48.004088|EW=9.658239|type=building|region=DE-BW|name=Schussenrieder Brauerei Ott|text=ICON0}}
+|1906
+|
+|-
+|Café Weichhardt
+|[[Biberach an der Riß]]
+|{{Coordinate|NS=48.099104|EW=9.786814|type=building|region=DE-BW|name=Café Weichhardt|text=ICON0}}
+|2012
+|
+|-
+|Braustüble Pumator
+|[[Blaubeuren]]
+|{{Coordinate|NS=48.4123|EW=9.7866|type=building|region=DE-BW|name=Braustüble Pumator|text=ICON0}}
+|2010
+|
+|-
+|[[Berg Brauerei Ulrich Zimmermann]]
+|[[Ehingen (Donau)|Ehingen]]
+|{{Coordinate|NS=48.262358|EW=9.735184|type=building|region=DE-BW|name=Berg Brauerei Ulrich Zimmermann|text=ICON0}}
+|1466
+|
+|-
+|Rösslebrauerei
+|Ehingen
+|{{Coordinate|NS=48.281888|EW=9.719180|type=building|region=DE-BW|name=Rößle|text=ICON0}}
+|1663
+|
+|-
+|Schwanenbrauerei
+|Ehingen
+|{{Coordinate|NS=48.283112|EW=9.728206|type=building|region=DE-BW|name=Schwanenbrauerei|text=ICON0}}
+|1697
+|
+|-
+|Schwertbrauerei
+|Ehingen
+|{{Coordinate|NS=48.283418|EW=9.722011|type=building|region=DE-BW|name=Zum Schwert|text=ICON0}}
+|1675
+|
+|-
+|Adlerbrauerei
+|[[Erbach (Donau)|Erbach]]
+|{{Coordinate|NS=48.3027|EW=9.9003|type=building|region=DE-BW|name=Adlerbrauerei (Erbach)|text=ICON0}}
+|
+|
+|-
+|Adlerbrauerei
+|[[Herbertingen]]
+|{{Coordinate|NS=48.0777|EW=9.3994|type=building|region=DE-BW|name=Adlerbrauerei (Herbertingen)|text=ICON0}}
+|
+|
+|-
+|Speidel's Brauerei (Gasthof Lamm)
+|[[Hohenstein (Landkreis Reutlingen)|Hohenstein]]
+|{{Coordinate|NS=48.348317|EW=9.375328|type=building|region=DE-BW|name=Speidel's Brauerei'le|text=ICON0}}
+|1993
+|
+|-
+|[[Pflugbrauerei Hörvelsingen]]
+|Langenau-[[Hörvelsingen]]
+|{{Coordinate|NS=48.485927|EW=10.027661|type=building|region=DE-BW|name=Pflugbrauerei Hörvelsingen|text=ICON0}}
+|1681
+|
+|-
+|[[Brauerei Stolz]]
+|[[Isny]]
+|{{Coordinate|NS=47.696401|EW=10.043747|type=building|region=DE-BW|name=Brauerei Stolz|text=ICON0}}
+|1919
+|
+|-
+|[[Edelweißbrauerei Farny]]
+|[[Kißlegg]]
+|{{Coordinate|NS=47.728686|EW=9.8725467|type=building|region=DE-BW|name=Edelweißbrauerei Farny|text=ICON0}}
+|1833
+|
+|-
+|Kißlegger Kellerbräu
+|Kißlegg
+|{{Coordinate|NS=47.787135|EW=9.881491|type=building|region=DE-BW|name=Kißlegger Kellerbräu|text=ICON0}}
+|2014
+|
+|-
+|[[Königsegger WalderBräu]]
+|[[Königseggwald]]
+|{{Coordinate|NS=47.925877|EW=9.420531|type=building|region=DE-BW|name=Königsegger WalderBräu|text=ICON0}}
+|1822
+|
+|-
+|Max & Moritz
+|[[Kressbronn am Bodensee]]
+|{{Coordinate|NS=47.606419|EW=9.605917|type=building|region=DE-BW|name=Max & Moritz|text=ICON0}}
+|1994
+|
+|-
+|Kronenbrauerei Laupheim
+|[[Laupheim]]
+|{{Coordinate|NS=48.229381|EW=9.886054|type=building|region=DE-BW|name=Kronenbrauerei Laupheim|text=ICON0}}
+|
+|
+|-
+|Kulturbrauerei
+|[[Leutkirch im Allgäu]]
+|{{Coordinate|NS=47.825956|EW=10.016218|type=building|region=DE-BW|name=Barfüßer|text=ICON0}}
+|
+|
+|-
+|[[Brauerei Clemens Härle]]
+|Leutkirch im Allgäu
+|{{Coordinate|NS=47.823603|EW=10.024013|type=building|region=DE-BW|name=Brauerei Clemens Härle|text=ICON0}}
+|1897
+|
+|-
+|Café Mundart
+|[[Meßstetten]]
+|{{Coordinate|NS=48.200236|EW=8.872179|type=building|region=DE-BW|name=Café Mundart|text=ICON0}}
+|2010
+|
+|-
+|Fischer’s Brauhaus Mössingen
+|[[Mössingen]]
+|{{Coordinate|NS=48.408788|EW=9.065739|type=building|region=DE-BW|name=Fischer’s Brauhaus Mössingen|text=ICON0}}
+|1938
+|
+|-
+|Kronenbrauerei Alfred Schimpf
+|[[Neustetten]]
+|{{Coordinate|NS=48.482000|EW=8.887254|type=building|region=DE-BW|name=Brauerei Schimpf|text=ICON0}}
+|1870
+|
+|-
+|Adlerbrauerei Moosbeuren
+|Oberstadion-[[Moosbeuren]]
+|{{Coordinate|NS=48.179478|EW=9.725053|type=building|region=DE-BW|name=Adlerbrauerei (Moosbeuren)|text=ICON0}}
+|2014
+|
+|-
+|Barfüßer Hausbrauerei
+|[[Pfullendorf]]
+|{{Coordinate|NS=47.924181|EW=9.250598|type=building|region=DE-BW|name=Barfüßer Hausbrauerei Pfullendorf|text=ICON0}}
+|
+|
+|-
+|[[Brauerei Max Leibinger]]
+|[[Ravensburg]]
+|{{Coordinate|NS=47.781437|EW=9.621093|type=building|region=DE-BW|name=Brauerei Max Leibinger|text=ICON0}}
+|1894
+|
+|-
+|Barfüßer Hausbrauerei
+|[[Reutlingen]]
+|{{Coordinate|NS=48.488620|EW=9.217643|type=building|region=DE-BW|name=Barfüßer Hausbrauerei|text=ICON0}}
+|
+|
+|-
+|Brauhaus Zollernalb; Lehner Bräu Rosenfeld
+|[[Rosenfeld]]
+|{{Coordinate|NS=48.286633|EW=8.723816|type=building|region=DE-BW|name=Lehner|text=ICON0}}
+|
+|
+|-
+|[[Baisinger BierManufaktur]]
+|[[Rottenburg am Neckar]]
+|{{Coordinate|NS=48.504622|EW=8.778272|type=building|region=DE-BW|name=Baisinger BierManufaktur|text=ICON0}}
+|1775
+|
+|-
+|Doc's Bier
+|Rottenburg am Neckar
+|{{Coordinate|NS=48.451908|EW=8.876957|type=building|region=DE-BW|name=Doc's Bier|text=ICON0}}
+|
+|
+|-
+|[[Brauerei Zoller-Hof Graf-Fleischhut]]
+|[[Sigmaringen]]
+|{{Coordinate|NS=48.091189|EW=9.206468|type=building|region=DE-BW|name=Brauerei Zoller-Hof Graf-Fleischhut|text=ICON0}}
+|1845
+|
+|-
+|Heuberger Biermanufaktur
+|[[Stetten am kalten Markt]]
+|{{Coordinate|NS=48.122193|EW=9.079053|type=building|region=DE-BW|name=Heuberger Biermanufaktur|text=ICON0}}
+|
+|
+|-
+|Hopfengut No20
+|[[Tettnang]]
+|{{Coordinate|NS=47.690385|EW=9.616421|type=building|region=DE-BW|name=Hopfengut No20|text=ICON0}}
+|
+|
+|-
+|Brauerei und Gasthof zur Krone
+|Tettnang
+|{{Coordinate|NS=47.671543|EW=9.589009|type=building|region=DE-BW|name=Krone|text=ICON0}}
+|
+|
+|-
+|Brauereigasthof Schöre
+|Tettnang
+|{{Coordinate|NS=47.656705|EW=9.658931|type=building|region=DE-BW|name=Schörebräu|text=ICON0}}
+|
+|
+|-
+|Albquell Bräuhaus
+|[[Trochtelfingen]]
+|{{Coordinate|NS=48.308188|EW=9.245656|type=building|region=DE-BW|name=Albquell Bräuhaus|text=ICON0}}
+|
+|
+|-
+|Barfüßer Hausbrauerei
+|[[Ulm]]
+|{{Coordinate|NS=48.397694|EW=9.993845|type=building|region=DE-BW|name=Barfüßer Hausbrauerei Ulm|text=ICON0}}
+|
+|
+|-
+|[[Brauerei Gold Ochsen]]
+|Ulm
+|{{Coordinate|NS=48.406744|EW=9.990588|type=building|region=DE-BW|name=Brauerei Gold Ochsen|text=ICON0}}
+|1597
+|
+|-
+|Kronenbrauerei Russ
+|Ulm
+|{{Coordinate|NS=48.395254|EW=9.955968|type=building|region=DE-BW|name=Kronenbrauerei Russ|text=ICON0}}
+|1887
+|
+|-
+|Bräuhaus Ummendorf
+|[[Ummendorf (bei Biberach)|Ummendorf]]
+|{{Coordinate|NS=48.063642|EW=9.832703|type=building|region=DE-BW|name=Bräuhaus Ummendorf|text=ICON0}}
+|
+|
+|-
+|Neckarmüller
+|[[Tübingen]]
+|{{Coordinate|NS=48.519393|EW=9.058692|type=building|region=DE-BW|name=Neckarmüller|text=ICON0}}
+|1992
+|
+|-
+|Altdorfer Klosterbrauerei
+|[[Weingarten (Württemberg)]]
+|{{Coordinate|NS=47.806186|EW=9.643218|type=building|region=DE-BW|name=Altdorfer Klosterbrauerei|text=ICON0}}
+|2017
+|
+|-
+|[[Zwiefalter Klosterbräu]]
+|[[Zwiefalten]]
+|{{Coordinate|NS=48.231062|EW=9.461111|type=building|region=DE-BW|name=Zwiefalter Klosterbräu|text=ICON0}}
+|1521
+|
+|-
+|Brauerei Blank
+|[[Zwiefaltendorf]]
+|{{Coordinate|NS=48.214985|EW=9.516820|type=building|region=DE-BW|name=Brauerei Blank|text=ICON0}}
+|1878
+|
+|}
+
+== Siehe auch ==
+* [[Liste aktiver Brauereien in Deutschland]]
+
+== Weblinks ==
+{{Commonscat|Breweries in Baden-Württemberg|Brauereien in Baden-Württemberg}}
+* [http://www.german-breweries.com/all_breweries.htm Liste aktiver Brauereien in Deutschland] aus dem ''Germany Good Beer Guide''
+* [https://www.biermap24.de/brauereiliste.php Liste deutscher Brauereien] in ''biermap24.de''
+* [https://www.klausehm.de/Uebersicht.html Historisches Brauereiverzeichnis Deutschland] in ''klausehm.de''
+
+== Einzelnachweise ==
+<references/>
+
+{{Hinweis Seiten-Koordinaten}}
+
+{{Navigationsleiste Liste der Brauereien nach Bundesland}}
+
+[[Kategorie:Brauerei (Baden-Württemberg)|!]]
+[[Kategorie:Liste (deutsche Unternehmen)|Brauereien in Baden-Württemberg]]
+[[Kategorie:Liste (Brauereien)|Baden-Wurttemberg]]

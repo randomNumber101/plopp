@@ -1,0 +1,344 @@
+[[Datei:Hesse, administrative divisions - de - colored.svg|mini|Regierungsbezirke und Landkreise Hessens]]
+
+Die '''Liste aktiver Brauereien in Hessen''' führt [[Brauerei|Brauereien]] in [[Hessen]] auf, sortiert nach ihrem [[Regierungsbezirk]].<ref name="IBV2024">Dirk Habicht: ''IBV-Brauereiverzeichnis Deutschland 2024'', Hrsg.: Internationaler Brauereikultur-Verband</ref>
+
+== Regierungsbezirk Darmstadt ==
+{| class="wikitable sortable toptextcells"
+! Unternehmen
+! Standort
+! Lage
+! Gründung
+|-
+|Bad Homburger Brauhaus
+|[[Bad Homburg vor der Höhe|Bad Homburg]]
+|{{Coordinate|text=ICON0|NS=50.2139|EW=8.6116|type=landmark|region=DE-HE|name=Bad Homburger Brauhaus}}
+|2000
+|-
+|Kärrners Hausbrauerei
+|[[Bad Orb]]
+|{{Coordinate|text=ICON0|NS=50.2235|EW=9.3515|type=landmark|region=DE-HE|name=Kärrners Hausbrauerei}}
+|1998
+|-
+|Felwila
+|[[Bad Vilbel]]
+|{{Coordinate|text=ICON0|NS=50.1927|EW=8.7438|type=landmark|region=DE-HE|name=Felwila}}
+|2020
+|-
+|Landbrauerei Bierbacher
+|[[Brensbach]]
+|{{Coordinate|text=ICON0|NS=49.7757|EW=8.8615|type=landmark|region=DE-HE|name=Landbrauerei Bierbacher}}
+|
+|-
+| [[Brauerei Grohe]]
+| [[Darmstadt]]
+| {{Coordinate|text=ICON0|NS=49.8692|EW=8.6568|type=landmark|region=DE-HE|name=Brauerei Grohe}}
+| 1838
+|-
+| [[Darmstädter Privatbrauerei]]
+| Darmstadt
+| {{Coordinate|text=ICON0|NS=49.8722|EW=8.6331|type=landmark|region=DE-HE|name=Darmstädter Privatbrauerei}}
+| 1847
+|-
+| Darmstädter Ratskeller Hausbrauerei
+| Darmstadt
+| {{Coordinate|text=ICON0|NS=49.8721|EW=8.6559|type=landmark|region=DE-HE|name=Darmstädter Ratskeller Hausbrauerei}}
+| 1989
+|-
+| Bierhannes Brauerei zur Mainkur
+| [[Frankfurt am Main]]
+|{{Coordinate|text=ICON0|NS=50.1333|EW=8.7682|type=landmark|region=DE-HE|name=Bierhannes Brauerei zur Mainkur}}
+| 1989
+|-
+| The Station
+| Frankfurt am Main
+| {{Coordinate|text=ICON0|NS=50.1219|EW=8.6803|type=landmark|region=DE-HE|name=The Station}}
+| 2014
+|-
+| Zu den 12 Aposteln
+| Frankfurt am Main
+| {{Coordinate|text=ICON0|NS=50.1174|EW=8.6864|type=landmark|region=DE-HE|name=Zu den 12 Aposteln}}
+|
+|-
+| Kultland Brauerei
+| [[Friedberg (Hessen)|Friedberg]]
+|{{Coordinate|text=ICON0|NS=50.3305|EW=8.7245|type=landmark|region=DE-HE|name=Kultland Brauerei}}
+| 2016
+|-
+| Kreativbrauerei Brewers Fantasy / Inh. Marcel Kevin Alberti
+| [[Fürth (Odenwald)|Fürth]]
+|{{Coordinate|text=ICON0|NS=49.6632|EW=8.7457|type=landmark|region=DE-HE|name=Kreativbrauerei Brewers Fantasy}}
+| 2015
+|-
+| Wilhelmsbader HOF BRÄU
+| [[Hanau]]
+|{{Coordinate|text=ICON0|NS=50.1485|EW=8.877|type=landmark|region=DE-HE|name=Wilhelmsbader HOF BRÄU}}
+| 2012
+|-
+|[[Halber Mond (Heppenheim)|Halber Mond]]
+|[[Heppenheim (Bergstraße)|Heppenheim]]
+|{{Coordinate|text=ICON0|NS=49.6416|EW=8.6386|type=landmark|region=DE-HE|name=Halber Mond}}
+|2011
+|-
+|Umstädter Brauhaus
+|[[Groß-Umstadt]]
+|{{Coordinate|text=ICON0|NS=49.8659|EW=8.933|type=landmark|region=DE-HE|name=Umstädter Brauhaus}}
+|
+|-
+|Idsteiner Brauhaus Alte Feuerwache
+|[[Idstein]]
+|{{Coordinate|text=ICON0|NS=50.2219|EW=8.2681|type=landmark|region=DE-HE|name=Idsteiner Brauhaus Alte Feuerwache}}
+|
+|-
+|WasserCraftWerk - Die Hausbrauerei
+|[[Kelsterbach]]
+|{{Coordinate|text=ICON0|NS=50.0371|EW=8.4771|type=landmark|region=DE-HE|name=WasserCraftWerk - Die Hausbrauerei}}
+|
+|-
+|Getränkeschmiede Schmidt
+|[[Kronberg im Taunus]]
+|{{Coordinate|text=ICON0|NS=50.1853|EW=8.5365|type=landmark|region=DE-HE|name=Getränkeschmiede Schmidt}}
+|
+|-
+|Rheingauer Gutsbräu
+|[[Lorch (Rheingau)|Lorch]]
+|{{Coordinate|text=ICON0|NS=50.101|EW=7.843|type=landmark|region=DE-HE|name=Rheingauer Gutsbräu}}
+|
+|-
+|Back- und Brauhaus Drayß
+|[[Lorsch]]
+|{{Coordinate|text=ICON0|NS=49.6543|EW=8.5676|type=landmark|region=DE-HE|name=Back- und Brauhaus Drayß}}
+|
+|-
+| Hopfünf (von 2007 bis 2024 Hochstädter-Landbier / Inh. Ingo Rohmann)
+| [[Maintal]]
+| {{Coordinate|text=ICON0|NS=50.1528|EW=8.8303|type=landmark|region=DE-HE|name=Hopfünf}}
+| 2007
+|-
+| Michelstädter Rathausbräu
+| [[Michelstadt]]
+|{{Coordinate|text=ICON0|NS=49.6785|EW=9.0055|type=landmark|region=DE-HE|name=Michelstädter Rathausbräu}}
+| 1815
+|-
+|Daum Bräu
+|Michelstadt
+|{{Coordinate|text=ICON0|NS=49.6766|EW=9.006|type=landmark|region=DE-HE|name=Daum Bräu}}
+|
+|-
+| Zum Wohl Brauerei / Inh. Andreas Wohlsperger
+| [[Mörfelden-Walldorf]]
+| {{Coordinate|text=ICON0|NS=49.9726|EW=8.5687|type=landmark|region=DE-HE|name=Zum Wohl Brauerei}}
+| 2017
+|-
+| [[Privat-Brauerei Schmucker]]
+| [[Mossautal]]
+|{{Coordinate|text=ICON0|NS=49.6741|EW=8.923|type=landmark|region=DE-HE|name=Privat-Brauerei Schmucker}}
+| 1780
+|-
+|Niddaer Marktbräu
+|[[Nidda]]
+|{{Coordinate|text=ICON0|NS=50.4132|EW=9.0087|type=landmark|region=DE-HE|name=Niddaer Marktbräu}}
+|2003
+|-
+|Alt-Oberurseler Brauhaus
+|[[Oberursel (Taunus)|Oberursel]]
+|{{Coordinate|text=ICON0|NS=50.2029|EW=8.5789|type=landmark|region=DE-HE|name=Alt-Oberurseler Brauhaus}}
+|
+|-
+|Das Brauhaus
+|[[Rüsselsheim am Main]]
+|{{Coordinate|text=ICON0|NS=49.9848|EW=8.4567|type=landmark|region=DE-HE|name=Das Brauhaus}}
+|
+|-
+|Rüsselsheimer Bräu
+|Rüsselsheim am Main
+|{{Coordinate|text=ICON0|NS=49.9961|EW=8.4113|type=landmark|region=DE-HE|name=Rüsselsheimer Bräu}}
+|
+|-
+| Seligenstädter Klein-Brauerei
+| [[Seligenstadt]]
+|{{Coordinate|text=ICON0|NS=50.0417|EW=8.9683|type=landmark|region=DE-HE|name=Seligenstädter Klein-Brauerei}}
+| 1999
+|-
+| [[Glaabsbräu]]
+| Seligenstadt
+|{{Coordinate|text=ICON0|NS=50.0448|EW=8.9735|type=landmark|region=DE-HE|name=Glaabsbräu}}
+| 1744
+|-
+| Brauhaus Castel
+| [[Wiesbaden]]
+|{{Coordinate|text=ICON0|NS=50.0168|EW=8.2925|type=landmark|region=DE-HE|name=Brauhaus Castel}}
+| 1990
+|}
+
+== Regierungsbezirk Gießen ==
+{| class="wikitable sortable toptextcells"
+! Unternehmen
+! Standort
+!Lage
+! Gründung
+|-
+|Brauhaus Obermühle
+|[[Braunfels]]
+|{{Coordinate|text=ICON0|NS=50.5163|EW=8.3821|type=landmark|region=DE-HE|name=Brauhaus Obermühle}}
+|2007
+|-
+| Octobräu
+|[[Lahnau]]
+|{{Coordinate|NS=50.576227|EW=8.568302|type=building|region=DE-HE|name=Octobräu|text=ICON0}}
+|2018
+|-
+| [[Hochstiftliches Brauhaus Fulda#Lauterbacher Burgbrauerei|Lauterbacher Burgbrauerei]]
+| [[Lauterbach (Hessen)|Lauterbach]]
+|{{Coordinate|text=ICON0|NS=50.6398|EW=9.3917|type=landmark|region=DE-HE|name=Lauterbacher Burgbrauerei}}
+| 1527
+|-
+| [[Licher Privatbrauerei|Licher Privatbrauerei Jhring-Melchior]]
+| [[Lich]]
+|{{Coordinate|text=ICON0|NS=50.5152|EW=8.8173|type=landmark|region=DE-HE|name=Licher Privatbrauerei}}
+| 1854
+|-
+| Gasthausbrauerei Petrimühle
+| [[Selters (Taunus)|Selters]]
+|{{Coordinate|text=ICON0|NS=50.3694|EW=8.25722|type=landmark|region=DE-HE|name=Gasthausbrauerei Petrimühle}}
+|
+|-
+| Fleisbacher Brauerei
+| [[Sinn (Hessen)|Sinn]]
+|{{Coordinate|text=ICON0|NS=50.6433|EW=8.3229|type=landmark|region=DE-HE|name=Fleisbacher Brauerei}}
+| 2018
+|-
+| DorfBräuHaus – Wartenberger Brauhaus
+| [[Wartenberg (Hessen)|Wartenberg]]
+|{{Coordinate|text=ICON0|NS=50.6078|EW=9.4746|type=landmark|region=DE-HE|name=DorfBräuHaus – Wartenberger Brauhaus}}
+| 2011
+|}
+
+== Regierungsbezirk Kassel ==
+{| class="wikitable sortable toptextcells"
+! Unternehmen
+! Standort
+!Lage
+! Gründung
+|-
+| Brauhaus Bad Wildungen
+| [[Bad Wildungen]]
+| {{Coordinate|text=ICON0|NS=51.111034|EW=9.103276|type=landmark|region=DE-HE|name=Brauhaus Bad Wildungen}}
+| 1997
+|-
+| [[Eschweger Klosterbrauerei]]
+| [[Eschwege]]
+| {{Coordinate |NS=51.184703 |EW=10.056028 |type=landmark |region=DE-HE|text=icon0|name=Eschweger Klosterbrauerei}}
+| 1839
+|-
+| Fritzlarer Dombräu
+| [[Fritzlar]]
+| {{Coordinate|text=ICON0|NS=51.12235|EW=9.27686|type=landmark|region=DE-HE|name=Fritzlarer Dombräu}}
+| 2003
+|-
+|Brauhaus Wiesenmühle
+|[[Fulda]]
+|{{Coordinate|text=ICON0|NS=50.5511|EW=9.6681|type=landmark|region=DE-HE|name=Brauhaus Wiesenmühle}}
+|
+|-
+| Hohmanns Brauerei Fulda
+| Fulda
+| {{Coordinate|text=ICON0|NS=50.55|EW=9.67932|type=landmark|region=DE-HE|name=Hohmanns Brauhaus}}
+| 2008
+|-
+| [[Hochstiftliches Brauhaus Fulda]]
+| Fulda
+| {{Coordinate|text=ICON0|NS=50.55812|EW=9.677223|type=landmark|region=DE-HE|name=Hochstiftliches Brauhaus Fulda}}
+| 1848
+|-
+| Fuldabrücker Landbrauerei
+| [[Fuldabrück]]
+| {{Coordinate|text=ICON0|NS=51.227939|EW=9.501147|type=landmark|region=DE-HE|name=Fuldabrücker Landbrauerei}}
+| 1995
+|-
+| Osterbach Brauerei
+| [[Gemünden (Wohra)]]
+|{{Coordinate|text=ICON0|NS=50.97285|EW=8.9701|type=landmark|region=DE-HE|name=Osterbach Brauerei}}
+| 2014
+|-
+| Kellerwälder Brauhaus
+| [[Gilserberg]]
+| {{Coordinate|text=ICON0|NS=50.952019|EW=9.066051|type=landmark|region=DE-HE|name=Kellerwälder Brauhaus}}
+| 2010
+|-
+|Braumanufaktur Werk II
+|[[Großalmerode]]
+|{{Coordinate|text=ICON0|NS=51.2292|EW=9.7704|type=landmark|region=DE-HE|name=Braumanufaktur Werk II}}
+|2013
+|-
+| Oberländchen Braumanufaktur
+| [[Neuhof (bei Fulda)]]
+|{{Coordinate|text=ICON0|NS=50.4595|EW=9.6754|type=landmark|region=DE-HE|name=Oberländchen Braumanufaktur}}
+| 2018
+|-
+| MausBräu
+| [[Dammersbach|Hünfeld-Dammersbach]]
+| {{Coordinate|text=ICON0|NS=50.62818|EW=9.77711|type=landmark|region=DE-HE|name=MausBräu}}
+| 2009
+|-
+|Braumanufaktur Steckenpferd<ref>https://braumanufaktur-steckenpferd.de/</ref>
+|[[Kassel]]
+|{{Coordinate|text=ICON0|NS=51.3184|EW=9.5045|type=landmark|region=DE-HE|name=Braumanufaktur Steckenpferd}}
+|2015
+|-
+|BrauStübl Malsfeld
+|[[Malsfeld]]
+|{{Coordinate|text=ICON0|NS=51.0905|EW=9.5456|type=landmark|region=DE-HE|name=BrauStübl Malsfeld}}
+|2013
+|-
+|Biermanufaktur Rotenburg
+|[[Rotenburg an der Fulda]]
+|{{Coordinate|text=ICON0|NS=50.9951|EW=9.7317|type=landmark|region=DE-HE|name=Biermanufaktur Rotenburg}}
+|2007
+|-
+|Atelier VRAI
+|[[Schrecksbach]]
+|{{Coordinate|text=ICON0|NS=50.8063|EW=9.2623|type=landmark|region=DE-HE|name=Atelier VRAI}}
+|2016
+|-
+| [[Privatbrauerei Friedrich Haaß]]
+| [[Treysa|Schwalmstadt-Treysa]]
+| {{Coordinate|text=ICON0|NS=50.912065|EW=9.193966|type=landmark|region=DE-HE|name=Privatbrauerei Friedrich Haaß}}
+| 1820
+|-
+| Rehbocks Braumanufaktur
+|[[Wolfhagen]]
+|{{Coordinate|text=ICON0|NS=51.3326|EW=9.1229|type=landmark|region=DE-HE|name=Rehbocks Braumanufaktur}}
+|2016
+|-
+
+|-
+| Schinkels Brauhaus
+| [[Witzenhausen]]
+| {{Coordinate|text=ICON0|NS=51.346957|EW=9.867146|type=landmark|region=DE-HE|name=Schinkels Brauhaus}}
+| 1997
+|-
+| Willinger Brauhaus
+| [[Willingen (Upland)]]
+| {{Coordinate|text=ICON0|NS=51.294775|EW=8.606456|type=landmark|region=DE-HE|name=Willinger Brauhaus}}
+| 1988
+|}
+
+== Siehe auch ==
+* [[Liste aktiver Brauereien in Deutschland]]
+
+== Weblinks ==
+{{Commonscat|Breweries in Hesse|Brauereien in Hessen}}
+* [http://www.german-breweries.com/all_breweries.htm Liste aktiver Brauereien in Deutschland] aus dem ''Germany Good Beer Guide''
+* [https://www.biermap24.de/brauereiliste.php Liste deutscher Brauereien] in ''biermap24.de''
+* [http://www.klausehm.de/Uebersicht.html Historisches Brauereiverzeichnis Deutschland] in ''klausehm.de''
+
+== Einzelnachweise ==
+<references/>
+
+{{Hinweis Seiten-Koordinaten}}
+
+{{Navigationsleiste Liste der Brauereien nach Bundesland}}
+
+[[Kategorie:Brauerei (Hessen)|!]]
+[[Kategorie:Liste (deutsche Unternehmen)|Brauereien in Hessen]]
+[[Kategorie:Liste (Brauereien)|Hessen]]
