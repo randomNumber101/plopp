@@ -3407,3 +3407,309 @@ h1.brand {
   flex-direction: column;
   gap: 8px;
 }
+
+.row-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Erfassen: Suche + optionaler Scan */
+.search-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: sticky;
+  top: 52px;
+  z-index: 5;
+  margin: 0 -16px;
+  padding: 14px 16px 8px;
+  background: linear-gradient(var(--bg) 82%, transparent);
+}
+
+.search-row .searchbox {
+  flex: 1;
+}
+
+.scan-btn {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: none;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+}
+
+.scan-btn:active {
+  transform: scale(0.94);
+}
+
+.search-hint {
+  margin-top: 4px;
+}
+
+.result-count {
+  margin: -4px 4px 0;
+}
+
+.sgroups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sgroup {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  animation: row-in 0.3s ease-out both;
+  animation-delay: calc(var(--i, 0) * 30ms);
+}
+
+.sgroup-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: var(--surface-2);
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.sgroup-none {
+  cursor: default;
+}
+
+.sgroup-logo {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  object-fit: contain;
+  background: #fff;
+}
+
+.sgroup-ini {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display, inherit);
+  font-weight: 800;
+  font-size: 0.8rem;
+  background: var(--accent-soft);
+}
+
+.sgroup-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.sgroup-name b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sgroup-beers {
+  box-shadow: none;
+  border-radius: 0;
+  background: none;
+}
+
+/* Biere eingerückt unter ihrer Brauerei */
+.sgroup-beers .row {
+  padding-left: 26px;
+  position: relative;
+}
+
+.sgroup-beers .row::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent-soft);
+}
+
+.sgroup-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 8px 14px 10px 26px;
+  font-size: 0.9rem;
+}
+
+/* Suchtreffer kompakter */
+.sgroup-beers .row {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.sgroup-beers .thumb {
+  width: 40px;
+  height: 40px;
+}
+
+/* Katalog-Admin */
+.run-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.run-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.run-head b {
+  flex: 1;
+}
+
+.run-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: 0 0 auto;
+}
+
+.run-dot.st-läuft {
+  background: var(--accent);
+  animation: run-pulse 1.2s ease-in-out infinite;
+}
+
+.run-dot.st-fertig {
+  background: #3a9d4a;
+}
+
+.run-dot.st-fehler,
+.run-dot.st-abgebrochen {
+  background: #c8432f;
+}
+
+@keyframes run-pulse {
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+}
+
+.run-bar {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.run-bar.thin {
+  height: 6px;
+  flex: 1;
+}
+
+.run-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), #ffcf4d);
+  transition: width 0.8s ease;
+}
+
+.run-sub {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.run-detail {
+  margin: 0;
+}
+
+.run-stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+}
+
+.run-stats dt {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.run-stats dd {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+.run-history ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.brand-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.brand-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brand-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.brand-head b {
+  flex: 1;
+}
+
+.brand-ex {
+  margin: 0;
+}
+
+.brand-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.brand-cand {
+  font-weight: 800;
+}
+
+.brand-search {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand-actions .chip-btn {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

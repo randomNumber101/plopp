@@ -23,7 +23,10 @@ _PACKAGING = [
     r"\b\d+\s*[x×]\s*\d+([.,]\d+)?\s*(l|ml|cl|liter)\b",
     r"\b\d+([.,]\d+)?\s*(l|ml|cl|liter)\b",
     r"\b(dose|dosen|flasche|flaschen|glasflasche|kasten|kiste|mehrweg|einweg|pfand|sixpack|"
-    r"six pack|träger|tray|bügelflasche|longneck|steinie|fass|partyfass)\b",
+    r"six pack|träger|tray|bügelflasche|longneck|steinie|fass|partyfass|mehrwegflasche|einwegflasche|"
+    r"swingtop|bügelverschluss|liter|ltr|can|bottle|merken|mw|ew)\b",
+    r"\(\s*\d+([.,]\d+)?\s*%\s*(vol\.?)?\s*\)",  # „Helles (4,7%)“
+    r"\b\d+[.,]?\d*\s*€.*$",  # Preise und alles danach
     r"\b\d+\s*er(\s*-?\s*pack)?\b",
     r"\b\d+\s*-?\s*pack\b",
     r"\(\s*\)",

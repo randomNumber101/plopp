@@ -4,12 +4,23 @@ import type { Beer, Trust } from './types'
 import { go } from './router'
 import { addCheckin, deleteCheckin } from './api'
 import { checkNewAchievements } from './achievements'
+import { cacheGet, cacheSet } from './pageState'
 import { celebrate, haptic, reducedMotion, type CelebrateOpts } from './ui/fx'
 import { IconCheck, IconSearch, IconX } from './ui/icons'
 
-/** Lädt Daten asynchron; reload() lädt neu (ohne die alten Daten vorher zu verwerfen) */
-export function useAsync<T>(fn: () => Promise<T>, deps: unknown[]) {
-  const [data, setData] = useState<T | null>(null)
+/**
+ * Lädt Daten asynchron; reload() lädt neu (ohne die alten Daten vorher zu verwerfen).
+ * Mit cacheKey stehen beim Wiederkommen sofort die letzten Daten da, frische kommen im Hintergrund.
+ */
+export function useAsync<T>(fn: () => Promise<T>, deps: unknown[], cacheKey?: string) {
+  const [data, setDataRaw] = useState<T | null>(() => (cacheKey ? (cacheGet<T>(cacheKey) ?? null) : null))
+  const setData = useCallback(
+    (d: T | null) => {
+      if (cacheKey && d != null) cacheSet(cacheKey, d)
+      setDataRaw(d)
+    },
+    [cacheKey],
+  )
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [tick, setTick] = useState(0)

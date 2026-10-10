@@ -179,6 +179,9 @@ SITES = FIX / "sites"
 def test_sites():
     from scraper import sites as S
 
+    assert S.polish("Hell.feb89f") == "Hell" and S.polish("Alk. 4,7% vol e") is None
+    assert S.polish("Georgbræu Bock \u200b\u200b") == "Georgbræu Bock"
+
     items, _ = S.extract_items((SITES / "loewen_biere.html").read_text(encoding="utf-8"),
                                "https://loewenbraeu-buttenheim.de/brauerei/biere/")
     names = [i["name"] for i in items]
@@ -378,9 +381,9 @@ def test_pipeline():
     # Ayinger (Marke = Kurzname) und Paulaner (Unternehmen, nicht Bräuhaus)
     assert any(x["brewery_ext"] == "wd:Q50" and "4066600000001" in x["eans"] for x in beers)
     assert any(x["brewery_ext"] == "wd:Q70" and "4066600000002" in x["eans"] for x in beers)
-    # Krombacher: Wikidata-Bier + 2 OFF-Barcodes, ungeprüft
+    # Krombacher: Wikidata-Bier + 2 OFF-Barcodes
     kp = beer[("wd:Q1", "Krombacher Pils")]
-    assert kp["eans"] == {"4008287051025", "4008287051026"} and kp["trust"] == "unverified"
+    assert kp["eans"] == {"4008287051025", "4008287051026"} and kp["trust"] == "verified"  # Wikidata-Bier
     # Handelsmarke ohne Brauerei
     gg = next(x for x in beers if x["name"] == "Gut & Günstig Pilsener")
     assert gg["brewery_ext"].startswith("off-brand:") and bx[gg["brewery_ext"]]["brewery_type"] == "marke"
@@ -537,6 +540,189 @@ def test_circles(url: str):
     print("Runden-Test OK")
 
 
+def test_hide_breweries(url: str):
+    """Brauereien ausblenden: nur für die eigene Runde, als Vorschlag, Admin übernimmt in den Katalog."""
+    import psycopg
+
+    U1, U2 = "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"
+    with psycopg.connect(url, autocommit=True) as conn, conn.cursor() as cur:
+        cur.execute("""select br.id, br.name from public.breweries br
+                       where br.circle_id is null and br.hidden_at is null
+                         and exists (select 1 from public.beers b where b.brewery_id = br.id and b.hidden_at is null
+                                     and b.circle_id is null)
+                       order by br.name limit 1""")
+        br_id, br_name = cur.fetchone()
+        cur.execute("select name from public.beers where brewery_id = %s and hidden_at is null limit 1", (br_id,))
+        beer_name = cur.fetchone()[0]
+
+        def as_user(uid):
+            cur.execute("reset role")
+            cur.execute("select set_config('request.jwt.claim.sub', %s, false)", (uid,))
+            cur.execute("set role authenticated")
+
+        def visible():
+            cur.execute("select count(*) from public.brewery_progress() where id = %s", (br_id,))
+            n = cur.fetchone()[0]
+            cur.execute("select count(*) from public.search_beers(%s) where brewery_id = %s", (beer_name, br_id))
+            return n, cur.fetchone()[0]
+
+        as_user(U1)
+        before = visible()
+        cur.execute("select public.hide_breweries(%s::uuid[], 'keine_brauerei')", ([br_id],))
+        hidden_u1 = visible()
+        cur.execute("select public.search_index()")
+        idx = cur.fetchone()[0]
+        idx_has = any(r[0] == str(br_id) for r in idx["breweries"]) or any(r[4] == str(br_id) for r in idx["beers"])
+        cur.execute("select id, name, hidden_reason, in_catalog from public.hidden_breweries()")
+        listed = cur.fetchall()
+        as_user(U2)
+        u2 = visible()
+        cur.execute("select id from public.catalog_suggestions where kind = 'brewery_hide' and target_id = %s", (br_id,))
+        sid = cur.fetchone()[0]
+        cur.execute("select public.apply_suggestion(%s)", (sid,))
+        u2_after = visible()
+        # Runde 1 blendet wieder ein → Vorschlag „einblenden“
+        as_user(U1)
+        cur.execute("select public.unhide_breweries(%s::uuid[])", ([br_id],))
+        back_u1 = visible()
+        cur.execute("select kind, status from public.catalog_suggestions where target_id = %s order by id", (br_id,))
+        sugg = cur.fetchall()
+        cur.execute("reset role")
+        cur.execute("select hidden_at is not null, hidden_reason from public.breweries where id = %s", (br_id,))
+        cat = cur.fetchone()
+    assert before[0] == 1 and before[1] >= 1, before
+    assert hidden_u1 == (0, 0), hidden_u1
+    assert not idx_has and len(idx["beers"]) > 5, len(idx["beers"])
+    assert any(r[0] == br_id and r[2] == "keine_brauerei" and r[3] is False for r in listed), listed
+    assert u2[0] == 1 and u2[1] >= 1, u2
+    assert u2_after == (0, 0), u2_after
+    assert cat == (True, "keine_brauerei"), cat
+    assert back_u1[0] == 1, back_u1
+    assert ("brewery_hide", "übernommen") in sugg and ("brewery_unhide", "offen") in sugg, sugg
+    print("Brauerei-Ausblenden-Test OK")
+
+
+def test_offmatch():
+    """Zuordnung von OFF-Produkten ohne passende Marke, Namen, Dubletten, Open Brewery DB"""
+    from scraper import obdb
+    from scraper.merge import AliasIndex
+    from scraper.offmatch import BreweryLookup, dedupe, match_products, product_name, same_beer
+    from scraper.openfoodfacts import clean_brands
+
+    brs = {
+        "wd:R": {"ext_id": "wd:R", "name": "Badische Staatsbrauerei Rothaus", "aliases": {"Badische Staatsbrauerei Rothaus"},
+                 "trust": "verified", "brewery_type": "brauerei", "city": "Grafenhausen", "postcode": "79865"},
+        "wd:O": {"ext_id": "wd:O", "name": "Oettinger Brauerei", "aliases": {"Oettinger Brauerei", "Oettinger"},
+                 "trust": "verified", "brewery_type": "brauerei", "city": "Oettingen", "postcode": "86732"},
+        "wd:B": {"ext_id": "wd:B", "name": "Bayreuther Bierbrauerei", "aliases": {"Bayreuther Bierbrauerei"},
+                 "trust": "verified", "brewery_type": "brauerei", "city": "Bayreuth", "postcode": "95445"},
+        "wd:F": {"ext_id": "wd:F", "name": "Gampertbräu", "aliases": {"Gampertbräu"},
+                 "trust": "verified", "brewery_type": "brauerei", "city": "Weißenbrunn", "postcode": None},
+    }
+    idx = AliasIndex({}, brs)
+    for b in brs.values():
+        for a in b["aliases"]:
+            idx.add(a, b["ext_id"], b["trust"])
+    look = BreweryLookup(brs, {})
+    catalog = {"forsterpils": {"wd:F"}}
+
+    def prod(ean, name, brands, places="", cats="en:beers"):
+        return {"ean": ean, "name": name, "names": [name], "brand": (clean_brands(brands) or [""])[0],
+                "brands": clean_brands(brands), "places": places, "categories": cats, "image_url": None, "abv": None}
+
+    ps = [
+        prod("4104231000011", "Pils", "Rothaus"),                                            # seltenes Markenwort
+        prod("4014086000015", "Alk. 2,5% vol", "Bier, Oettinger", cats="en:beers,en:radlers"),  # Marke 2., Name kaputt
+        prod("4017380000001", "Aktien Zwick'l", "Aktien", "D-95445 Bayreuth, Hindenburgstr. 9"),  # Postleitzahl
+        prod("4260000000001", "Förster Pils", "Gampert Bräu Weißenbrunn GmbH"),               # Bierkatalog
+        prod("4014086000022", "Export", "Unbekannt GmbH"),                                    # EAN-Präfix (wie Oettinger)
+        prod("4014086000039", "Pils", "Oettinger"),
+        prod("4316268000001", "Pilsener", "Lidl, Perlenbacher"),                              # Handelsmarke → Rest
+    ]
+    assigned, rest, how = match_products(ps, idx, look, {}, catalog, brs)
+    got = {p["ean"]: (ext, m) for p, ext, m in assigned}
+    assert got["4104231000011"] == ("wd:R", "markenwort"), got
+    assert got["4014086000015"][0] == "wd:O", got
+    assert got["4017380000001"] == ("wd:B", "ort"), got
+    assert got["4260000000001"] == ("wd:F", "katalog"), got
+    assert got["4014086000022"] == ("wd:O", "ean-praefix"), got
+    assert [p["ean"] for p in rest] == ["4316268000001"], rest
+    assert product_name(ps[1], "Oettinger") == "Oettinger Radler"
+    assert product_name(prod("1", "Tannenzäpfle", "Tannenzäpfle"), "Tannenzäpfle") == "Tannenzäpfle"
+    assert same_beer("Krombacher Pils", "Krombacher Pils Beer") and same_beer("Kellerbier", "Keller Bier")
+    assert not same_beer("Pils", "Pils Alkoholfrei") and not same_beer("Hefeweizen", "Hefeweizen Dunkel")
+    beers = {
+        "a": {"ext_id": "a", "brewery_ext": "wd:O", "name": "Oettinger Pils", "abv": 4.7, "eans": set(), "source": "website",
+              "sources": {"website": True}, "trust": "verified", "style": None, "image_url": None},
+        "b": {"ext_id": "b", "brewery_ext": "wd:O", "name": "Oettinger Pils Beer", "abv": 4.7, "eans": {"1"},
+              "source": "off", "sources": {"off": True}, "trust": "unverified", "style": "Pils", "image_url": "x"},
+        "c": {"ext_id": "c", "brewery_ext": "wd:O", "name": "Oettinger Pils alkoholfrei", "abv": 0.5, "eans": {"2"},
+              "source": "off", "sources": {"off": True}, "trust": "unverified", "style": None, "image_url": None},
+    }
+    assert dedupe(beers) == 1 and beers["a"]["eans"] == {"1"} and beers["a"]["source"] == "website+off"
+    assert beers["a"]["name"] == "Oettinger Pils" and "c" in beers
+
+    csv_text = ("id,name,brewery_type,address_1,address_2,address_3,city,state_province,postal_code,country,phone,"
+                "website_url,longitude,latitude\n"
+                "x1,Ayinger,brewpub,Zornedinger Str. 1,,,Aying,Bayern,85653,Germany,,http://www.ayinger.de,11.78,47.97\n"
+                "x2,Zu,closed,,,,Ort,Bayern,1,Germany,,,11,48\n"
+                "x3,Belgo,micro,,,,Gent,Vlaanderen,9000,Belgium,,,3.7,51\n")
+    els = obdb.parse(csv_text)
+    assert [e["name"] for e in els] == ["Ayinger"] and els[0]["website"] == "http://www.ayinger.de"
+    assert els[0]["state"] == "Bayern" and els[0]["postcode"] == "85653"
+    assert [e["name"] for e in obdb.parse(csv_text, "Belgium")] == ["Belgo"]
+    print("OFF-Zuordnung OK")
+
+
+def test_assign_brand(url: str):
+    """Admin ordnet eine OFF-Marke einer Brauerei zu: Biere wandern, Zuordnung bleibt für künftige Läufe."""
+    import psycopg
+
+    U2 = "22222222-2222-2222-2222-222222222222"
+    with psycopg.connect(url, autocommit=True) as conn, conn.cursor() as cur:
+        cur.execute("""insert into public.breweries (name, ext_id, brewery_type, source, trust, circle_id)
+                       values ('Testmarke', 'off-brand:testmarke', 'marke', 'off', 'unverified', null) returning id""")
+        mid = cur.fetchone()[0]
+        cur.execute("select id, name from public.breweries where circle_id is null and brewery_type <> 'marke' "
+                    "and hidden_at is null order by name limit 1")
+        tid, _ = cur.fetchone()
+        cur.execute("select name from public.beers where brewery_id = %s limit 1", (tid,))
+        row = cur.fetchone()
+        twin_name = row[0] if row else None
+        cur.execute("""insert into public.beers (brewery_id, name, ext_id, source, trust, circle_id)
+                       values (%s, 'Testmarke Hell', 'beer:off-brand:testmarke:hell', 'off', 'unverified', null)""", (mid,))
+        if twin_name:
+            cur.execute("""insert into public.beers (brewery_id, name, ext_id, source, trust, circle_id)
+                           values (%s, %s, 'beer:off-brand:testmarke:twin', 'off', 'unverified', null) returning id""",
+                        (mid, twin_name))
+            dup = cur.fetchone()[0]
+            cur.execute("insert into public.beer_barcodes (ean, beer_id, circle_id) values ('4999999999990', %s, null)", (dup,))
+        cur.execute("reset role")
+        cur.execute("select set_config('request.jwt.claim.sub', %s, false)", (U2,))
+        cur.execute("set role authenticated")
+        cur.execute("select name, beers from public.unassigned_brands()")
+        listed = cur.fetchall()
+        cur.execute("select public.assign_brand(%s, %s)", (mid, tid))
+        moved = cur.fetchone()[0]
+        cur.execute("reset role")
+        cur.execute("select count(*) from public.breweries where id = %s", (mid,))
+        brand_left = cur.fetchone()[0]
+        cur.execute("select brewery_id, ext_id from public.beers where name = 'Testmarke Hell'")
+        hell = cur.fetchone()
+        cur.execute("select b.brewery_id from public.beer_barcodes bc join public.beers b on b.id = bc.beer_id "
+                    "where bc.ean = '4999999999990'")
+        bc = cur.fetchone()
+        cur.execute("select source_key, action, target_id from public.match_overrides where kind = 'brand' "
+                    "and source_key = 'testmarke'")
+        ov = cur.fetchone()
+    assert ("Testmarke", 2 if twin_name else 1) in listed, listed
+    assert moved == (2 if twin_name else 1) and brand_left == 0
+    assert hell[0] == tid and hell[1] is None, hell
+    assert not twin_name or bc[0] == tid
+    assert ov == ("testmarke", "match", tid), ov
+    print("Marken-Zuordnung OK")
+
+
 if __name__ == "__main__":
     test_util()
     test_wikipedia()
@@ -545,8 +731,11 @@ if __name__ == "__main__":
     test_state_history()
     test_real_wikitext()
     test_pipeline()
+    test_offmatch()
     print("Offline-Tests OK")
     if os.environ.get("TEST_DB_URL"):
         test_db(os.environ["TEST_DB_URL"])
         print("DB-Test OK")
         test_circles(os.environ["TEST_DB_URL"])
+        test_hide_breweries(os.environ["TEST_DB_URL"])
+        test_assign_brand(os.environ["TEST_DB_URL"])

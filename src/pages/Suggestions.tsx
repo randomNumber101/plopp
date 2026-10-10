@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { applySuggestion, isAdmin, listSuggestions, rejectSuggestion } from '../api'
 import { ChipBar, EmptyState, ErrorBox, SkeletonList, relDate, toast, useAsync } from '../components'
 import { go } from '../router'
-import { HIDE_REASONS, SUGGESTION_KINDS, type HideReason, type Suggestion } from '../types'
+import { BREWERY_HIDE_REASONS, HIDE_REASONS, SUGGESTION_KINDS, type HideReason, type Suggestion } from '../types'
 import { haptic } from '../ui/fx'
 
 const FIELD: Record<string, string> = {
@@ -29,7 +29,7 @@ const STATUS: Record<Suggestion['status'], string> = {
 function fmt(k: string, v: unknown): string {
   if (v == null || v === '') return '–'
   if (k === 'abv') return `${v} %`
-  if (k === 'reason') return HIDE_REASONS[v as HideReason] ?? String(v)
+  if (k === 'reason') return HIDE_REASONS[v as HideReason] ?? BREWERY_HIDE_REASONS[v as string] ?? String(v)
   if (k === 'lat' || k === 'lng') return Number(v).toFixed(4)
   return String(v)
 }

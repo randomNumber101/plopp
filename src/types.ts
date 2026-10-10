@@ -22,6 +22,9 @@ export interface Brewery {
   circle_id?: string | null
   /** in der eigenen Runde geändert (Vorschlag) */
   _edited?: boolean
+  hidden_at?: string | null
+  hidden_reason?: string | null
+  _hiddenInCircle?: boolean
 }
 
 export type Trust = 'verified' | 'unverified' | 'user'
@@ -110,7 +113,16 @@ export const STATES = [
   'Schleswig-Holstein', 'Thüringen',
 ]
 
-export type SuggestionKind = 'beer_edit' | 'brewery_edit' | 'beer_hide' | 'beer_unhide' | 'beer_new' | 'brewery_new' | 'barcode'
+export type SuggestionKind =
+  | 'beer_edit'
+  | 'brewery_edit'
+  | 'beer_hide'
+  | 'beer_unhide'
+  | 'beer_new'
+  | 'brewery_new'
+  | 'barcode'
+  | 'brewery_hide'
+  | 'brewery_unhide'
 
 export interface Suggestion {
   id: number
@@ -137,4 +149,13 @@ export const SUGGESTION_KINDS: Record<SuggestionKind, { label: string; icon: str
   beer_new: { label: 'Neues Bier', icon: '🍺' },
   brewery_new: { label: 'Neue Brauerei', icon: '🆕' },
   barcode: { label: 'Barcode zugeordnet', icon: '🏷️' },
+  brewery_hide: { label: 'Brauerei ausblenden', icon: '🙈' },
+  brewery_unhide: { label: 'Brauerei einblenden', icon: '👀' },
+}
+
+export type BreweryHideReason = 'keine_brauerei' | 'doppelt' | 'geschlossen'
+export const BREWERY_HIDE_REASONS: Record<string, string> = {
+  keine_brauerei: 'Keine Brauerei (Händler, Gaststätte …)',
+  doppelt: 'Doppelt vorhanden',
+  geschlossen: 'Geschlossen / gibt es nicht mehr',
 }

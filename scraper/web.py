@@ -61,11 +61,15 @@ def _name_score(o: dict, b: dict) -> float:
     return best
 
 
-def apply_osm(breweries: dict[str, dict], osm: list[dict]) -> tuple[list[dict], dict]:
-    """Ordnet OSM-Objekte vorhandenen Brauereien zu (Adresse, genaue Koordinaten, Website).
-    → (neue Brauereien aus OSM, Statistik)"""
-    stats = {"osm_elements": len(osm), "osm_matched": 0, "osm_new": 0, "osm_coords_used": 0, "osm_websites": 0,
-             "addr_osm": 0}
+SOURCE_LABEL = {"osm": "openstreetmap", "obdb": "openbrewerydb"}
+
+
+def apply_osm(breweries: dict[str, dict], osm: list[dict], src: str = "osm",
+              country: str = "Deutschland") -> tuple[list[dict], dict]:
+    """Ordnet Objekte aus OpenStreetMap bzw. Open Brewery DB (gleiches Format) vorhandenen Brauereien zu
+    (Adresse, genaue Koordinaten, Website). → (neue Brauereien, Statistik)"""
+    stats = {f"{src}_elements": len(osm), f"{src}_matched": 0, f"{src}_new": 0, f"{src}_coords_used": 0,
+             f"{src}_websites": 0, f"addr_{src}": 0}
     located = [b for b in breweries.values() if b.get("lat") is not None]
     grid = Grid(located)
     by_qid = {b["sources"].get("wikidata"): b for b in breweries.values() if (b.get("sources") or {}).get("wikidata")}
@@ -75,6 +79,10 @@ def apply_osm(breweries: dict[str, dict], osm: list[dict]) -> tuple[list[dict], 
         if d:
             by_dom[d].append(b)
 
+    by_city = defaultdict(list)
+    for b in breweries.values():
+        if b.get("city") and b.get("brewery_type") != "marke":
+            by_city[key(b["city"])].append(b)
     matches: dict[str, list[tuple[float, dict]]] = defaultdict(list)
     unmatched = []
     for o in sorted(osm, key=lambda x: not x["primary"]):
@@ -94,6 +102,12 @@ def apply_osm(breweries: dict[str, dict], osm: list[dict]) -> tuple[list[dict], 
                 score = s - d * 3
                 if ok and score > best_s:
                     best, best_s = b, score
+        if best is None and o.get("city"):
+            # gleicher Ort, sehr ähnlicher Name (auch wenn eine der Positionen ungenau ist)
+            for b in by_city.get(key(o["city"]), []):
+                s = _name_score(o, b)
+                if s >= 88 and s > best_s:
+                    best, best_s = b, s
         if best is not None:
             matches[best["ext_id"]].append((best_s, o))
         else:
@@ -103,21 +117,21 @@ def apply_osm(breweries: dict[str, dict], osm: list[dict]) -> tuple[list[dict], 
         b = breweries[ext]
         lst.sort(key=lambda x: (-(x[1].get("street") is not None), -x[0]))
         o = lst[0][1]
-        stats["osm_matched"] += 1
-        b["sources"]["osm"] = o["osm_id"]
+        stats[f"{src}_matched"] += 1
+        b["sources"][src] = o["osm_id"]
         b.setdefault("aliases", set())
         if isinstance(b["aliases"], set):
             b["aliases"].add(o["name"])
         if not b.get("website") and o.get("website"):
             b["website"] = o["website"]
-            stats["osm_websites"] += 1
+            stats[f"{src}_websites"] += 1
         if b.get("geo_precision") in WEAK_GEO or b.get("lat") is None:
-            b["lat"], b["lng"], b["geo_precision"] = o["lat"], o["lng"], "osm"
-            stats["osm_coords_used"] += 1
+            b["lat"], b["lng"], b["geo_precision"] = o["lat"], o["lng"], src
+            stats[f"{src}_coords_used"] += 1
         if o.get("street") and o.get("postcode") and not b.get("street"):
             b["street"], b["postcode"] = o["street"], o["postcode"]
-            b["sources"]["adresse"] = "osm"
-            stats["addr_osm"] += 1
+            b["sources"]["adresse"] = src
+            stats[f"addr_{src}"] += 1
 
     # Nicht zugeordnete OSM-Brauereien als neue (ungeprüfte) Einträge – Dubletten untereinander zusammenfassen
     new: list[dict] = []
@@ -129,21 +143,21 @@ def apply_osm(breweries: dict[str, dict], osm: list[dict]) -> tuple[list[dict], 
             continue
         if len(key(o["name"])) < 3:
             continue
-        near_state = next((b.get("state") for b, d in sorted(grid.near(o["lat"], o["lng"], 30), key=lambda x: x[1])
-                           if b.get("state")), None)
+        near_state = o.get("state") or next((b.get("state") for b, d in sorted(grid.near(o["lat"], o["lng"], 30),
+                                                                                 key=lambda x: x[1]) if b.get("state")), None)
         n = {
-            "ext_id": f"osm:{o['osm_id']}", "name": o["name"], "city": o.get("city"), "state": near_state,
-            "country": "Deutschland", "lat": o["lat"], "lng": o["lng"], "website": o.get("website"),
-            "logo_url": None, "source": "osm", "trust": "unverified", "brewery_type": o["type"], "region": None,
-            "district": None, "founded": None, "geo_precision": "osm", "parent_ext": None,
+            "ext_id": f"{src}:{o['osm_id']}", "name": o["name"], "city": o.get("city"), "state": near_state,
+            "country": country, "lat": o["lat"], "lng": o["lng"], "website": o.get("website"),
+            "logo_url": None, "source": src, "trust": "unverified", "brewery_type": o["type"], "region": None,
+            "district": None, "founded": None, "geo_precision": src, "parent_ext": None,
             "street": o.get("street"), "postcode": o.get("postcode"),
-            "sources": {"liste": "openstreetmap", "osm": o["osm_id"], **({"adresse": "osm"} if o.get("street") else {})},
+            "sources": {"liste": SOURCE_LABEL.get(src, src), src: o["osm_id"], **({"adresse": src} if o.get("street") else {})},
             "aliases": {o["name"], *(o.get("aliases") or [])},
         }
         new.append(n)
         ngrid.add(n)
-    stats["osm_new"] = len(new)
-    stats["osm_unmatched_samples"] = [f"{o['name']} ({o.get('city') or ''})" for o in unmatched[:30]]
+    stats[f"{src}_new"] = len(new)
+    stats[f"{src}_unmatched_samples"] = [f"{o['name']} ({o.get('city') or ''})" for o in unmatched[:30]]
     return new, stats
 
 

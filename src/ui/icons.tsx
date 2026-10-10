@@ -138,3 +138,11 @@ export const IconEyeOff = (p: P) => (
     <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
   </Svg>
 )
+
+/** Lupe mit Plus: Bier suchen & erfassen */
+export const IconFindAdd = (p: P) => (
+  <Svg {...p}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="m20 20-3.5-3.5M11 8v6M8 11h6" />
+  </Svg>
+)

@@ -1,10 +1,12 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
-import { ensureCircle } from './api'
+import { ensureCircle, resetSessionCaches } from './api'
+import { clearPageState } from './pageState'
+import { loadIndex } from './search'
 import { go, useRoute } from './router'
 import { Celebration, Spinner, Toaster } from './components'
-import { IconBack, IconBrewery, IconMap, IconMore, IconMug, IconScan } from './ui/icons'
+import { IconBack, IconBrewery, IconFindAdd, IconMap, IconMore, IconMug } from './ui/icons'
 import { haptic } from './ui/fx'
 import Login from './pages/Login'
 import MyBeers from './pages/MyBeers'
@@ -21,11 +23,12 @@ const Scan = lazy(() => import('./pages/Scan'))
 const MapPage = lazy(() => import('./pages/MapPage'))
 const Stats = lazy(() => import('./pages/Stats'))
 const Suggestions = lazy(() => import('./pages/Suggestions'))
+const CatalogAdmin = lazy(() => import('./pages/CatalogAdmin'))
 
 const NAV = [
   { path: '', Icon: IconMug, label: 'Meine' },
   { path: 'breweries', Icon: IconBrewery, label: 'Brauereien' },
-  { path: 'scan', Icon: IconScan, label: 'Scannen', fab: true },
+  { path: 'catalog', Icon: IconFindAdd, label: 'Erfassen', fab: true },
   { path: 'map', Icon: IconMap, label: 'Karte' },
   { path: 'settings', Icon: IconMore, label: 'Mehr' },
 ]
@@ -36,14 +39,28 @@ export default function App() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    let lastUid: string | undefined
+    const { data } = supabase.auth.onAuthStateChange((_e, s) => {
+      // anderes Konto (oder abgemeldet) → gemerkte Listen & Filter verwerfen
+      const uid = s?.user.id
+      if (lastUid !== undefined && uid !== lastUid) {
+        clearPageState()
+        resetSessionCaches()
+      }
+      lastUid = uid ?? ''
+      setSession(s)
+    })
     return () => data.subscription.unsubscribe()
   }, [])
 
   // ältere Konten ohne Runde bekommen beim ersten Start eine eigene
   const uid = session?.user.id
   useEffect(() => {
-    if (uid) ensureCircle().catch(() => {})
+    if (!uid) return
+    ensureCircle().catch(() => {})
+    // Suchindex schon vorab laden, damit „Erfassen“ sofort Treffer liefert
+    const t = setTimeout(() => loadIndex().catch(() => {}), 1500)
+    return () => clearTimeout(t)
   }, [uid])
 
   if (session === undefined) return <div className="boot"><Spinner /></div>
@@ -85,6 +102,9 @@ export default function App() {
     case 'suggestions':
       content = <Suggestions />
       break
+    case 'katalog':
+      content = <CatalogAdmin />
+      break
     case 'invite':
       content = id ? <InviteWhileLoggedIn session={session} code={id} /> : <MyBeers />
       break
@@ -93,8 +113,16 @@ export default function App() {
   }
 
   const active = page ?? ''
-  const isSub = ['beer', 'brewery', 'new', 'catalog', 'stats', 'invite', 'suggestions'].includes(active)
-  const navActive = isSub ? (active === 'brewery' ? 'breweries' : active === 'catalog' || active === 'new' ? 'scan' : '') : active
+  const isSub = ['beer', 'brewery', 'new', 'scan', 'stats', 'invite', 'suggestions', 'katalog'].includes(active)
+  const navActive = isSub
+    ? active === 'brewery'
+      ? 'breweries'
+      : active === 'scan' || active === 'new'
+        ? 'catalog'
+        : ['stats', 'invite', 'suggestions', 'katalog'].includes(active)
+          ? 'settings'
+          : '-'
+    : active
 
   return (
     <div className={`app ${active === 'map' ? 'app-map' : ''}`}>

@@ -5,9 +5,10 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import { beersOfBrewery, breweryProgress, drunkBeerIds, setWishlist, wishlistIds } from '../api'
 import { BeerRow, ErrorBox, Progress, Spinner, TrustBadge, useAsync } from '../components'
 import { go } from '../router'
+import { usePageState } from '../pageState'
 import { setPrefill } from '../store'
 import { BREWERY_TYPES, type BreweryProgress } from '../types'
-import { initials, shortBeerName } from '../brewery'
+import { beerNameShortener, initials } from '../brewery'
 
 type Filter = 'beers' | 'drunk' | 'open' | 'wish' | 'all'
 
@@ -81,7 +82,7 @@ function clusterIcon(cluster: L.MarkerCluster) {
 }
 
 export default function MapPage() {
-  const data = useAsync(breweryProgress, [])
+  const data = useAsync(breweryProgress, [], 'brewery_progress')
   const el = useRef<HTMLDivElement>(null)
   const map = useRef<L.Map | null>(null)
   const cluster = useRef<L.MarkerClusterGroup | null>(null)
@@ -99,10 +100,21 @@ export default function MapPage() {
       return false
     }
   })
-  const [q, setQ] = useState('')
+  const [q, setQ] = usePageState('map-q', '')
+  const [selId, setSelId] = usePageState<string | null>('map-sel', null)
   const [locError, setLocError] = useState<string | null>(null)
   const fitted = useRef(!!initial)
   const lastFilter = useRef(`${filter}${onlyVerified}`)
+
+  // geöffnete Brauerei merken – nach „Zurück“ ist sie wieder offen
+  useEffect(() => setSelId(selected?.id ?? null), [selected, setSelId])
+  useEffect(() => {
+    if (selId && !selected && data.data) {
+      const b = data.data.find((x) => x.id === selId)
+      if (b) setSelected(b)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.data])
 
   // Karte einmalig anlegen
   useEffect(() => {
@@ -456,6 +468,7 @@ function BrewerySheet({ b, onClose }: { b: BreweryProgress; onClose: () => void 
   // Offene Biere zuerst – das ist meistens interessanter
   const sorted = [...list].sort((x, y) => Number(drunkSet.has(x.id)) - Number(drunkSet.has(y.id)))
   const img = b.logo_url || b.image_url
+  const short = beerNameShortener(list.map((x) => x.name), b.name)
 
   return (
     <div className="sheet" role="dialog" aria-label={b.name}>
@@ -495,7 +508,7 @@ function BrewerySheet({ b, onClose }: { b: BreweryProgress; onClose: () => void 
           <BeerRow
             key={beer.id}
             beer={beer}
-            title={shortBeerName(beer.name, b.name)}
+            title={short(beer.name)}
             quick={!drunkSet.has(beer.id)}
             onChanged={() => drunk.reload()}
             sub={[beer.style, beer.abv != null ? `${beer.abv} %` : null].filter(Boolean).join(' · ')}

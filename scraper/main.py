@@ -3,10 +3,11 @@
 Ablauf:
   1. Wikipedia-Listen (Rückgrat, verifiziert) + Wikidata (Prüfung verlinkter Objekte, weitere Brauereien)
   2. Koordinaten (Wikipedia/Wikidata, sonst Nominatim mit Bundesland-Gegenprobe), Website, Logo
-  3. OpenStreetMap: genaue Lage, Adresse, Website; weitere (ungeprüfte) Brauereien
+  3. OpenStreetMap + Open Brewery DB: genaue Lage, Adresse, Website; weitere (ungeprüfte) Brauereien
   4. Brauerei-Websites: Adresse aus Impressum/JSON-LD, Sortiment (Shop, JSON-LD, HTML-Regeln, optional KI)
-  5. Open Food Facts über Aliase / EAN-Präfixe zuordnen
+  5. Open Food Facts zuordnen (Marke, Produktname, Bierkatalog, Markenwort, Ort, EAN-Präfix), Dubletten zusammenführen
   6. Laden + Aufräumen
+Fortschritt: im Log und live in der App (Mehr → Katalog).
 
 Optionen:
   --dry-run   nichts in die Datenbank schreiben, nur Bericht erzeugen
@@ -27,8 +28,13 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import enrich, merge, openfoodfacts, osm, sites, wikidata, wikipedia
+from . import enrich, merge, obdb, openfoodfacts, osm, sites, wikidata, wikipedia
 from .geocode import Geocoder
+from .progress import Progress
+
+STEPS = ["Wikipedia-Listen", "Wikidata", "Koordinaten & Logos", "OpenStreetMap", "Open Brewery DB",
+         "Open Food Facts", "Brauerei-Websites (Adressen & Bierkataloge)", "Biere zuordnen & zusammenführen",
+         "Datenbank"]
 
 if os.environ.get("GITHUB_ACTIONS") and os.environ.get("RUNNER_TEMP"):
     OUT_DIR = Path(os.environ["RUNNER_TEMP"]) / "catalog"
@@ -139,9 +145,32 @@ def main() -> int:
             geo_cache, web_cache, overrides, site_cache, hidden = load_caches(conn)
         except Exception:  # noqa: BLE001
             errors.append("Datenbank (Verbindung/Caches):\n" + traceback.format_exc())
+    prog = Progress(STEPS, os.environ.get("DB_URL") if conn else None)
+
+    def with_fallback(name: str, fn, minimum: int):
+        """Quelle abrufen; klappt das nicht (oder kommt zu wenig), den letzten guten Stand nehmen."""
+        from .load import source_cache_get, source_cache_put
+
+        try:
+            data = fn()
+            if len(data) < minimum:
+                raise RuntimeError(f"nur {len(data)} Einträge (erwartet ≥ {minimum})")
+            if conn:
+                source_cache_put(conn, name, data)
+            return data
+        except Exception:  # noqa: BLE001
+            err = traceback.format_exc()
+            old, when = source_cache_get(conn, name) if conn else (None, None)
+            if old:
+                prog.note(f"Abruf fehlgeschlagen – nutze Stand vom {when:%d.%m.%Y}")
+                _annotate("warning", f"{name}: letzter guter Stand", err[-1500:])
+                stats[f"{name}_aus_zwischenspeicher"] = f"{when:%Y-%m-%d}"
+                return old
+            raise
 
     # 1. Wikipedia
     wp_entries: list[dict] = []
+    prog.step(STEPS[0])
     try:
         wp_entries, raw_pages = timed("wikipedia", wikipedia.fetch)
         stats["wp_entries"] = len(wp_entries)
@@ -151,14 +180,17 @@ def main() -> int:
         errors.append("Wikipedia:\n" + traceback.format_exc())
 
     # 2. Wikidata
-    wd_breweries, wd_beers, check = [], [], {}
+    wd_breweries, wd_beers, wd_aliases, check = [], [], {}, {}
+    prog.step(STEPS[1])
     try:
-        wd_breweries, wd_beers = timed("wikidata", wikidata.fetch)
+        wd_breweries, wd_beers, wd_aliases = timed("wikidata", wikidata.fetch)
         check = timed("wikidata_pruefung", lambda: wikidata.check_entities([e["qid"] for e in wp_entries if e.get("qid")]))
     except Exception:  # noqa: BLE001
         errors.append("Wikidata:\n" + traceback.format_exc())
 
     # 3. Anreicherung
+    prog.step(STEPS[2])
+    prog.note(f"{len(wd_breweries)} Brauereien und {len(wd_beers)} Biere aus Wikidata, {len(wp_entries)} Einträge aus Wikipedia")
     geocoder = Geocoder(cache=geo_cache, budget_s=float(os.environ.get("GEOCODE_BUDGET_S", "1500")))
     web_new: dict = {}
     if wp_entries:
@@ -185,10 +217,21 @@ def main() -> int:
 
     # 3b. OpenStreetMap
     osm_elements: list[dict] = []
+    prog.step(STEPS[3])
     try:
-        osm_elements = timed("openstreetmap", osm.fetch)
+        osm_elements = timed("openstreetmap", lambda: with_fallback("openstreetmap", osm.fetch, 500))
+        prog.note(f"{len(osm_elements)} Brauereien in OpenStreetMap")
     except Exception:  # noqa: BLE001
         errors.append("OpenStreetMap:\n" + traceback.format_exc())
+
+    # 3b2. Open Brewery DB
+    obdb_elements: list[dict] = []
+    prog.step(STEPS[4])
+    try:
+        obdb_elements = timed("openbrewerydb", lambda: with_fallback("openbrewerydb", obdb.fetch, 300))
+        prog.note(f"{len(obdb_elements)} Brauereien in der Open Brewery DB")
+    except Exception:  # noqa: BLE001
+        errors.append("Open Brewery DB:\n" + traceback.format_exc())
 
     # 3c. Brauerei-Websites (wird in merge.build aufgerufen, sobald alle Websites bekannt sind)
     site_new: dict = {}
@@ -197,9 +240,12 @@ def main() -> int:
 
     def crawl(by_site: dict) -> dict:
         def run():
-            res, new = sites.crawl(list(by_site), site_cache, budget_s=float(os.environ.get("SITE_BUDGET_S", "1500")))
+            prog.step(STEPS[6])
+            res, new = sites.crawl(list(by_site), site_cache, budget_s=float(os.environ.get("SITE_BUDGET_S", "2400")),
+                                   progress=prog.cb())
             names = {s_: bs[0]["name"] for s_, bs in by_site.items()}
-            calls, state = sites.llm_extract(res, names, max_calls=int(os.environ.get("LLM_MAX_CALLS", "120")))
+            calls, state = sites.llm_extract(res, names, max_calls=int(os.environ.get("LLM_MAX_CALLS", "120")),
+                                             progress=prog.cb())
             stats["llm_calls"], stats["llm_state"] = calls, state
             for s_, d in res.items():
                 if d.get("llm") and s_ not in new:
@@ -207,6 +253,7 @@ def main() -> int:
             site_new.update(new)
             site_all.update(res)
             stats["sites_crawled_now"] = len(new)
+            prog.step(STEPS[7])
             return res
 
         try:
@@ -217,16 +264,25 @@ def main() -> int:
 
     # 4. Open Food Facts
     off_products = []
+    prog.step(STEPS[5])
     try:
-        off_products, method = timed("openfoodfacts", openfoodfacts.fetch)
-        stats["off_method"] = method
+        def off_fetch():
+            prods, m = openfoodfacts.fetch(progress=prog.cb())
+            stats["off_method"] = m
+            return prods
+
+        off_products = timed("openfoodfacts", lambda: with_fallback("openfoodfacts", off_fetch, 200))
     except Exception:  # noqa: BLE001
         errors.append("Open Food Facts:\n" + traceback.format_exc())
 
     # 5. Zusammenführen
     breweries, beers, mstats = merge.build(wp_entries, wd_breweries, wd_beers, off_products, overrides,
                                            osm=osm_elements, crawl=crawl if os.environ.get("CRAWL", "1") == "1" else None,
-                                           geocoder=addr_geocoder, hidden=hidden)
+                                           geocoder=addr_geocoder, hidden=hidden, obdb=obdb_elements,
+                                           wd_aliases=wd_aliases)
+    if prog.name != STEPS[7]:
+        prog.step(STEPS[7])
+    prog.note(f"{len(breweries)} Brauereien, {len(beers)} Biere, {sum(len(b['eans']) for b in beers)} Barcodes")
     stats["address_geocode_requests"] = addr_geocoder.requests
     stats.update(mstats)
     stats["samples"] = [{k: b.get(k) for k in ("name", "city", "state", "trust", "brewery_type", "lat", "logo_url", "website")}
@@ -235,6 +291,7 @@ def main() -> int:
                      indent=1, ensure_ascii=False, default=list), flush=True)
 
     # 6. Laden – aufgeräumt wird nur, wenn alle Quellen geklappt haben
+    prog.step(STEPS[8])
     if conn and (breweries or beers):
         try:
             from .load import load, save_caches
@@ -253,6 +310,12 @@ def main() -> int:
         conn.close()
 
     report = write_report(stats, errors, timings)
+    keep = ("breweries_total", "breweries_on_map", "breweries_with_address", "beers_total", "beers_verified",
+            "barcodes_total", "off_products", "off_match_methods", "off_unmatched", "beers_merged", "website_beers",
+            "sites_total", "sites_with_beers", "obdb_matched", "obdb_new", "osm_matched", "osm_new", "wd_beers",
+            "wd_brand_aliases", "db_breweries", "db_beers", "db_barcodes", "pruned")
+    prog.finish(not errors, {**{k: stats.get(k) for k in keep if k in stats}, "fehler": len(errors),
+                             "laufzeiten": timings})
 
     # Rohdaten für die Fehlersuche (Wikitext + geparste Einträge + Bericht)
     if raw_pages:
@@ -268,6 +331,11 @@ def main() -> int:
             "breweries.json": json.dumps([{k: b.get(k) for k in ("ext_id", "name", "city", "street", "postcode", "lat",
                                                                  "lng", "geo_precision", "website", "trust", "sources")}
                                           for b in breweries], ensure_ascii=False, indent=0, default=list),
+            # alle Biere mit Quelle, Brauerei und Barcodes – für die Qualitätsprüfung des Katalogs
+            "beers.json": json.dumps([{k: b.get(k) for k in ("ext_id", "brewery_ext", "name", "style", "abv", "source",
+                                                             "trust", "sources", "eans", "image_url")}
+                                      for b in beers], ensure_ascii=False, indent=0, default=sorted),
+            "off_products.json": json.dumps(off_products, ensure_ascii=False, indent=0, default=list),
             "entries.json": json.dumps([{k: v for k, v in e.items() if k != "wd"} | {"wd": (e.get("wd") or {}).get("qid")}
                                         for e in wp_entries], ensure_ascii=False, indent=1, default=list),
         }

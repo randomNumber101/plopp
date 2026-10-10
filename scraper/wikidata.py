@@ -23,7 +23,7 @@ SELECT ?b ?bLabel ?coord ?website ?logo ?dissolved ?place ?placeLabel ?placeCoor
     OPTIONAL { ?place wdt:P625 ?placeCoord }
   }
   OPTIONAL { ?b wdt:P131* ?state . ?state wdt:P31 wd:Q1221156 . }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,mul,en". }
 }
 """
 
@@ -31,12 +31,12 @@ BEERS_QUERY = """
 SELECT ?beer ?beerLabel ?brew ?abv ?classLabel ?isBeer ?gtin WHERE {
   ?brew wdt:P31/wdt:P279* wd:Q131734 ;
         wdt:P17 wd:Q183 .
-  ?beer wdt:P176 ?brew .
+  ?beer wdt:P176|wdt:P127 ?brew .
   OPTIONAL { ?beer wdt:P2665 ?abv }
   OPTIONAL { ?beer wdt:P31 ?class }
   OPTIONAL { ?beer wdt:P31/wdt:P279* wd:Q44 . BIND(true AS ?isBeer) }
   OPTIONAL { ?beer wdt:P3962 ?gtin }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,mul,en". }
 }
 """
 
@@ -188,12 +188,41 @@ def parse_beers(rows: list[dict], breweries: dict[str, dict]) -> list[dict]:
     return out
 
 
-def fetch() -> tuple[list[dict], list[dict]]:
-    """Liefert (Brauereien, Biere). Schlüssel der Brauereien: ext_id 'wd:Q…'."""
+_BRAND_HINT = re.compile(r"marke|brand|trademark|warenzeichen")
+
+
+def parse_brands(rows: list[dict], breweries: dict[str, dict]) -> dict[str, set[str]]:
+    """Marken (keine einzelnen Biere, keine Tochterbrauereien) mit Hersteller/Eigentümer = Brauerei
+    → zusätzliche Namen der Brauerei. So findet die Zuordnung „Mönchshof“ → Kulmbacher."""
+    items: dict[str, dict] = {}
+    for row in rows:
+        brew = _qid(_val(row, "brew"))
+        if brew not in breweries:
+            continue
+        qid = _qid(_val(row, "beer"))
+        it = items.setdefault(qid, {"name": _val(row, "beerLabel"), "brews": set(), "cls": set()})
+        it["brews"].add(brew)
+        it["cls"].add((_val(row, "classLabel") or "").lower())
+    out: dict[str, set[str]] = {}
+    for qid, it in items.items():
+        cls = " ".join(it["cls"])
+        name = it["name"]
+        if _is_label_missing(name, qid) or len(name) > 40 or len(it["brews"]) != 1:
+            continue
+        name = re.sub(r"\s*\([^)]*\)$", "", name).strip()
+        if not _BRAND_HINT.search(cls) or re.search(r"brewery|brauerei|unternehmen|company|business|enterprise", cls):
+            continue
+        out.setdefault(f"wd:{next(iter(it['brews']))}", set()).add(name)
+    return out
+
+
+def fetch() -> tuple[list[dict], list[dict], dict[str, set[str]]]:
+    """Liefert (Brauereien, Biere, Marken je Brauerei). Schlüssel der Brauereien: ext_id 'wd:Q…'."""
     s = http_session()
     breweries = parse_breweries(query(BREWERIES_QUERY, s))
-    beers = parse_beers(query(BEERS_QUERY, s), breweries)
-    return list(breweries.values()), beers
+    rows = query(BEERS_QUERY, s)
+    beers = parse_beers(rows, breweries)
+    return list(breweries.values()), beers, parse_brands(rows, breweries)
 
 
 # --------------------------------------------------------------------------- Prüfung verlinkter Objekte
@@ -210,7 +239,7 @@ SELECT ?item ?itemLabel ?isBrewery ?isCompany ?coord ?website ?logo ?dissolved W
   OPTIONAL { ?item wdt:P856 ?website }
   OPTIONAL { ?item wdt:P154 ?logo }
   OPTIONAL { ?item wdt:P576 ?dissolved }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,en". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,mul,en". }
 }
 """
 

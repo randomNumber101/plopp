@@ -17,6 +17,7 @@ from .enrich import haversine_km, place_city
 from .util import STOPWORDS, clean_beer_name, fold, guess_style, key, tokens
 from .sites import is_beerish, postprocess
 from .web import WEAK_GEO, apply_osm, choose_address
+from .offmatch import BreweryLookup, compact, dedupe, is_retailer, match_products, product_name
 
 _BAD_STYLE = re.compile(r"verschied|saison|weitere|u\.\s?a\.|diverse|etc|sowie|wechselnd|spezialit|biere\b|sorten",
                         re.IGNORECASE)
@@ -99,7 +100,8 @@ def brand_word(name: str) -> str:
 
 def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict], off_products: list[dict],
           brand_overrides: dict[str, str | None] | None = None, osm: list[dict] | None = None,
-          crawl=None, geocoder=None, hidden: list[tuple[str, str]] | None = None):
+          crawl=None, geocoder=None, hidden: list[tuple[str, str]] | None = None, obdb: list[dict] | None = None,
+          wd_aliases: dict[str, set[str]] | None = None, progress=None):
     """→ (breweries, beers, stats). brand_overrides: Markenschlüssel → ext_id (Zuordnung) bzw. None (ablehnen).
     osm: Objekte aus OpenStreetMap; crawl: Funktion {website: [Brauereien]} → {website: Ergebnis}."""
     brand_overrides = brand_overrides or {}
@@ -191,6 +193,23 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         stats.update(ostats)
         for n in new:
             breweries.setdefault(n["ext_id"], n)
+
+    # ------------------------------------------------------------ 2b2. Open Brewery DB: Websites, Adressen, weitere Brauereien
+    if obdb:
+        new, ostats = apply_osm(breweries, obdb, src="obdb")
+        stats.update(ostats)
+        for n in new:
+            breweries.setdefault(n["ext_id"], n)
+
+    # Marken aus Wikidata (Biermarken/Produkte mit Hersteller = Brauerei) als zusätzliche Namen
+    wd_alias_n = 0
+    for ext, names in (wd_aliases or {}).items():
+        if ext in breweries:
+            for n in names:
+                if n not in breweries[ext]["aliases"]:
+                    breweries[ext]["aliases"].add(n)
+                    wd_alias_n += 1
+    stats["wd_brand_aliases"] = wd_alias_n
 
     # ------------------------------------------------------------ 2c. Brauerei-Websites: Adresse + Sortiment
     by_site: dict[str, list[dict]] = defaultdict(list)
@@ -325,68 +344,63 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
 
     # 3b. Biere aus Wikidata
     for wb in wd_beers:
-        if wb["brewery_ext"] in breweries:
-            add_beer(wb["brewery_ext"], wb["name"], wb["style"], wb["abv"], None, "wikidata",
-                     "unverified", wb["eans"])
+        ext = wb["brewery_ext"]
+        if ext in breweries:
+            name = re.sub(r"\s*\([^)]*\)$", "", wb["name"]).strip()  # „Oettinger (beer)“
+            if not set(tokens(name)) & alias_tokens[ext]:
+                name = f"{brand_word(breweries[ext]['name'])} {name}"
+            add_beer(ext, name, wb["style"], wb["abv"], None, "wikidata", "verified", wb["eans"])
 
-    # 3c. Open Food Facts: Marke → Brauerei
-    how = Counter()
-    assigned: list[tuple[dict, str]] = []
-    pending: list[dict] = []
-    for p in off_products:
-        bk = key(p["brand"])
-        if not bk:
-            continue
-        if bk in brand_overrides:
-            ext = brand_overrides[bk]
-            how["korrektur"] += 1
-            (assigned.append((p, ext)) if ext and ext in breweries else pending.append(p))
-            continue
-        ext, method = index.find(p["brand"])
-        if ext:
-            how[method] += 1
-            assigned.append((p, ext))
-        else:
-            pending.append(p)
+    # 3c. Open Food Facts: Produkt → Brauerei (Marke, Produktname, Bierkatalog, seltenes Wort, Ort, EAN-Präfix)
+    catalog: dict[str, set[str]] = defaultdict(set)
+    for b in beers.values():
+        c = compact(b["name"])
+        if c:
+            catalog[c].add(b["brewery_ext"])
+    lookup = BreweryLookup(breweries, parent_of)
+    assigned, rest, how = match_products(off_products, index, lookup, brand_overrides, catalog, breweries)
 
-    # 3d. EAN-Firmenpräfix: sicher zugeordnete Produkte vererben ihre Brauerei an Produkte mit gleichem Präfix
-    prefix: dict[str, Counter] = defaultdict(Counter)
-    for p, ext in assigned:
-        if breweries[ext]["trust"] == "verified" and p["ean"].startswith("4") and len(p["ean"]) == 13:
-            prefix[p["ean"][:7]][ext] += 1
-    rest = []
-    for p in pending:
-        c = prefix.get(p["ean"][:7]) if len(p["ean"]) == 13 else None
-        if c and len(c) == 1 and sum(c.values()) >= 2 and key(p["brand"]) not in brand_overrides:
-            assigned.append((p, next(iter(c))))
-            how["ean-praefix"] += 1
-        else:
-            rest.append(p)
-
-    # 3e. Rest: Marke als eigener (ungeprüfter) Eintrag ohne Ort
+    # Rest: Marke als eigener (ungeprüfter) Eintrag ohne Ort – erscheint in der App unter „Marken ohne Brauerei“
     unmatched_brands = Counter()
     for p in rest:
-        bk = key(p["brand"])
+        brand = next((b for b in p.get("brands") or [] if len(key(b)) >= 3), None)
+        if not brand:
+            how["ohne_marke"] += 1
+            continue
+        bk = key(brand)
         ext = f"off-brand:{bk.replace(' ', '-')}"
         if ext not in breweries:
             breweries[ext] = {
-                "ext_id": ext, "name": p["brand"].strip(), "city": None, "state": None, "country": None,
+                "ext_id": ext, "name": brand.strip(), "city": None, "state": None, "country": None,
                 "lat": None, "lng": None, "website": None, "logo_url": None, "source": "off", "trust": "unverified",
                 "brewery_type": "marke", "region": None, "district": None, "founded": None, "geo_precision": None,
-                "parent_ext": None, "sources": {"liste": "openfoodfacts"}, "aliases": {p["brand"].strip()},
+                "parent_ext": None, "sources": {"liste": "openfoodfacts"}, "aliases": {brand.strip()},
             }
-        assigned.append((p, ext))
-        unmatched_brands[p["brand"].strip()] += 1
+        assigned.append((p, ext, "marke_ohne_brauerei"))
+        unmatched_brands[brand.strip()] += 1
 
-    merged_verified = 0
-    for p, ext in assigned:
-        name = clean_beer_name(p["name"], p["brand"] if tokens(p["brand"]) else breweries[ext]["name"])
+    merged_verified = off_named = off_skipped = 0
+    for p, ext, method in assigned:
+        own = [b for b in p.get("brands") or [] if not is_retailer(b)]
+        brand = own[0] if own else brand_word(breweries[ext]["name"])
+        raw = product_name(p, brand)
+        if not raw:
+            off_skipped += 1
+            continue
+        if raw != p.get("name"):
+            off_named += 1
+        name = clean_beer_name(raw, brand)
         style = guess_style(name, p["categories"])
         bext = f"beer:{ext}:{beer_key(ext, name).replace(' ', '-')}"
         was_verified = bext in beers and beers[bext]["trust"] == "verified"
-        add_beer(ext, name, style, p["abv"], p["image_url"], "off", "unverified", {p["ean"]})
+        b = add_beer(ext, name, style, p["abv"], p["image_url"], "off", "unverified", {p["ean"]})
+        if b is not None:
+            b["sources"]["off_match"] = method
         if was_verified:
             merged_verified += 1
+
+    # 3f. Gleiche Biere einer Brauerei aus verschiedenen Quellen zusammenführen
+    stats["beers_merged"] = dedupe(beers)
 
     # Ein Barcode gehört genau zu einem Bier
     seen: set[str] = set()
@@ -402,6 +416,8 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         wd_beers=len(wd_beers),
         off_products=len(off_products),
         off_match_methods=dict(how),
+        off_renamed=off_named,
+        off_without_name=off_skipped,
         off_unmatched=sum(unmatched_brands.values()),
         off_merged_into_verified=merged_verified,
         top_unmatched_brands=unmatched_brands.most_common(40),

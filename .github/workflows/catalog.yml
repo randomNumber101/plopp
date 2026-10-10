@@ -1,6 +1,7 @@
 name: Katalog
 
-# Lädt Brauereien und Biere (Wikipedia, Wikidata, OpenStreetMap, Brauerei-Websites, Open Food Facts) in die Datenbank.
+# Lädt Brauereien und Biere (Wikipedia, Wikidata, OpenStreetMap, Open Brewery DB, Brauerei-Websites, Open Food Facts)
+# in die Datenbank. Fortschritt: im Log („▶ [3/9] …“) und live in der App unter Mehr → Katalog.
 # Läuft monatlich, bei Änderungen am Scraper und auf Knopfdruck (Actions → Katalog → Run workflow).
 on:
   push:
@@ -21,7 +22,7 @@ concurrency:
 jobs:
   catalog:
     runs-on: ubuntu-latest
-    timeout-minutes: 100
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
@@ -44,6 +45,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USE_GITHUB_MODELS: '1'
+          PYTHONUNBUFFERED: '1'
+          SITE_BUDGET_S: '2700'
       - name: Bericht speichern
         if: always()
         run: |

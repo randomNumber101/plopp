@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { exportAll, isAdmin, listSuggestions } from '../api'
+import { catalogRuns, exportAll, isAdmin, listSuggestions, unassignedBrands } from '../api'
 import { ErrorBox, toast, useAsync } from '../components'
 import { supabase } from '../supabase'
 import { go } from '../router'
@@ -13,7 +13,13 @@ export default function Settings({ session }: { session: Session }) {
   const [pwOpen, setPwOpen] = useState(false)
   const review = useAsync(async () => {
     const admin = await isAdmin()
-    return { admin, open: admin ? (await listSuggestions('offen')).length : 0 }
+    if (!admin) return { admin, open: 0, brands: 0, running: false }
+    const [open, brands, runs] = await Promise.all([
+      listSuggestions('offen').then((l) => l.length),
+      unassignedBrands().then((l) => l.length).catch(() => 0),
+      catalogRuns(1),
+    ])
+    return { admin, open, brands, running: runs[0]?.status === 'läuft' }
   }, [])
 
   async function download() {
@@ -41,7 +47,7 @@ export default function Settings({ session }: { session: Session }) {
         </button>
         <button onClick={() => go('/catalog')}>
           <span className="m-icon">🔎</span>
-          <span className="m-main">Bier suchen oder anlegen</span>
+          <span className="m-main">Bier erfassen (Suche)</span>
           <IconChevron size={18} className="m-chev" />
         </button>
         <button onClick={() => go('/suggestions')}>
@@ -55,6 +61,19 @@ export default function Settings({ session }: { session: Session }) {
           {!!review.data?.open && <span className="m-badge">{review.data.open}</span>}
           <IconChevron size={18} className="m-chev" />
         </button>
+        {review.data?.admin && (
+          <button onClick={() => go('/katalog')}>
+            <span className="m-icon">🗂️</span>
+            <span className="m-main">
+              Katalog
+              <div className="row-sub">
+                {review.data.running ? 'wird gerade aufgebaut …' : 'Aufbau verfolgen & Marken zuordnen'}
+              </div>
+            </span>
+            {!!review.data.brands && <span className="m-badge">{review.data.brands}</span>}
+            <IconChevron size={18} className="m-chev" />
+          </button>
+        )}
         <button onClick={download}>
           <span className="m-icon">⬇️</span>
           <span className="m-main">Meine Daten exportieren (JSON)</span>

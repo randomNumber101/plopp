@@ -175,7 +175,11 @@ def polish(name: str | None, from_file: bool = False) -> str | None:
     """Letzter Schliff für Namen: Dopplungen, Bilddatei-Reste, Satzfetzen entfernen."""
     if not name:
         return None
-    t = _LEAD_JUNK.sub("", name.strip())
+    t = re.sub(r"[\u200b-\u200f\u00ad\ufeff]", "", name).strip()
+    t = _LEAD_JUNK.sub("", t)
+    if re.match(r"(?i)alk\.?\s*\d", t):
+        return None  # „Alk. 4,7% vol“
+    t = re.sub(r"\.(?=[0-9a-f]*[a-f])(?=[0-9a-f]*\d)[0-9a-f]{2,12}$", "", t)  # Bild-Hash: „Hell.feb89f“
     t = re.split(r"(?<=[a-zäöüß]{3})\.\s+(?=[A-ZÄÖÜ])", t)[0]  # „Gaffel Kölsch. Besonders Kölsch“
     if re.search(r"\b\d{1,2}\.\d{1,2}\.(\d{2,4})?\b|\s\+\s|\b\d+\s*[x×]\s", t):
         return None  # Termine („21.11.2026“) und Bündel („+ 6 Pils“, „6 x“)
@@ -831,7 +835,7 @@ def crawl_site(session, site: str) -> dict:
     return data
 
 
-def crawl(sites: list[str], cache: dict[str, dict], budget_s: float = 1200, workers: int = 16):
+def crawl(sites: list[str], cache: dict[str, dict], budget_s: float = 1200, workers: int = 16, progress=None):
     """→ (Ergebnisse {site: data}, neue Cache-Einträge)"""
     out: dict[str, dict] = {}
     new: dict[str, dict] = {}
@@ -845,9 +849,12 @@ def crawl(sites: list[str], cache: dict[str, dict], budget_s: float = 1200, work
     deadline = time.time() + budget_s
     session = http_session()
     session.headers["Accept"] = "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8"
+    cached = len(out)
+    if progress:
+        progress(0, len(todo), f"{cached} aus dem Zwischenspeicher, {len(todo)} neu abzurufen")
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = {ex.submit(crawl_site, session, s): s for s in todo}
-        for f in as_completed(futs):
+        for i, f in enumerate(as_completed(futs), 1):
             s = futs[f]
             try:
                 d = f.result()
@@ -855,6 +862,9 @@ def crawl(sites: list[str], cache: dict[str, dict], budget_s: float = 1200, work
                 d = {"site": s, "status": -2, "error": str(e)[:200], "beers": [], "addresses": []}
             out[s] = d
             new[s] = d
+            if progress:
+                found = sum(len(x.get("beers") or []) for x in new.values())
+                progress(i, len(todo), f"{i} von {len(todo)} Websites neu abgerufen · {found} Biere gefunden")
             if time.time() > deadline:
                 for g in futs:
                     g.cancel()
@@ -866,7 +876,8 @@ def crawl(sites: list[str], cache: dict[str, dict], budget_s: float = 1200, work
 _LLM_URL = "https://models.github.ai/inference/chat/completions"
 
 
-def llm_extract(results: dict[str, dict], names: dict[str, str], max_calls: int = 100) -> tuple[int, str | None]:
+def llm_extract(results: dict[str, dict], names: dict[str, str], max_calls: int = 100,
+                progress=None) -> tuple[int, str | None]:
     """Fragt GitHub Models nach den Bieren auf Seiten, auf denen die Regeln nichts gefunden haben.
     Nur aktiv mit USE_GITHUB_MODELS=1 und GITHUB_TOKEN (Workflow-Berechtigung „models: read“)."""
     token = os.environ.get("GITHUB_TOKEN")
@@ -908,6 +919,8 @@ def llm_extract(results: dict[str, dict], names: dict[str, str], max_calls: int 
         except Exception:  # noqa: BLE001
             beers = []
         d["llm"] = True
+        if progress:
+            progress(calls, max_calls, f"KI-Hilfe: {calls} Websites ausgewertet")
         for b in beers[:60]:
             name = clean_item(str(b.get("name") or ""))
             if name and not is_nonbeer(name):

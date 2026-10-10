@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
-import type { Beer, Brewery, BreweryProgress, Checkin, HideReason, OffSuggestion, Suggestion } from './types'
+import { clearIndex, refreshIndex } from './search'
+import type { Beer, Brewery, BreweryHideReason, BreweryProgress, Checkin, HideReason, OffSuggestion, Suggestion } from './types'
 import { codeVariants } from './scanner'
 
 const BEER_SELECT = '*, brewery:breweries(*)'
@@ -37,6 +38,13 @@ function loadOverlay(): Promise<Overlay> {
 
 function invalidateOverlay() {
   overlayPromise = null
+  refreshIndex()
+}
+
+/** Nach Kontowechsel: Runden-Änderungen neu laden */
+export function resetSessionCaches() {
+  overlayPromise = null
+  clearIndex()
 }
 
 const BEER_FIELDS = ['name', 'style', 'abv'] as const
@@ -46,8 +54,19 @@ function applyBrewery<T extends Brewery | null | undefined>(b: T, o: Overlay): T
   if (!b) return b
   const d = o.brewery.get(b.id)
   if (!d) return b
-  const x: Brewery = { ...b, _edited: true }
-  for (const f of BREWERY_FIELDS) if (f in d) (x as unknown as Record<string, unknown>)[f] = d[f]
+  const x: Brewery = { ...b }
+  let edited = false
+  for (const f of BREWERY_FIELDS)
+    if (f in d) {
+      ;(x as unknown as Record<string, unknown>)[f] = d[f]
+      edited = true
+    }
+  if ('hidden_at' in d) {
+    x.hidden_at = (d.hidden_at as string | null) ?? null
+    x.hidden_reason = (d.hidden_reason as string | null) ?? null
+    x._hiddenInCircle = true
+  }
+  x._edited = edited
   return x as T
 }
 
@@ -148,6 +167,31 @@ export async function unhideBeers(ids: string[]) {
   invalidateOverlay()
 }
 
+/** Brauerei für die eigene Runde ausblenden – zusätzlich als Vorschlag für den Katalog */
+export async function hideBreweries(ids: string[], reason: BreweryHideReason) {
+  check(await supabase.rpc('hide_breweries', { p_ids: ids, p_reason: reason }))
+  invalidateOverlay()
+}
+
+export async function unhideBreweries(ids: string[]) {
+  check(await supabase.rpc('unhide_breweries', { p_ids: ids }))
+  invalidateOverlay()
+}
+
+export interface HiddenBrewery {
+  id: string
+  name: string
+  city: string | null
+  state: string | null
+  hidden_reason: string | null
+  /** true = im ganzen Katalog ausgeblendet, false = nur in deiner Runde */
+  in_catalog: boolean
+}
+
+export async function hiddenBreweries(): Promise<HiddenBrewery[]> {
+  return check(await supabase.rpc('hidden_breweries')) as HiddenBrewery[]
+}
+
 export async function getBrewery(id: string): Promise<Brewery> {
   const b = check(await supabase.from('breweries').select('*').eq('id', id).single()) as Brewery
   return applyBrewery(b, await loadOverlay())
@@ -224,7 +268,9 @@ export async function createBeer(b: {
   image_url: string | null
   source?: string
 }): Promise<Beer> {
-  return check(await supabase.from('beers').insert(b).select(BEER_SELECT).single()) as Beer
+  const beer = check(await supabase.from('beers').insert(b).select(BEER_SELECT).single()) as Beer
+  refreshIndex()
+  return beer
 }
 
 /** Bier ändern – gilt für die eigene Runde und geht als Vorschlag an den Katalog */
@@ -464,4 +510,49 @@ export async function geocode(city: string, country: string): Promise<{ lat: num
   } catch {
     return null
   }
+}
+
+// ---------------------------------------------------------------- Katalog-Pflege (Admin)
+
+export interface CatalogRun {
+  id: number
+  started_at: string
+  updated_at: string
+  finished_at: string | null
+  status: 'läuft' | 'fertig' | 'fehler' | 'abgebrochen'
+  step: number
+  steps: number
+  phase: string | null
+  done: number | null
+  total: number | null
+  detail: string | null
+  stats: Record<string, unknown> | null
+  run_url: string | null
+}
+
+export async function catalogRuns(limit = 5): Promise<CatalogRun[]> {
+  const res = await supabase.from('catalog_runs').select('*').order('started_at', { ascending: false }).limit(limit)
+  return res.error ? [] : (res.data as CatalogRun[])
+}
+
+export interface UnassignedBrand {
+  id: string
+  name: string
+  beers: number
+  examples: string[] | null
+  eans: string[] | null
+}
+
+export async function unassignedBrands(): Promise<UnassignedBrand[]> {
+  const res = await supabase.rpc('unassigned_brands')
+  if (res.error) throw new Error(res.error.message)
+  return res.data as UnassignedBrand[]
+}
+
+/** Marke einer Brauerei zuordnen (target) oder als „keine Brauerei / Handelsmarke“ bestätigen (null) */
+export async function assignBrand(brandId: string, target: string | null): Promise<number> {
+  const res = await supabase.rpc('assign_brand', { p_brand: brandId, p_target: target })
+  if (res.error) throw new Error(res.error.message)
+  refreshIndex()
+  return res.data as number
 }

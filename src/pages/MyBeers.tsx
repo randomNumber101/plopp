@@ -16,8 +16,9 @@ import {
   useAsync,
 } from '../components'
 import { go } from '../router'
+import { usePageState } from '../pageState'
 import { haptic, load, save } from '../ui/fx'
-import { IconChevron, IconScan, IconTrophy } from '../ui/icons'
+import { IconChevron, IconFindAdd, IconTrophy } from '../ui/icons'
 
 type Sort = 'recent' | 'count' | 'rating' | 'name'
 const SORTS: { id: Sort; label: string }[] = [
@@ -40,9 +41,9 @@ export default function MyBeers() {
   const [tab, setTabState] = useState<'drunk' | 'wish'>(prefs.tab as 'drunk' | 'wish')
   const [sort, setSortState] = useState<Sort>(prefs.sort as Sort)
   const [style, setStyleState] = useState(prefs.style)
-  const [q, setQ] = useState('')
-  const checkins = useAsync(myCheckins, [])
-  const wish = useAsync(myWishlist, [])
+  const [q, setQ] = usePageState('mybeers-q', '')
+  const checkins = useAsync(myCheckins, [], 'my-checkins')
+  const wish = useAsync(myWishlist, [], 'my-wishlist')
 
   const remember = (p: Partial<typeof prefs>) => save(PREFS, { tab, sort, style, ...p })
   const setTab = (t: 'drunk' | 'wish') => (setTabState(t), remember({ tab: t }))
@@ -180,9 +181,9 @@ export default function MyBeers() {
           <ErrorBox msg={checkins.error} />
           {checkins.data && stats.aggs.length === 0 && (
             <EmptyState title="Dein Glas ist noch leer">
-              <p>Scanne dein erstes Bier oder such es im Katalog.</p>
-              <button className="btn btn-primary btn-big" onClick={() => go('/scan')}>
-                <IconScan size={22} /> Erstes Bier scannen
+              <p>Such dein erstes Bier – oder scanne den Barcode.</p>
+              <button className="btn btn-primary btn-big" onClick={() => go('/catalog')}>
+                <IconFindAdd size={22} /> Erstes Bier erfassen
               </button>
             </EmptyState>
           )}

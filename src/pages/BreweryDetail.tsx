@@ -5,6 +5,8 @@ import {
   getBrewery,
   hiddenBeersOfBrewery,
   hideBeers,
+  hideBreweries,
+  unhideBreweries,
   setWishlist,
   sitesOfBrewery,
   unhideBeers,
@@ -29,13 +31,15 @@ import {
 import { haptic } from '../ui/fx'
 import { go } from '../router'
 import { setPrefill } from '../store'
-import { BREWERY_TYPES, HIDE_REASONS, STATES, type HideReason } from '../types'
-import { initials, shortBeerName } from '../brewery'
+import { BREWERY_HIDE_REASONS, BREWERY_TYPES, HIDE_REASONS, STATES, type BreweryHideReason, type HideReason } from '../types'
+import { cacheGet, cacheSet } from '../pageState'
+import type { BreweryProgress } from '../types'
+import { beerNameShortener, initials } from '../brewery'
 import { IconEyeOff, IconTrash } from '../ui/icons'
 
 export default function BreweryDetail({ id }: { id: string }) {
-  const brewery = useAsync(() => getBrewery(id), [id])
-  const beers = useAsync(() => beersOfBrewery(id), [id])
+  const brewery = useAsync(() => getBrewery(id), [id], `brewery:${id}`)
+  const beers = useAsync(() => beersOfBrewery(id), [id], `beers:${id}`)
   const drunk = useAsync(drunkBeerIds, [id])
   const wish = useAsync(wishlistIds, [id])
   const sites = useAsync(() => sitesOfBrewery(id), [id])
@@ -49,6 +53,7 @@ export default function BreweryDetail({ id }: { id: string }) {
   const [sel, setSel] = useState<Set<string> | null>(null)
   const [asking, setAsking] = useState(false)
   const [showHidden, setShowHidden] = useState(false)
+  const [askBrewery, setAskBrewery] = useState(false)
 
   if (brewery.loading && !brewery.data) return <Spinner />
   if (brewery.error || !brewery.data) return <ErrorBox msg={brewery.error ?? 'Brauerei nicht gefunden.'} />
@@ -58,6 +63,9 @@ export default function BreweryDetail({ id }: { id: string }) {
   const wishSet = wish.data ?? new Set<string>()
   const drunkCount = list.filter((x) => drunkSet.has(x.id)).length
   const hiddenList = hidden.data ?? []
+  // Kurznamen: Brauereiname und gemeinsames Präfix (z. B. „Förster …“) weglassen
+  const short = beerNameShortener(list.map((x) => x.name), b.name)
+  const shown = [...list].sort((x, y) => short(x.name).localeCompare(short(y.name), 'de'))
 
   const toggle = (bid: string) => {
     const next = new Set(sel ?? [])
@@ -78,7 +86,7 @@ export default function BreweryDetail({ id }: { id: string }) {
       hidden.reload()
       toast({
         icon: '🙈',
-        msg: ids.length === 1 ? `„${shortBeerName(gone[0].name, brewery.data?.name)}“ ausgeblendet` : `${ids.length} Einträge ausgeblendet`,
+        msg: ids.length === 1 ? `„${short(gone[0].name)}“ ausgeblendet` : `${ids.length} Einträge ausgeblendet`,
         action: {
           label: 'Rückgängig',
           run: async () => {
@@ -94,8 +102,53 @@ export default function BreweryDetail({ id }: { id: string }) {
     }
   }
 
+  async function hideThisBrewery(reason: BreweryHideReason) {
+    setAskBrewery(false)
+    try {
+      await hideBreweries([id], reason)
+      // gemerkte Brauerei-Liste sofort bereinigen
+      const cached = cacheGet<BreweryProgress[]>('brewery_progress')
+      if (cached) cacheSet('brewery_progress', cached.filter((x) => x.id !== id))
+      haptic()
+      toast({
+        icon: '🙈',
+        msg: `${b.name} ausgeblendet`,
+        action: {
+          label: 'Rückgängig',
+          run: async () => {
+            await unhideBreweries([id])
+            brewery.reload()
+          },
+        },
+      })
+      if (history.length > 1) history.back()
+      else brewery.reload()
+    } catch (e) {
+      toast({ icon: '⚠️', msg: (e as Error).message })
+    }
+  }
+
   return (
     <div className={`page ${sel ? "with-bar" : ""}`}>
+      {b.hidden_at && (
+        <div className="hidden-banner">
+          <IconEyeOff size={18} />
+          <span>
+            Ausgeblendet{b.hidden_reason ? ` – ${BREWERY_HIDE_REASONS[b.hidden_reason] ?? b.hidden_reason}` : ''}. Erscheint
+            für dich und deine Runde nicht in Listen, Karte und Suche.
+          </span>
+          <button
+            className="btn btn-small"
+            onClick={async () => {
+              await unhideBreweries([id])
+              toast({ icon: '👀', msg: 'Wieder eingeblendet' })
+              brewery.reload()
+            }}
+          >
+            Einblenden
+          </button>
+        </div>
+      )}
       <div className="brew-hero">
       <div className="brew-head">
         <div className={`bpin ${drunkCount && drunkCount >= list.length ? 'st-all' : drunkCount ? 'st-some' : ''} ${b.logo_url ? 'has-logo' : ''}`}>
@@ -249,12 +302,12 @@ export default function BreweryDetail({ id }: { id: string }) {
       )}
       {beers.loading && !beers.data && <SkeletonList rows={4} />}
       <div className="list">
-        {list.map((beer, i) => (
+        {shown.map((beer, i) => (
           <BeerRow
             key={beer.id}
             beer={beer}
             index={i}
-            title={shortBeerName(beer.name, b.name)}
+            title={short(beer.name)}
             quick
             selected={sel?.has(beer.id)}
             onSelect={sel ? () => toggle(beer.id) : undefined}
@@ -306,7 +359,7 @@ export default function BreweryDetail({ id }: { id: string }) {
                   key={beer.id}
                   beer={beer}
                   index={i}
-                  title={shortBeerName(beer.name, b.name)}
+                  title={short(beer.name)}
                   sub={beer.hidden_reason ? HIDE_REASONS[beer.hidden_reason] : 'ausgeblendet'}
                   right={
                     <button
@@ -364,6 +417,24 @@ export default function BreweryDetail({ id }: { id: string }) {
       >
         + Bier dieser Brauerei hinzufügen
       </button>
+      {!b.hidden_at && (
+        <button className="btn btn-ghost danger-ghost" onClick={() => setAskBrewery(true)}>
+          <IconEyeOff size={18} /> Keine Brauerei / doppelt? Ausblenden
+        </button>
+      )}
+      {askBrewery && (
+        <ChoiceSheet
+          title="Brauerei ausblenden"
+          sub="Gilt für dich und deine Runde (eingeladene Freunde) und geht als Vorschlag an den Katalog. Deine Check-ins bleiben erhalten. Rückgängig unter Brauereien → „Ausgeblendet“."
+          options={(Object.keys(BREWERY_HIDE_REASONS) as BreweryHideReason[]).map((r) => ({
+            id: r,
+            label: BREWERY_HIDE_REASONS[r],
+            icon: r === 'keine_brauerei' ? '🏪' : r === 'doppelt' ? '👯' : '🚫',
+          }))}
+          onPick={hideThisBrewery}
+          onClose={() => setAskBrewery(false)}
+        />
+      )}
     </div>
   )
 }

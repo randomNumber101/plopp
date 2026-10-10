@@ -373,3 +373,29 @@ def save_caches(conn: psycopg.Connection, geo_new: dict, web_new: dict, sites_ne
             "on conflict (url) do update set logo_url = excluded.logo_url, status = excluded.status, fetched_at = now()",
             [(u, r.get("logo_url"), r.get("status")) for u, r in web_new.items()],
         )
+
+
+# ---------------------------------------------------------------- Rückfall-Speicher für Quellen
+# Fällt eine Quelle (z. B. OpenStreetMap/Overpass) einmal aus, nimmt der Lauf den letzten guten Stand,
+# statt mit halbem Katalog weiterzumachen.
+
+def source_cache_get(conn: psycopg.Connection, name: str):
+    try:
+        with conn.transaction(), conn.cursor() as cur:
+            cur.execute("select data, fetched_at from app_private.source_cache where name = %s", (name,))
+            row = cur.fetchone()
+            return (row[0], row[1]) if row else (None, None)
+    except Exception:  # noqa: BLE001
+        return None, None
+
+
+def source_cache_put(conn: psycopg.Connection, name: str, data) -> None:
+    try:
+        with conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                "insert into app_private.source_cache (name, data) values (%s, %s) "
+                "on conflict (name) do update set data = excluded.data, fetched_at = now()",
+                (name, json.dumps(data, ensure_ascii=False, default=list)),
+            )
+    except Exception as e:  # noqa: BLE001
+        print(f"(Quelle {name} nicht zwischengespeichert: {str(e)[:120]})", flush=True)
