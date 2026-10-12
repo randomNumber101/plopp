@@ -9,6 +9,7 @@ import { usePageState } from '../pageState'
 import { setPrefill } from '../store'
 import { BREWERY_TYPES, type BreweryProgress } from '../types'
 import { beerNameShortener, initials } from '../brewery'
+import { loadRegions, regionProgress } from '../regions'
 
 type Filter = 'beers' | 'drunk' | 'open' | 'wish' | 'all'
 
@@ -93,6 +94,10 @@ export default function MapPage() {
   const [selected, setSelected] = useState<BreweryProgress | null>(null)
   const [group, setGroup] = useState<BreweryProgress[] | null>(null)
   const pendingFocus = useRef<string | null>(null)
+  // Ebene: Brauerei-Pins oder zusätzlich „Regionen freispielen“
+  const [layer, setLayer] = usePageState<'pins' | 'regions'>('map-layer', 'pins')
+  const regions = useAsync(() => (layer === 'regions' ? loadRegions() : Promise.resolve(null)), [layer])
+  const regionLayer = useRef<L.GeoJSON | null>(null)
   const [onlyVerified, setOnlyVerified] = useState(() => {
     try {
       return sessionStorage.getItem(VERIFIED_KEY) === '1'
@@ -119,7 +124,7 @@ export default function MapPage() {
   // Karte einmalig anlegen
   useEffect(() => {
     if (!el.current || map.current) return
-    const m = L.map(el.current, { zoomControl: false, attributionControl: true })
+    const m = L.map(el.current, { zoomControl: false, attributionControl: true, maxZoom: 18 })
     if (initial) m.setView([initial.lat, initial.lng], initial.zoom)
     else m.setView([51.1, 10.4], 6)
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -231,6 +236,49 @@ export default function MapPage() {
     }
   }, [data.data, filter, onlyVerified])
 
+  // Regionen einfärben: grau = noch nicht erkundet, je mehr Brauereien probiert, desto kräftiger
+  const rprog = useMemo(
+    () => (regions.data && data.data ? regionProgress(regions.data, data.data) : null),
+    [regions.data, data.data],
+  )
+  useEffect(() => {
+    const m = map.current
+    regionLayer.current?.remove()
+    regionLayer.current = null
+    if (!m || layer !== 'regions' || !regions.data || !rprog) return
+    const byId = new Map(rprog.map((p) => [p.region.id, p]))
+    const fc: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: regions.data.map((r) => ({ type: 'Feature', properties: { id: r.id }, geometry: r.geometry })),
+    }
+    const gj = L.geoJSON(fc, {
+      style: (f) => {
+        const p = byId.get(f?.properties.id)
+        const pct = p && p.breweries ? p.visited / p.breweries : 0
+        return p && p.visited
+          ? { color: '#9a5b00', weight: 1.2, fillColor: '#f4a300', fillOpacity: 0.18 + 0.5 * pct }
+          : { color: '#8a8070', weight: 1, dashArray: '3 4', fillColor: '#6f6a60', fillOpacity: 0.22 }
+      },
+      onEachFeature: (f, lyr) => {
+        const p = byId.get(f.properties.id)
+        if (!p) return
+        const pct = p.breweries ? Math.round((p.visited / p.breweries) * 100) : 0
+        lyr.bindPopup(
+          `<b>${esc(p.region.name)}</b><br>` +
+            (p.breweries
+              ? `${p.visited} von ${p.breweries} Brauereien probiert (${pct} %)<br>${p.drunk} von ${p.beers} Bieren`
+              : 'keine Brauereien mit Bieren im Katalog') +
+            (p.visited ? '' : '<br><i>noch nicht erkundet</i>'),
+        )
+      },
+    }).addTo(m)
+    gj.bringToBack()
+    regionLayer.current = gj
+    return () => {
+      gj.remove()
+    }
+  }, [layer, regions.data, rprog])
+
   // Auswahl hervorheben
   useEffect(() => {
     if (!selected) return
@@ -313,7 +361,7 @@ export default function MapPage() {
   const missing = data.data?.filter((b) => b.lat == null && b.total > 0).length ?? 0
 
   return (
-    <div className="mapview">
+    <div className={`mapview ${layer === 'regions' ? 'regions-mode' : ''}`}>
       <div ref={el} className="mapview-map" />
 
       <div className="map-top">
@@ -367,6 +415,14 @@ export default function MapPage() {
         <button className="map-tool" onClick={showAll} aria-label="Alle zeigen" title="Alle zeigen">
           ⤢
         </button>
+        <button
+          className={`map-tool ${layer === 'regions' ? 'on' : ''}`}
+          onClick={() => setLayer(layer === 'regions' ? 'pins' : 'regions')}
+          aria-label="Regionen freispielen"
+          title="Regionen freispielen"
+        >
+          🗺️
+        </button>
       </div>
 
       {data.loading && !data.data && (
@@ -391,6 +447,21 @@ export default function MapPage() {
           }}
           onClose={() => setGroup(null)}
         />
+      ) : layer === 'regions' && rprog ? (
+        <div className="map-legend region-legend">
+          <span>
+            <b>
+              {rprog.filter((r) => r.visited > 0).length} von {rprog.filter((r) => r.breweries > 0).length}
+            </b>{' '}
+            Bier-Regionen erkundet
+          </span>
+          <span>
+            <i className="lg lg-reg-on" /> erkundet (je kräftiger, desto mehr Brauereien)
+          </span>
+          <span>
+            <i className="lg lg-reg-off" /> noch offen · Region antippen für Details
+          </span>
+        </div>
       ) : (
         <div className="map-legend">
           <span>

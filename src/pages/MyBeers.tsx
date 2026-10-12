@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { myCheckins, myWishlist, setWishlist } from '../api'
-import { ACHIEVEMENTS, computeStats, progress, type BeerAgg } from '../achievements'
+import { ACHIEVEMENTS, computeStats, progress, useStatsContext, type BeerAgg } from '../achievements'
 import {
   BeerRow,
   ChipBar,
@@ -11,6 +11,7 @@ import {
   SkeletonList,
   Stars,
   dateBucket,
+  formatRating,
   relDate,
   toast,
   useAsync,
@@ -24,7 +25,7 @@ type Sort = 'recent' | 'count' | 'rating' | 'name'
 const SORTS: { id: Sort; label: string }[] = [
   { id: 'recent', label: 'Zuletzt' },
   { id: 'count', label: 'Am häufigsten' },
-  { id: 'rating', label: 'Beste' },
+  { id: 'rating', label: 'Bestenliste' },
   { id: 'name', label: 'A–Z' },
 ]
 const PREFS = 'bier-mybeers'
@@ -50,7 +51,8 @@ export default function MyBeers() {
   const setSort = (s: Sort) => (setSortState(s), remember({ sort: s }))
   const setStyle = (s: string) => (setStyleState(s), remember({ style: s }))
 
-  const stats = useMemo(() => computeStats(checkins.data ?? []), [checkins.data])
+  const ctx = useStatsContext()
+  const stats = useMemo(() => computeStats(checkins.data ?? [], ctx), [checkins.data, ctx])
   const badges = useMemo(() => ACHIEVEMENTS.filter((a) => progress(a, stats).done).length, [stats])
 
   const styles = useMemo(() => {
@@ -194,7 +196,7 @@ export default function MyBeers() {
               </button>
             </EmptyState>
           )}
-          <Grouped list={list} grouped={sort === 'recent' && !q} onChanged={reload} />
+          <Grouped list={list} grouped={sort === 'recent' && !q} ranked={sort === 'rating'} onChanged={reload} />
         </>
       )}
 
@@ -242,8 +244,20 @@ export default function MyBeers() {
   )
 }
 
-function Grouped({ list, grouped, onChanged }: { list: BeerAgg[]; grouped: boolean; onChanged: () => void }) {
-  const row = (a: BeerAgg, i: number) => (
+const MEDAL = ['🥇', '🥈', '🥉']
+
+function Grouped({
+  list,
+  grouped,
+  ranked,
+  onChanged,
+}: {
+  list: BeerAgg[]
+  grouped: boolean
+  ranked?: boolean
+  onChanged: () => void
+}) {
+  const row = (a: BeerAgg, i: number, place?: number) => (
     <BeerRow
       key={a.beer.id}
       beer={a.beer}
@@ -251,15 +265,39 @@ function Grouped({ list, grouped, onChanged }: { list: BeerAgg[]; grouped: boole
       quick
       onChanged={onChanged}
       sub={[a.beer.brewery?.name, a.beer.style, relDate(a.last)].filter(Boolean).join(' · ')}
+      lead={place != null ? <span className={`rank ${place < 3 ? 'top' : ''}`}>{MEDAL[place] ?? `${place + 1}.`}</span> : undefined}
       right={
-        <>
-          <span className="count">{a.count}×</span>
-          {a.avg != null && <Stars value={Math.round(a.avg * 10) / 10} size="sm" />}
-        </>
+        place != null && a.avg != null ? (
+          <span className="rank-score">
+            <b>{formatRating(a.avg)} ★</b>
+            <span className="count">{a.count}×</span>
+          </span>
+        ) : (
+          <>
+            <span className="count">{a.count}×</span>
+            {a.avg != null && <Stars value={Math.round(a.avg * 10) / 10} size="sm" />}
+          </>
+        )
       }
     />
   )
-  if (!grouped) return <div className="list">{list.map(row)}</div>
+  if (ranked) {
+    // Bestenliste: bewertete Biere mit Platz, unbewertete darunter
+    const rated = list.filter((a) => a.avg != null)
+    const unrated = list.filter((a) => a.avg == null)
+    return (
+      <>
+        {rated.length > 0 && <div className="list">{rated.map((a, i) => row(a, i, i))}</div>}
+        {unrated.length > 0 && (
+          <>
+            <div className="list-head">Noch nicht bewertet</div>
+            <div className="list">{unrated.map((a, i) => row(a, rated.length + i))}</div>
+          </>
+        )}
+      </>
+    )
+  }
+  if (!grouped) return <div className="list">{list.map((a, i) => row(a, i))}</div>
   const groups: [string, BeerAgg[]][] = []
   for (const a of list) {
     const g = dateBucket(a.last)

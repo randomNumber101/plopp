@@ -31,7 +31,7 @@ export default defineConfig({
       workbox: {
         // Kartenkacheln und API-Aufrufe nicht cachen, nur die App selbst
         navigateFallback: 'index.html',
-        globPatterns: ['**/*.{js,css,html,png,svg,wasm,woff2}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,wasm,woff2,json}'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
     }),

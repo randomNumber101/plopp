@@ -149,6 +149,7 @@ export function Celebration() {
       <div className="celebrate-card">
         <div className="celebrate-icon">{c.icon ?? '🍻'}</div>
         {c.kind === 'badge' && <div className="celebrate-kicker">Abzeichen freigeschaltet!</div>}
+        {c.kind === 'challenge' && <div className="celebrate-kicker">Challenge geschafft!</div>}
         <div className="celebrate-title">{c.title}</div>
         {c.sub && <div className="celebrate-sub">{c.sub}</div>}
       </div>
@@ -484,8 +485,11 @@ export function BeerRow({
   selected,
   onSelect,
   onLongPress,
+  lead,
 }: {
   beer: Beer
+  /** etwas vor dem Bild, z. B. Platz in der Bestenliste */
+  lead?: React.ReactNode
   right?: React.ReactNode
   sub?: React.ReactNode
   index?: number
@@ -544,6 +548,7 @@ export function BeerRow({
           {selected && <IconCheck size={16} />}
         </span>
       )}
+      {lead}
       <BeerThumb beer={beer} />
       <div className="row-main">
         <div className="row-title" title={title && title !== beer.name ? beer.name : undefined}>

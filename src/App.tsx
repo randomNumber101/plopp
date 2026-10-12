@@ -4,6 +4,8 @@ import { supabase } from './supabase'
 import { ensureCircle, resetSessionCaches } from './api'
 import { clearPageState } from './pageState'
 import { loadIndex } from './search'
+import { resetQuiz } from './quiz'
+import { byId as CHALLENGE_DEF, fmtLeft, resetChallenges, useChallenges } from './challenges'
 import { go, useRoute } from './router'
 import { Celebration, Spinner, Toaster } from './components'
 import { IconBack, IconBrewery, IconFindAdd, IconMap, IconMore, IconMug } from './ui/icons'
@@ -24,6 +26,8 @@ const MapPage = lazy(() => import('./pages/MapPage'))
 const Stats = lazy(() => import('./pages/Stats'))
 const Suggestions = lazy(() => import('./pages/Suggestions'))
 const CatalogAdmin = lazy(() => import('./pages/CatalogAdmin'))
+const ChallengePage = lazy(() => import('./pages/Challenge'))
+const QuizPage = lazy(() => import('./pages/Quiz'))
 
 const NAV = [
   { path: '', Icon: IconMug, label: 'Meine' },
@@ -46,6 +50,8 @@ export default function App() {
       if (lastUid !== undefined && uid !== lastUid) {
         clearPageState()
         resetSessionCaches()
+        resetChallenges()
+        resetQuiz()
       }
       lastUid = uid ?? ''
       setSession(s)
@@ -105,6 +111,12 @@ export default function App() {
     case 'katalog':
       content = <CatalogAdmin />
       break
+    case 'challenge':
+      content = <ChallengePage />
+      break
+    case 'quiz':
+      content = <QuizPage key={route.join('/')} mode={id === 'challenge' ? 'challenge' : 'free'} />
+      break
     case 'invite':
       content = id ? <InviteWhileLoggedIn session={session} code={id} /> : <MyBeers />
       break
@@ -113,7 +125,7 @@ export default function App() {
   }
 
   const active = page ?? ''
-  const isSub = ['beer', 'brewery', 'new', 'scan', 'stats', 'invite', 'suggestions', 'katalog'].includes(active)
+  const isSub = ['beer', 'brewery', 'new', 'scan', 'stats', 'invite', 'suggestions', 'katalog', 'challenge', 'quiz'].includes(active)
   const navActive = isSub
     ? active === 'brewery'
       ? 'breweries'
@@ -141,8 +153,9 @@ export default function App() {
           </span>
           Plopp!
         </button>
-        <span className="back" />
+        <ChallengeButton active={active === 'challenge'} />
       </header>
+      <ChallengeStrip hidden={active === 'challenge'} />
       <main>
         <div className="page-anim" key={route.join('/')}>
           <Suspense fallback={<Spinner />}>{content}</Suspense>
@@ -170,5 +183,51 @@ export default function App() {
         ))}
       </nav>
     </div>
+  )
+}
+
+/** Knopf rechts oben: 🎯 – pulsiert, wenn der Abend läuft und keine Challenge gewählt ist; Ring = Fortschritt */
+function ChallengeButton({ active }: { active: boolean }) {
+  const st = useChallenges()
+  const p = st.progress
+  const pct = st.active ? (p ? Math.min(1, p.cur / p.goal) : 0) : 0
+  const mode = !st.night.open ? 'closed' : st.active ? 'running' : 'choose'
+  return (
+    <button
+      className={`back ch-btn ch-${mode} ${active ? 'on' : ''}`}
+      onClick={() => go('/challenge')}
+      aria-label={
+        mode === 'closed' ? 'Abend-Challenges (ab 16 Uhr)' : mode === 'choose' ? 'Abend-Challenge wählen' : 'Laufende Challenge'
+      }
+      style={{ '--p': `${pct * 100}%` } as React.CSSProperties}
+    >
+      <span className="ch-ring" />
+      <span className="ch-icon">🎯</span>
+      {mode === 'choose' && <span className="ch-dot">!</span>}
+    </button>
+  )
+}
+
+/** Schmale Leiste unter dem Kopf, solange eine Challenge läuft */
+function ChallengeStrip({ hidden }: { hidden: boolean }) {
+  const st = useChallenges()
+  if (hidden || !st.active || !st.night.open) return null
+  const def = st.active && CHALLENGE_DEF(st.active.challenge)
+  const p = st.progress
+  return (
+    <button className="ch-strip" onClick={() => go(def?.kind === 'quiz' ? '/quiz/challenge' : '/challenge')}>
+      <span>{def?.icon ?? '🎯'}</span>
+      <b>{def?.title ?? 'Challenge'}</b>
+      {def?.kind === 'quiz' ? (
+        <span className="ch-strip-prog">Quiz starten →</span>
+      ) : p ? (
+        <span className="ch-strip-prog">
+          {p.unit ? `${p.cur}/${p.goal} ${p.unit}` : `${p.cur}/${p.goal}`}
+        </span>
+      ) : (
+        <span className="ch-strip-prog">abhaken, wenn geschafft</span>
+      )}
+      <span className="ch-strip-time">noch {fmtLeft(st.night.end.getTime() - Date.now())}</span>
+    </button>
   )
 }

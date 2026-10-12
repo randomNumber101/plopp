@@ -9,7 +9,7 @@ export function haptic(ms = 12) {
 }
 
 export interface CelebrateOpts {
-  kind?: 'prost' | 'badge'
+  kind?: 'prost' | 'badge' | 'challenge'
   icon?: string
   title: string
   sub?: string
