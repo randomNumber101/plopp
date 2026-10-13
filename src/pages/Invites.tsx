@@ -55,11 +55,6 @@ export function InviteSection() {
   return (
     <>
       <h3>Freunde einladen</h3>
-      <p className="muted small">
-        Neue Konten gibt es nur per Einladungslink. Jeder Link gilt 14 Tage und für genau ein Konto. Eingeladene haben
-        eigene Check-ins und Listen und gehören zu deiner Runde: Was ihr am Katalog ändert, anlegt oder ausblendet, seht
-        nur ihr – als Vorschlag für alle wird es erst nach Prüfung übernommen.
-      </p>
       <button className="btn btn-primary" onClick={create} disabled={busy}>
         {busy ? 'Erstelle Link …' : '✉️ Einladungslink erstellen & teilen'}
       </button>
@@ -108,10 +103,6 @@ export function InviteWhileLoggedIn({ session, code }: { session: Session; code:
       <div className="card">
         <div>
           Du bist schon als <b>{session.user.email}</b> angemeldet.
-        </div>
-        <div className="muted small">
-          Der Link ist für ein <i>neues</i> Konto gedacht. Schick ihn an die Person weiter, die du einladen willst – oder
-          melde dich ab, um damit selbst ein weiteres Konto anzulegen.
         </div>
       </div>
       <button className="btn btn-primary" onClick={() => go('/')}>

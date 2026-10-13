@@ -91,15 +91,10 @@ export default function Breweries() {
 
       {filter === 'hidden' ? (
         <>
-          <p className="muted small">
-            Ausgeblendete Brauereien erscheinen für dich und deine Runde nicht in Listen, Karte und Suche.
-          </p>
           {hidden.loading && !hidden.data && <SkeletonList rows={3} />}
           <ErrorBox msg={hidden.error} />
           {hidden.data && hiddenList.length === 0 && (
-            <EmptyState icon="🙈" title="Nichts ausgeblendet">
-              <p>Auf einer Brauerei-Seite ganz unten: „Keine Brauerei? Ausblenden“.</p>
-            </EmptyState>
+            <EmptyState icon="🙈" title="Nichts ausgeblendet" />
           )}
           <div className="list list-hidden">
             {hiddenList.map((b, i) => (
@@ -133,9 +128,7 @@ export default function Breweries() {
           {data.loading && !data.data && <SkeletonList rows={8} />}
           <ErrorBox msg={data.error} />
           {data.data && list.length === 0 && (
-            <EmptyState icon="🏭" title="Keine Brauerei gefunden">
-              <p>Filter ändern oder Suchbegriff kürzen.</p>
-            </EmptyState>
+            <EmptyState icon="🏭" title="Keine Brauerei gefunden" />
           )}
           <div className="list">
             {list.slice(0, limit).map((b, i) => (

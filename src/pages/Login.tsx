@@ -145,9 +145,6 @@ export default function Login() {
               {signup ? 'Ich habe schon ein Konto – anmelden' : 'Neues Konto mit der Einladung anlegen'}
             </button>
           )}
-          {!invite && (
-            <p className="muted small login-note">Neu hier? Konten gibt es nur mit einem Einladungslink von jemandem, der schon dabei ist.</p>
-          )}
         </form>
       )}
     </div>

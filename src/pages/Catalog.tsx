@@ -114,11 +114,6 @@ export default function Catalog() {
               </div>
             </>
           )}
-          <p className="muted small search-hint">
-            Tipp: Teilwörter reichen – „alt“ findet alle Altbiere, „hefe weizen“ auch „Hefeweizen“, „weiss“ auch
-            „Weiß“. Kleine Tippfehler sind egal.
-            {index && ` ${index.beers.length.toLocaleString('de-DE')} Biere von ${index.breweries.size.toLocaleString('de-DE')} Brauereien.`}
-          </p>
         </>
       )}
 
@@ -161,9 +156,7 @@ export default function Catalog() {
             <SkeletonList />
           )}
           {groups && groups.length === 0 && (
-            <EmptyState icon="🤷" title="Nichts gefunden">
-              <p>Anders schreiben, Barcode scannen – oder das Bier einfach selbst anlegen, dauert 20 Sekunden.</p>
-            </EmptyState>
+            <EmptyState icon="🤷" title="Nichts gefunden" />
           )}
         </>
       )}

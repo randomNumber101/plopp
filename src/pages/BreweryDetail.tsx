@@ -215,12 +215,6 @@ export default function BreweryDetail({ id }: { id: string }) {
           )}
         </p>
       )}
-      {b.lat != null && !b.street && (b.geo_precision === 'ort' || b.geo_precision === 'gemeinde') && !editing && (
-        <p className="muted small">📍 Standort auf der Karte ungefähr (Ortsmitte).</p>
-      )}
-      {b.lat == null && !editing && (
-        <p className="muted small">Kein Standort hinterlegt – über „bearbeiten“ einen Ort eintragen, dann erscheint die Brauerei auf der Karte.</p>
-      )}
       </div>
       {editing && (
         <EditBrewery
@@ -343,9 +337,6 @@ export default function BreweryDetail({ id }: { id: string }) {
           />
         ))}
       </div>
-      {!sel && list.length > 3 && (
-        <p className="muted small hint-line">Tipp: Eintrag lange gedrückt halten, um Merch oder Dubletten auszublenden.</p>
-      )}
 
       {hiddenList.length > 0 && (
         <>

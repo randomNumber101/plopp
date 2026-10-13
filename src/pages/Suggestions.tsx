@@ -76,11 +76,6 @@ export default function Suggestions() {
   return (
     <div className="page">
       <h2>Änderungsvorschläge</h2>
-      <p className="muted small">
-        {admin.data
-          ? 'Alle Änderungen aus allen Runden. „Übernehmen“ schreibt sie in den gemeinsamen Katalog – der Katalog-Import überschreibt übernommene Angaben danach nicht mehr.'
-          : 'Was du und deine Runde am Katalog geändert, angelegt oder ausgeblendet habt. Für euch gilt das sofort – für alle anderen erst, wenn es geprüft und übernommen wurde.'}
-      </p>
       <ChipBar
         value={filter}
         onChange={(v) => setFilter((v as 'offen' | 'alle') ?? 'offen')}
@@ -95,9 +90,7 @@ export default function Suggestions() {
         <EmptyState
           icon="📝"
           title={filter === 'offen' ? 'Keine offenen Vorschläge' : 'Noch keine Vorschläge'}
-        >
-          Sobald jemand ein Bier bearbeitet, ausblendet oder neu anlegt, taucht es hier auf.
-        </EmptyState>
+        />
       )}
       <div className="sugg-list">
         {items.map((s, i) => {

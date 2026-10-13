@@ -59,7 +59,6 @@ function RunStatus() {
     return (
       <div className="card run-card">
         <b>Noch kein Katalog-Lauf aufgezeichnet.</b>
-        <p className="muted small">Der nächste Lauf (GitHub → Actions → Katalog) erscheint hier live.</p>
       </div>
     )
   const stale = cur.status === 'läuft' && Date.now() - new Date(cur.updated_at).getTime() > 15 * 60_000
@@ -115,7 +114,7 @@ function RunStatus() {
               </div>
             )}
             {cur.detail && <p className="small muted run-detail">{cur.detail}</p>}
-            <p className="muted small">Aktualisiert {relDate(cur.updated_at)} · die Seite aktualisiert sich selbst.</p>
+            <p className="muted small">Aktualisiert {relDate(cur.updated_at)}</p>
           </>
         )}
         {!running && last && (
@@ -211,18 +210,11 @@ function BrandAssign() {
   return (
     <>
       <h3>Marken ohne Brauerei</h3>
-      <p className="muted small">
-        Diese Marken aus Open Food Facts konnte der Katalog keiner Brauerei zuordnen
-        {list.data ? ` – ${list.data.length} Marken mit ${total} Bieren` : ''}. Eine Zuordnung gilt sofort und für alle
-        künftigen Katalog-Läufe. Handelsmarken (z. B. von Aldi oder Lidl) als „keine Brauerei“ markieren.
-      </p>
       {(list.data?.length ?? 0) > 8 && <SearchInput value={filter} onChange={setFilter} placeholder="Marke filtern …" />}
       <ErrorBox msg={list.error} />
       {list.loading && !list.data && <SkeletonList rows={3} />}
       {list.data && items.length === 0 && (
-        <EmptyState icon="🎉" title="Alles zugeordnet">
-          <p>Keine offenen Marken.</p>
-        </EmptyState>
+        <EmptyState icon="🎉" title="Alles zugeordnet" />
       )}
       <div className="brand-list">
         {items.slice(0, 60).map((b) => (

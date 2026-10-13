@@ -87,11 +87,6 @@ export default function Challenge() {
               </span>
             </div>
           )}
-          {def.kind === 'auto' && (
-            <p className="muted small">
-              Zählt ab dem Start der Challenge. Einfach Biere wie gewohnt eintragen – den Rest erledigt die App.
-            </p>
-          )}
           <div className="btn-row">
             {def.kind === 'quiz' ? (
               <button className="btn btn-primary btn-big" onClick={() => go('/quiz/challenge')}>

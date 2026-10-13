@@ -463,10 +463,10 @@ export default function MapPage() {
             Bier-Regionen erkundet
           </span>
           <span>
-            <i className="lg lg-reg-on" /> erkundet (je kräftiger, desto mehr Brauereien)
+            <i className="lg lg-reg-on" /> erkundet
           </span>
           <span>
-            <i className="lg lg-reg-off" /> noch offen · Region antippen für Details
+            <i className="lg lg-reg-off" /> offen
           </span>
         </div>
       ) : (
@@ -506,7 +506,6 @@ function GroupSheet({
       <div className="sheet-head">
         <div className="sheet-title">
           <b>{list.length} Brauereien{place ? ` in ${place}` : ' hier'}</b>
-          <span className="muted small">liegen auf der Karte am selben Punkt</span>
         </div>
         <button className="sheet-close" onClick={onClose} aria-label="Schließen">
           ×
@@ -581,7 +580,6 @@ function BrewerySheet({ b, onClose }: { b: BreweryProgress; onClose: () => void 
       {b.total > 0 && <Progress drunk={b.drunk} total={b.total} />}
       <div className="sheet-list">
         {beers.loading && !beers.data && <Spinner />}
-        {beers.data && list.length === 0 && <p className="muted small">Noch keine Biere dieser Brauerei im Katalog.</p>}
         {sorted.slice(0, 6).map((beer) => (
           <BeerRow
             key={beer.id}

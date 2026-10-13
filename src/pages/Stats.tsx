@@ -52,9 +52,7 @@ export default function Stats() {
   if (!s.checkins)
     return (
       <div className="page">
-        <EmptyState title="Noch keine Statistik">
-          <p>Sobald du Biere einträgst, siehst du hier deine Zahlen und Abzeichen.</p>
-        </EmptyState>
+        <EmptyState title="Noch keine Statistik" />
       </div>
     )
 
@@ -409,7 +407,6 @@ function RegionsCard() {
       <div className="run-bar">
         <span style={{ width: `${(explored / rows.length) * 100}%` }} />
       </div>
-      {shown.length === 0 && <p className="muted small">Noch keine Region erkundet – jede probierte Brauerei färbt ihre Region ein.</p>}
       <div className="region-rows">
         {shown.map((r) => (
           <div key={r.region.id} className={`region-row ${r.visited ? '' : 'todo'}`}>

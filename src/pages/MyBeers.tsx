@@ -185,7 +185,6 @@ export default function MyBeers() {
           <ErrorBox msg={checkins.error} />
           {checkins.data && stats.aggs.length === 0 && (
             <EmptyState title="Dein Glas ist noch leer">
-              <p>Such dein erstes Bier – oder scanne den Barcode.</p>
               <button className="btn btn-primary btn-big" onClick={() => go('/catalog')}>
                 <IconFindAdd size={22} /> Erstes Bier erfassen
               </button>
@@ -206,9 +205,7 @@ export default function MyBeers() {
         <>
           {wish.loading && !wish.data && <SkeletonList rows={3} />}
           {wish.data?.length === 0 && (
-            <EmptyState icon="⭐" title="Merkliste ist leer">
-              <p>Tippe bei einem Bier auf „Merken“, dann landet es hier.</p>
-            </EmptyState>
+            <EmptyState icon="⭐" title="Merkliste ist leer" />
           )}
           <div className="list">
             {wish.data?.map((b, i) => (

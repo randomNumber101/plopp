@@ -230,9 +230,6 @@ export default function Quiz({ mode }: { mode: 'free' | 'challenge' }) {
         )}
       </div>
       <ErrorBox msg={err} />
-      <p className="muted small quiz-note">
-        {QUESTIONS.length} Fragen im Katalog · neue Fragen kommen zuerst, falsch beantwortete später nochmal.
-      </p>
     </div>
   )
 }
