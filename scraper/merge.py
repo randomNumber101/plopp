@@ -357,6 +357,17 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         c = compact(b["name"])
         if c:
             catalog[c].add(b["brewery_ext"])
+    # Zuordnungen auf Marken, die in der App zur Brauerei gemacht wurden (Admin-Programm): Ziel anlegen,
+    # damit die Produkte dort landen (Name/Ort usw. sind in der Datenbank gesperrt und bleiben erhalten)
+    for target in {e for e in brand_overrides.values() if e and e.startswith("off-brand:")}:
+        if target not in breweries:
+            breweries[target] = {
+                "ext_id": target, "name": target[len("off-brand:"):].replace("-", " ").title(), "city": None,
+                "state": None, "country": None, "lat": None, "lng": None, "website": None, "logo_url": None,
+                "source": "off", "trust": "unverified", "brewery_type": "marke", "region": None, "district": None,
+                "founded": None, "geo_precision": None, "parent_ext": None, "sources": {"liste": "openfoodfacts"},
+                "aliases": set(),
+            }
     lookup = BreweryLookup(breweries, parent_of)
     assigned, rest, how = match_products(off_products, index, lookup, brand_overrides, catalog, breweries)
 
