@@ -190,7 +190,6 @@ function BrandAssign() {
   const { index } = useSearchIndex()
   const [filter, setFilter] = useState('')
   const items = (list.data ?? []).filter((b) => !filter || b.name.toLowerCase().includes(filter.toLowerCase()))
-  const total = list.data?.reduce((n, b) => n + b.beers, 0) ?? 0
 
   async function assign(b: UnassignedBrand, target: IndexBrewery | null) {
     list.setData((list.data ?? []).filter((x) => x.id !== b.id))
