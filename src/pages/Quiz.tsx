@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { byId, finishQuizChallenge, useChallenges } from '../challenges'
 import { ErrorBox, Spinner, toast } from '../components'
 import {
-  QUESTIONS,
   checkNum,
   myAnswers,
   pickQuestions,
