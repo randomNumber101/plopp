@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { myCheckins, myWishlist, setWishlist } from '../api'
 import { ACHIEVEMENTS, computeStats, progress, useStatsContext, type BeerAgg } from '../achievements'
 import {
@@ -20,6 +20,7 @@ import { go } from '../router'
 import { usePageState } from '../pageState'
 import { haptic, load, save } from '../ui/fx'
 import { IconChevron, IconFindAdd, IconTrophy } from '../ui/icons'
+import { nudge, subscribeSlosh } from '../ui/tilt'
 
 type Sort = 'recent' | 'count' | 'rating' | 'name'
 const SORTS: { id: Sort; label: string }[] = [
@@ -89,6 +90,7 @@ export default function MyBeers() {
     <div className="page">
       {checkins.data && stats.checkins > 0 && (
         <button className="hero" onClick={() => go('/stats')} aria-label="Statistik und Abzeichen öffnen">
+          <HeroLiquid />
           {HERO_BUBBLES.map((b, i) => (
             <span
               key={i}
@@ -315,4 +317,16 @@ function Grouped({
       ))}
     </>
   )
+}
+
+/** Bier im Sammlungs-Glas: der Spiegel schwappt mit der Neigung des Handys */
+function HeroLiquid() {
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    if (!ref.current) return
+    const off = subscribeSlosh(ref.current, 0.35)
+    nudge(7)
+    return off
+  }, [])
+  return <span ref={ref} className="hero-liquid" aria-hidden="true" />
 }

@@ -3934,45 +3934,62 @@ h1.brand {
   }
 }
 
-.ch-strip {
-  position: sticky;
-  top: calc(var(--top-h) + env(safe-area-inset-top) + 6px);
-  z-index: 999;
+/* Laufende Challenge: kleine Zeile im Kopf unter dem Titel */
+.title-wrap {
+  flex: 1;
+  min-width: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  margin: 12px 12px -4px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 999px;
-  background: #2a1a0d;
-  color: #fff7e6;
-  font: inherit;
-  font-size: 0.85rem;
-  text-align: left;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgb(40 20 0 / 0.25);
-  animation: page-in 0.4s both;
+  justify-content: center;
+  gap: 0;
 }
 
-.ch-strip b {
-  flex: 1;
+.title-wrap:has(.ch-line) .title {
+  font-size: 1.08rem;
+  padding: 0 8px;
+}
+
+.title-wrap:has(.ch-line) .title-glass {
+  transform: scale(0.82);
+}
+
+.ch-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 22px;
+  margin-top: 1px;
+  padding: 1px 10px;
+  border: none;
+  border-radius: 999px;
+  background: rgb(42 26 13 / 0.88);
+  color: #fff7e6;
+  font: inherit;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  cursor: pointer;
+  animation: pop-in 0.35s var(--ease-bounce) both;
+}
+
+.ch-line-title {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 700;
 }
 
-.ch-strip-prog {
-  font-weight: 800;
+.ch-line b {
   color: var(--beer-1);
+  font-weight: 900;
   white-space: nowrap;
 }
 
-.ch-strip-time {
-  opacity: 0.7;
+.ch-line-time {
+  opacity: 0.75;
   white-space: nowrap;
-  font-size: 0.78rem;
 }
 
 .ch-hero {
@@ -4396,5 +4413,382 @@ h1.brand {
   .quiz-opt.wrong,
   .quiz-fb.bad {
     background: rgb(208 80 60 / 0.22);
+  }
+}
+
+/* Karte: fest zwischen Kopf und Navigation – die Seite selbst scrollt nicht mehr,
+   damit Legende und Navigation nicht übereinander rutschen */
+.app-map {
+  padding-bottom: 0;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+html:has(.app-map),
+html:has(.app-map) body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.app-map .mapview {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: calc(var(--top-h) + env(safe-area-inset-top));
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  height: auto;
+}
+
+.app-map .map-legend {
+  bottom: 30px;
+}
+
+/* Filter-Chips laufen bis an den Bildschirmrand */
+.map-top .chips {
+  margin: 0 -10px;
+  padding: 2px 10px 6px;
+  scroll-padding: 0 10px;
+}
+
+.map-top .chips::after {
+  content: '';
+  flex: 0 0 2px;
+}
+
+/* ================================================================================ Symbole: Linie + Kronkorken */
+:root {
+  /* Kronkorken mit 21 Zacken */
+  --cap: polygon(50.00% 0.00%, 56.71% 5.50%, 64.74% 2.22%, 69.52% 9.46%, 78.17% 8.69%, 80.61% 17.01%, 89.09% 18.83%, 88.97% 27.50%, 96.54% 31.73%, 93.87% 39.99%, 99.86% 46.26%, 94.87% 53.36%, 98.75% 61.13%, 91.89% 66.44%, 93.30% 75.00%, 85.18% 78.06%, 84.01% 86.65%, 75.35% 87.18%, 71.69% 95.05%, 63.26% 93.00%, 57.45% 99.44%, 50.00% 95.00%, 42.55% 99.44%, 36.74% 93.00%, 28.31% 95.05%, 24.65% 87.18%, 15.99% 86.65%, 14.82% 78.06%, 6.70% 75.00%, 8.11% 66.44%, 1.25% 61.13%, 5.13% 53.36%, 0.14% 46.26%, 6.13% 39.99%, 3.46% 31.73%, 11.03% 27.50%, 10.91% 18.83%, 19.39% 17.01%, 21.83% 8.69%, 30.48% 9.46%, 35.26% 2.22%, 43.29% 5.50%);
+}
+
+/* ---- Zeichen im Kopf: Flasche mit schwappendem Bier ---- */
+.plopp-mark {
+  overflow: visible;
+  flex: 0 0 auto;
+  margin: -6px 0 -2px;
+}
+
+.plopp-mark .pm-liquid {
+  transform-box: view-box;
+  transform-origin: 16px 24px;
+  transform: rotate(var(--slosh, 0deg));
+}
+
+.plopp-mark .pm-wave {
+  animation: pm-wave 2.6s linear infinite;
+}
+
+@keyframes pm-wave {
+  to {
+    transform: translateX(16px);
+  }
+}
+
+.plopp-mark .pm-bubble {
+  fill: #fff2c4;
+  animation: pm-bubble 2.4s ease-in infinite;
+}
+
+.plopp-mark .pm-bubble.b2 {
+  animation-delay: 0.8s;
+  animation-duration: 2s;
+}
+
+.plopp-mark .pm-bubble.b3 {
+  animation-delay: 1.5s;
+  animation-duration: 2.8s;
+}
+
+@keyframes pm-bubble {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  85% { opacity: 0.9; }
+  100% { transform: translateY(-12px); opacity: 0; }
+}
+
+.plopp-mark .pm-cap {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.plopp-mark .pm-spurt {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.plopp-mark.pop .pm-cap {
+  animation: pm-cap 1s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+}
+
+.plopp-mark.pop .pm-spurt {
+  animation: pm-spurt 0.9s ease-out both;
+}
+
+@keyframes pm-cap {
+  0% { transform: translate(0, 0) rotate(0); }
+  12% { transform: translate(0, 1px) rotate(-8deg); }
+  40% { transform: translate(7px, -15px) rotate(200deg); }
+  62% { transform: translate(9px, -17px) rotate(300deg); }
+  86% { transform: translate(1px, 1px) rotate(350deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+}
+
+@keyframes pm-spurt {
+  0% { opacity: 0; transform: translateY(4px) scale(0.2); }
+  25% { opacity: 1; transform: translateY(-2px) scale(1.1); }
+  70% { opacity: 1; transform: translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: translateY(0) scale(0.6); }
+}
+
+.topbar .title:active .plopp-mark {
+  transform: scale(0.92);
+}
+
+/* ---- Sammlungs-Glas: Bier schwappt ---- */
+.hero {
+  background: linear-gradient(180deg, #fff4d4, #ffe9b0 40px);
+}
+
+.hero::before {
+  display: none;
+}
+
+.hero-liquid {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  top: 22px;
+  height: 160%;
+  transform-origin: 50% 0;
+  transform: rotate(var(--slosh, 0deg));
+  background: linear-gradient(170deg, var(--beer-1) 0%, var(--beer-2) 45%, var(--accent-deep) 80%);
+  will-change: transform;
+  pointer-events: none;
+}
+
+.hero-liquid::before {
+  /* Schaumkrone auf dem Bierspiegel */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -15px;
+  height: 30px;
+  background: radial-gradient(circle at 15px 16px, var(--foam) 14px, transparent 15px) 0 0 / 30px 30px repeat-x;
+  animation: foam-drift 9s linear infinite;
+}
+
+@keyframes foam-drift {
+  to {
+    background-position: 30px 0;
+  }
+}
+
+.hero > :not(.hero-liquid):not(.hb) {
+  position: relative;
+}
+
+/* ---- Erfassen-Knopf als Kronkorken ---- */
+.bottomnav button.fab .icon,
+.bottomnav button.fab.on .icon {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  margin-top: -32px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: #2a1a0d;
+  filter: drop-shadow(0 5px 8px rgb(150 80 0 / 0.38));
+  transition: transform 0.5s var(--ease-bounce);
+  animation: none;
+}
+
+.bottomnav button.fab .icon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  clip-path: var(--cap);
+  background: #2a1a0d;
+}
+
+.bottomnav button.fab .icon::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #ffe58f, var(--beer-2) 58%, var(--accent-deep));
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.35), inset 0 -3px 6px rgb(120 60 0 / 0.25);
+}
+
+.bottomnav button.fab .icon svg {
+  position: relative;
+  z-index: 1;
+}
+
+.bottomnav button.fab.on .icon {
+  transform: rotate(18deg);
+}
+
+.bottomnav button.fab:active .icon {
+  transform: rotate(-35deg) scale(0.92);
+  transition-duration: 0.12s;
+}
+
+/* Kohlensäure-Blasen beim Tippen */
+.fab-fizz {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.fab-fizz i {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent-deep);
+  background: rgb(255 210 94 / 0.55);
+  animation: fab-fizz 0.75s ease-out both;
+}
+
+.fab-fizz i:nth-child(1) { --x: -26px; --y: -34px; }
+.fab-fizz i:nth-child(2) { --x: -10px; --y: -46px; width: 5px; height: 5px; animation-delay: 0.05s; }
+.fab-fizz i:nth-child(3) { --x: 6px; --y: -52px; width: 9px; height: 9px; animation-delay: 0.02s; }
+.fab-fizz i:nth-child(4) { --x: 22px; --y: -40px; width: 5px; height: 5px; animation-delay: 0.08s; }
+.fab-fizz i:nth-child(5) { --x: 32px; --y: -24px; animation-delay: 0.1s; }
+
+@keyframes fab-fizz {
+  0% { transform: translate(-50%, 0) scale(0.3); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--x)), var(--y)) scale(1); opacity: 0; }
+}
+
+/* ---- Challenge-Knopf im Kopf: Kronkorken mit Mond ---- */
+.ch-btn {
+  background: none;
+}
+
+.ch-btn.on {
+  background: none;
+}
+
+.ch-btn .ch-cap {
+  position: absolute;
+  inset: 4px;
+  clip-path: var(--cap);
+  background: #2a1a0d;
+  transition: transform 0.5s var(--ease-bounce);
+}
+
+.ch-btn .ch-icon {
+  position: relative;
+  color: #ffe6a3;
+}
+
+.ch-btn:active .ch-cap {
+  transform: rotate(-30deg) scale(0.94);
+}
+
+.ch-btn.on .ch-cap {
+  transform: rotate(15deg);
+}
+
+.ch-btn .ch-ring {
+  inset: -1px;
+  background: conic-gradient(#fff7e6 var(--p, 0%), rgb(42 26 13 / 0.18) 0);
+}
+
+.ch-btn.ch-closed {
+  filter: none;
+}
+
+.ch-btn.ch-closed .ch-cap {
+  background: rgb(42 26 13 / 0.55);
+}
+
+/* ---- Kronkorken für Challenge-Symbole ---- */
+.cap {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  clip-path: var(--cap);
+  background: #2a1a0d;
+  line-height: 1;
+  transition: transform 0.45s var(--ease-bounce);
+}
+
+.cap-auto { background: #1f4e8c; }
+.cap-manual { background: #c8102e; }
+.cap-quiz { background: #6d3fa0; }
+.cap-off { background: #b9a891; filter: grayscale(0.6); }
+
+.ch-opt-icon.cap {
+  width: 54px;
+  height: 54px;
+  font-size: 1.6rem;
+}
+
+.ch-option:hover .cap,
+.quiz-teaser:hover .cap {
+  transform: rotate(-12deg);
+}
+
+.ch-option:active .cap,
+.quiz-teaser:active .cap {
+  transform: rotate(-40deg) scale(0.92);
+}
+
+.ch-big-icon.cap {
+  width: 84px;
+  height: 84px;
+  font-size: 2.6rem;
+  margin: 0 auto;
+  animation: cap-drop 0.7s var(--ease-bounce) both;
+}
+
+@keyframes cap-drop {
+  from { transform: translateY(-30px) rotate(-200deg) scale(0.6); opacity: 0; }
+}
+
+.ch-done-icon.cap {
+  width: 36px;
+  height: 36px;
+  font-size: 1.05rem;
+}
+
+/* ---- Karte: Strich-Symbole statt Zeichen ---- */
+.map-tool {
+  display: grid;
+  place-items: center;
+}
+
+.map-tool.on {
+  color: #2a1a0d;
+}
+
+.map-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.map-search .search {
+  padding-left: 42px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-liquid,
+  .plopp-mark .pm-liquid {
+    transform: none;
   }
 }

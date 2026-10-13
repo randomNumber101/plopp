@@ -96,6 +96,26 @@ export default function Stats() {
 
       {s.bestRated.length > 0 && <BestList list={s.bestRated} />}
 
+      <div className="card states-card">
+        <div className="section-title">
+          <b>Bundesländer</b>
+          <span className="muted small">{s.states.size}/16</span>
+        </div>
+        <div className="states">
+          {STATES.map((st, i) => (
+            <div
+              key={st}
+              className={`state ${s.states.has(st) ? 'on' : ''}`}
+              title={st}
+              style={{ animationDelay: `${i * 25}ms` }}
+            >
+              <b>{SHORT[st]}</b>
+              {s.states.get(st) ?? 0}
+            </div>
+          ))}
+        </div>
+      </div>
+
       <RegionsCard />
 
       <QuizCard answers={ctx.quiz} />
@@ -161,26 +181,6 @@ export default function Stats() {
           </div>
         </div>
       )}
-
-      <div className="card">
-        <div className="section-title">
-          <b>Bundesländer</b>
-          <span className="muted small">{s.states.size}/16</span>
-        </div>
-        <div className="states">
-          {STATES.map((st, i) => (
-            <div
-              key={st}
-              className={`state ${s.states.has(st) ? 'on' : ''}`}
-              title={st}
-              style={{ animationDelay: `${i * 25}ms` }}
-            >
-              <b>{SHORT[st]}</b>
-              {s.states.get(st) ?? 0}
-            </div>
-          ))}
-        </div>
-      </div>
 
       {s.topBeers.length > 0 && (
         <>

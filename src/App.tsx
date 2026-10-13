@@ -8,8 +8,10 @@ import { resetQuiz } from './quiz'
 import { byId as CHALLENGE_DEF, fmtLeft, resetChallenges, useChallenges } from './challenges'
 import { go, useRoute } from './router'
 import { Celebration, Spinner, Toaster } from './components'
-import { IconBack, IconBrewery, IconFindAdd, IconMap, IconMore, IconMug } from './ui/icons'
+import { IconBack, IconBrewery, IconFindAdd, IconMap, IconMoon, IconMore, IconMug } from './ui/icons'
 import { haptic } from './ui/fx'
+import PloppMark, { plopp } from './ui/PloppMark'
+import { needsTiltPermission, nudge, requestTilt } from './ui/tilt'
 import Login from './pages/Login'
 import MyBeers from './pages/MyBeers'
 import NewBeer from './pages/NewBeer'
@@ -38,6 +40,7 @@ const NAV = [
 ]
 
 export default function App() {
+  const [fizz, setFizz] = useState(0)
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const route = useRoute()
 
@@ -146,16 +149,24 @@ export default function App() {
         ) : (
           <span className="back" />
         )}
-        <button className="title" onClick={() => go('/')} aria-label="Plopp! – zur Startseite">
-          <span className="title-glass" aria-hidden="true">
-            <span className="tg-foam" />
-            <span className="tg-beer" />
-          </span>
-          Plopp!
-        </button>
+        <div className="title-wrap">
+          <button
+            className="title"
+            onClick={() => {
+              // iOS fragt den Bewegungssensor nur nach einem Tipp ab
+              if (needsTiltPermission()) void requestTilt()
+              plopp()
+              go('/')
+            }}
+            aria-label="Plopp! – zur Startseite"
+          >
+            <PloppMark size={32} />
+            Plopp!
+          </button>
+          <ChallengeLine hidden={active === 'challenge'} />
+        </div>
         <ChallengeButton active={active === 'challenge'} />
       </header>
-      <ChallengeStrip hidden={active === 'challenge'} />
       <main>
         <div className="page-anim" key={route.join('/')}>
           <Suspense fallback={<Spinner />}>{content}</Suspense>
@@ -171,12 +182,23 @@ export default function App() {
             aria-current={navActive === path ? 'page' : undefined}
             onClick={() => {
               haptic(6)
+              if (fab) setFizz((n) => n + 1)
+              else nudge(4)
               if (active === path) window.scrollTo({ top: 0, behavior: 'smooth' })
               else go(`/${path}`)
             }}
           >
             <span className="icon">
               <Icon size={fab ? 28 : 23} />
+              {fab && fizz > 0 && (
+                <span className="fab-fizz" key={fizz} aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              )}
             </span>
             <span className="label">{label}</span>
           </button>
@@ -186,7 +208,7 @@ export default function App() {
   )
 }
 
-/** Knopf rechts oben: 🎯 – pulsiert, wenn der Abend läuft und keine Challenge gewählt ist; Ring = Fortschritt */
+/** Knopf rechts oben: Kronkorken mit Mond – pulsiert, wenn der Abend läuft und keine Challenge gewählt ist; Ring = Fortschritt */
 function ChallengeButton({ active }: { active: boolean }) {
   const st = useChallenges()
   const p = st.progress
@@ -202,32 +224,31 @@ function ChallengeButton({ active }: { active: boolean }) {
       style={{ '--p': `${pct * 100}%` } as React.CSSProperties}
     >
       <span className="ch-ring" />
-      <span className="ch-icon">🎯</span>
+      <span className="ch-cap" />
+      <IconMoon size={20} className="ch-icon" />
       {mode === 'choose' && <span className="ch-dot">!</span>}
     </button>
   )
 }
 
-/** Schmale Leiste unter dem Kopf, solange eine Challenge läuft */
-function ChallengeStrip({ hidden }: { hidden: boolean }) {
+/** Laufende Challenge als kleine Zeile im Kopf unter „Plopp!“: Titel · Fortschritt · Restzeit */
+function ChallengeLine({ hidden }: { hidden: boolean }) {
   const st = useChallenges()
   if (hidden || !st.active || !st.night.open) return null
-  const def = st.active && CHALLENGE_DEF(st.active.challenge)
+  const def = CHALLENGE_DEF(st.active.challenge)
   const p = st.progress
+  const prog = def?.kind === 'quiz' ? 'Quiz starten' : p ? `${p.cur}/${p.goal}` : 'abhaken'
+  const mins = Math.max(0, Math.round((st.night.end.getTime() - Date.now()) / 60000))
+  const left = mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')} h`
   return (
-    <button className="ch-strip" onClick={() => go(def?.kind === 'quiz' ? '/quiz/challenge' : '/challenge')}>
-      <span>{def?.icon ?? '🎯'}</span>
-      <b>{def?.title ?? 'Challenge'}</b>
-      {def?.kind === 'quiz' ? (
-        <span className="ch-strip-prog">Quiz starten →</span>
-      ) : p ? (
-        <span className="ch-strip-prog">
-          {p.unit ? `${p.cur}/${p.goal} ${p.unit}` : `${p.cur}/${p.goal}`}
-        </span>
-      ) : (
-        <span className="ch-strip-prog">abhaken, wenn geschafft</span>
-      )}
-      <span className="ch-strip-time">noch {fmtLeft(st.night.end.getTime() - Date.now())}</span>
+    <button
+      className="ch-line"
+      onClick={() => go(def?.kind === 'quiz' ? '/quiz/challenge' : '/challenge')}
+      aria-label={`Laufende Challenge: ${def?.title ?? 'Challenge'}, ${prog}, noch ${fmtLeft(st.night.end.getTime() - Date.now())}`}
+    >
+      <span className="ch-line-title">{def?.title ?? 'Challenge'}</span>
+      <b>{prog}</b>
+      <span className="ch-line-time">noch {left}</span>
     </button>
   )
 }

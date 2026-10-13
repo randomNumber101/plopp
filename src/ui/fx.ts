@@ -17,6 +17,8 @@ export interface CelebrateOpts {
 
 export function celebrate(o: CelebrateOpts) {
   window.dispatchEvent(new CustomEvent<CelebrateOpts>('bier-celebrate', { detail: o }))
+  // die Flasche im Kopf macht „Plopp“
+  window.dispatchEvent(new Event('plopp-pop'))
 }
 
 export const reducedMotion = () =>

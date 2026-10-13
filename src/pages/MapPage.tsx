@@ -10,6 +10,7 @@ import { setPrefill } from '../store'
 import { BREWERY_TYPES, type BreweryProgress } from '../types'
 import { beerNameShortener, initials } from '../brewery'
 import { loadRegions, regionProgress } from '../regions'
+import { IconFit, IconFlag, IconLocate, IconMinus, IconPlus, IconSearch } from '../ui/icons'
 
 type Filter = 'beers' | 'drunk' | 'open' | 'wish' | 'all'
 
@@ -366,9 +367,10 @@ export default function MapPage() {
 
       <div className="map-top">
         <div className="map-search">
+          <IconSearch size={18} className="map-search-icon" />
           <input
             className="search"
-            placeholder="🔎 Brauerei oder Ort finden …"
+            placeholder="Brauerei oder Ort finden …"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
@@ -404,16 +406,16 @@ export default function MapPage() {
 
       <div className="map-tools">
         <button className="map-tool" onClick={() => map.current?.zoomIn()} aria-label="Hineinzoomen">
-          +
+          <IconPlus size={22} />
         </button>
         <button className="map-tool" onClick={() => map.current?.zoomOut()} aria-label="Herauszoomen">
-          −
+          <IconMinus size={22} />
         </button>
         <button className="map-tool" onClick={locate} aria-label="Mein Standort" title="Mein Standort">
-          ◎
+          <IconLocate size={22} />
         </button>
         <button className="map-tool" onClick={showAll} aria-label="Alle zeigen" title="Alle zeigen">
-          ⤢
+          <IconFit size={22} />
         </button>
         <button
           className={`map-tool ${layer === 'regions' ? 'on' : ''}`}
@@ -421,7 +423,7 @@ export default function MapPage() {
           aria-label="Regionen freispielen"
           title="Regionen freispielen"
         >
-          🗺️
+          <IconFlag size={22} />
         </button>
       </div>
 

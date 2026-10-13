@@ -11,7 +11,7 @@ function Svg({ size = 24, children, ...rest }: P) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={1.9}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -40,9 +40,9 @@ export const IconScan = (p: P) => (
 
 export const IconBrewery = (p: P) => (
   <Svg {...p}>
-    <path d="M3 21V11l5 3V11l5 3V7l4-3v17" />
-    <path d="M3 21h18M17 21V9h4v12" />
-    <path d="M7 18h2M12 18h2" />
+    <path d="M3 21V10l7-5 7 5v11" />
+    <path d="M17 21h4V8h-3v4" />
+    <path d="M1.5 21h21M8 21v-5h4v5" />
   </Svg>
 )
 
@@ -144,5 +144,41 @@ export const IconFindAdd = (p: P) => (
   <Svg {...p}>
     <circle cx="11" cy="11" r="7" />
     <path d="m20 20-3.5-3.5M11 8v6M8 11h6" />
+  </Svg>
+)
+
+/** Mond mit Funkeln: Abend-Challenge */
+export const IconMoon = (p: P) => (
+  <Svg {...p}>
+    <path d="M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5Z" />
+    <path d="M17 3v4M15 5h4" />
+  </Svg>
+)
+
+export const IconMinus = (p: P) => (
+  <Svg {...p}>
+    <path d="M5 12h14" />
+  </Svg>
+)
+
+/** Fadenkreuz: Mein Standort */
+export const IconLocate = (p: P) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="5" />
+    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+  </Svg>
+)
+
+/** Ecken: Alles zeigen */
+export const IconFit = (p: P) => (
+  <Svg {...p}>
+    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+  </Svg>
+)
+
+/** Fähnchen: Regionen freispielen */
+export const IconFlag = (p: P) => (
+  <Svg {...p}>
+    <path d="M5 21V4M5 4h12l-2.5 4L17 12H5" />
   </Svg>
 )

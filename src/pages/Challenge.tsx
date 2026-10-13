@@ -71,7 +71,7 @@ export default function Challenge() {
 
       {night.open && st.active && def && (
         <div className="card ch-active">
-          <div className="ch-big-icon">{def.icon}</div>
+          <div className={`ch-big-icon cap cap-${def.kind}`}>{def.icon}</div>
           <div className="ch-kicker">
             {def.kind === 'auto' ? 'Läuft · wird automatisch erkannt' : def.kind === 'quiz' ? 'Läuft · Bierquiz' : 'Läuft · selbst abhaken'}
           </div>
@@ -144,7 +144,7 @@ export default function Challenge() {
                   disabled={!!busy}
                   onClick={() => run(id, () => startChallenge(id))}
                 >
-                  <span className="ch-opt-icon">{c.icon}</span>
+                  <span className={`ch-opt-icon cap cap-${c.kind}`}>{c.icon}</span>
                   <span className="ch-opt-main">
                     <b>{c.title}</b>
                     <span>{c.desc}</span>
@@ -187,7 +187,7 @@ export default function Challenge() {
       )}
 
       <button className="card quiz-teaser" onClick={() => go('/quiz')}>
-        <span className="ch-opt-icon">🧠</span>
+        <span className="ch-opt-icon cap cap-quiz">🧠</span>
         <span className="ch-opt-main">
           <b>Freies Bierquiz</b>
           <span>Jederzeit 5 Fragen zu Geschichte, Brauen, Sorten & Kuriosem – zählt für die Quiz-Abzeichen.</span>
@@ -224,7 +224,7 @@ function DoneRow({ row }: { row: ChallengeRow }) {
   const c = byId(row.challenge)
   return (
     <div className={`ch-done st-${row.status}`}>
-      <span className="ch-done-icon">{c?.icon ?? '🎯'}</span>
+      <span className={`ch-done-icon cap cap-${c?.kind ?? 'auto'} ${row.status !== 'geschafft' ? 'cap-off' : ''}`}>{c?.icon ?? '🎯'}</span>
       <span className="ch-done-main">
         <b>{c?.title ?? row.challenge}</b>
         <span className="muted small">

@@ -18,14 +18,14 @@ export default defineConfig({
         description: 'Getrunkene Biere tracken, scannen und auf der Karte sehen',
         lang: 'de',
         theme_color: '#f4a300',
-        background_color: '#1c1917',
+        background_color: '#fcf6ea',
         display: 'standalone',
         start_url: base,
         scope: base,
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
       workbox: {
