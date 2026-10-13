@@ -110,12 +110,16 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
               lat = case when 'lat' = any(b.locked) then b.lat else coalesce(s.lat, b.lat) end,
               lng = case when 'lng' = any(b.locked) then b.lng else coalesce(s.lng, b.lng) end,
               website = case when 'website' = any(b.locked) then b.website else coalesce(s.website, b.website) end,
-              logo_url = coalesce(s.logo_url, b.logo_url),
-              source = s.source, trust = s.trust, sources = s.sources,
-              brewery_type = s.brewery_type, region = s.region, district = s.district,
-              founded = s.founded,
+              logo_url = case when 'logo_url' = any(b.locked) then b.logo_url else coalesce(s.logo_url, b.logo_url) end,
+              source = s.source, sources = s.sources,
+              trust = case when 'trust' = any(b.locked) then b.trust else s.trust end,
+              brewery_type = case when 'brewery_type' = any(b.locked) then b.brewery_type else s.brewery_type end,
+              region = case when 'region' = any(b.locked) then b.region else s.region end,
+              district = case when 'district' = any(b.locked) then b.district else s.district end,
+              founded = case when 'founded' = any(b.locked) then b.founded else s.founded end,
               geo_precision = case when 'lat' = any(b.locked) then b.geo_precision else coalesce(s.geo_precision, b.geo_precision) end,
-              street = coalesce(s.street, b.street), postcode = coalesce(s.postcode, b.postcode)
+              street = case when 'street' = any(b.locked) then b.street else coalesce(s.street, b.street) end,
+              postcode = case when 'postcode' = any(b.locked) then b.postcode else coalesce(s.postcode, b.postcode) end
             from stg_breweries s
             where b.ext_id = s.ext_id and b.source <> 'user' and b.circle_id is null
         """)
@@ -146,12 +150,13 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
         cur.execute("""
             update public.breweries b set parent_id = p.id
             from stg_breweries s join public.breweries p on p.ext_id = s.parent_ext
-            where b.ext_id = s.ext_id and b.parent_id is distinct from p.id
+            where b.ext_id = s.ext_id and b.parent_id is distinct from p.id and not 'parent_id' = any(b.locked)
         """)
         cur.execute("""
             update public.breweries b set parent_id = null
             from stg_breweries s
             where b.ext_id = s.ext_id and s.parent_ext is null and b.parent_id is not null and b.source <> 'user'
+              and not 'parent_id' = any(b.locked)
         """)
         cur.execute("""
             insert into public.brewery_aliases (brewery_id, alias, alias_key, source)
@@ -186,14 +191,15 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
                                        and x.circle_id is null
                                        and x.brewery_id = s.brewery_id and lower(x.name) = lower(s.name))
                           then b.name else s.name end,
-              brewery_id = case when exists (select 1 from public.beers x where x.id <> b.id
+              brewery_id = case when 'brewery_id' = any(b.locked) or exists (select 1 from public.beers x where x.id <> b.id
                                        and x.circle_id is null
                                        and x.brewery_id = s.brewery_id and lower(x.name) = lower(case when 'name' = any(b.locked) then b.name else s.name end))
                           then b.brewery_id else s.brewery_id end,
               style = case when 'style' = any(b.locked) then b.style else coalesce(s.style, b.style) end,
               abv = case when 'abv' = any(b.locked) then b.abv else coalesce(s.abv, b.abv) end,
-              image_url = coalesce(s.image_url, b.image_url), source = s.source,
-              trust = s.trust, sources = s.sources
+              image_url = case when 'image_url' = any(b.locked) then b.image_url else coalesce(s.image_url, b.image_url) end,
+              source = s.source, sources = s.sources,
+              trust = case when 'trust' = any(b.locked) then b.trust else s.trust end
             from stg_beers2 s
             where b.ext_id = s.ext_id and b.source <> 'user' and b.circle_id is null
         """)
@@ -282,6 +288,7 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
                 delete from public.beers b
                 where b.id in (select id from stale_beers)
                   and b.hidden_at is null
+                  and b.locked = '{}'
                   and not exists (select 1 from public.checkins c where c.beer_id = b.id)
                   and not exists (select 1 from public.wishlist w where w.beer_id = b.id)
             """)
@@ -293,8 +300,15 @@ def load(conn: psycopg.Connection, breweries: list[dict], beers: list[dict], pru
                   and (br.ext_id is null or not exists (select 1 from stg_breweries s where s.ext_id = br.ext_id))
                   and not exists (select 1 from public.beers b where b.brewery_id = br.id)
                   and not exists (select 1 from public.breweries c where c.parent_id = br.id)
+                  and br.locked = '{}'
             """)
             stats["breweries_pruned"] = cur.rowcount
+
+        # Manuelle Änderungen aus dem Admin-Programm erneut anwenden (Migration 016)
+        cur.execute("select to_regprocedure('public.apply_admin_edits()') is not null")
+        if cur.fetchone()[0]:
+            cur.execute("select public.apply_admin_edits()")
+            stats["admin_edits_applied"] = cur.fetchone()[0]
 
         cur.execute("""
             select (select count(*) from public.breweries),

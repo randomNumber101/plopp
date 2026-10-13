@@ -396,6 +396,10 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         b = add_beer(ext, name, style, p["abv"], p["image_url"], "off", "unverified", {p["ean"]})
         if b is not None:
             b["sources"]["off_match"] = method
+            if p.get("places"):
+                b["sources"]["off_place"] = p["places"][:120]
+            if p.get("brands"):
+                b["sources"]["off_brands"] = ", ".join(p["brands"])[:120]
         if was_verified:
             merged_verified += 1
 
