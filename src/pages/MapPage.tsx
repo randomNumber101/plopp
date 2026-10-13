@@ -169,7 +169,12 @@ export default function MapPage() {
       setGroup(null)
     })
     map.current = m
+    // Container ändert seine Größe nach dem Anlegen (Layout, Adressleiste) – sonst bleibt die untere Hälfte leer
+    const ro = new ResizeObserver(() => m.invalidateSize())
+    ro.observe(el.current)
+    requestAnimationFrame(() => m.invalidateSize())
     return () => {
+      ro.disconnect()
       m.remove()
       map.current = null
       markers.current.clear()
