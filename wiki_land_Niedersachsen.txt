@@ -1,0 +1,660 @@
+Die '''Liste der Brauereien in Niedersachsen''' führt aktive [[Brauerei]]en in [[Niedersachsen]] auf.<ref name="IBV2024">Winfried Friedel: ''IBV-Brauereiverzeichnis Deutschland 2025'', Hrsg.: Internationaler Brauereikultur-Verband</ref>
+
+== Liste ==
+{| class="wikitable sortable"
+!Unternehmen
+!Standort
+!Lage
+!Gründung
+!Anmerkungen
+|-
+|Aper Brauhaus
+|[[Apen]]
+|{{Coordinate |NS=53.2226 |EW=7.8077 |type=landmark |region=DE-NI |name=Aper Brauhaus|text=ICON0}}
+|2023
+|
+|-
+|Auricher probier (Stadtperle)
+|[[Aurich]]
+|{{Coordinate |NS=53.4662 |EW=7.4819 |type=landmark |region=DE-NI |name=Auricher probier|text=ICON0}}
+|2012
+|
+|-
+|Denner Bier
+|[[Bad Münder]]
+|{{Coordinate |NS=52.14193 |EW=9.4551 |type=landmark |region=DE-NI |name=Denner Bier|text=ICON0}}
+|1998
+|
+|-
+|Heinder Naturtrüb
+|[[Bad Salzdetfurth]]
+|{{Coordinate |NS=52.1029 |EW=10.0348 |type=landmark |region=DE-NI |name=Heinder Naturtrüb|text=ICON0}}
+|2018
+|
+|-
+|BOESE Brauerei
+|[[Basdahl]]
+|{{Coordinate |NS=53.4381 |EW=9.0216 |type=landmark |region=DE-NI |name=BOESE Brauerei|text=ICON0}}
+|2021
+|
+|-
+|Bleckeder Brauhaus
+|[[Bleckede]]
+|{{Coordinate |NS=53.2925 |EW=10.7312 |type=landmark |region=DE-NI |name=Bleckeder Brauhaus|text=ICON0}}
+|2011
+|
+|-
+|Bäckerei & Konditorei Kretzschmar
+|[[Braunschweig]]
+|{{Coordinate |NS=52.2422 |EW=10.4812 |type=landmark |region=DE-NI |name=Bäckerei & Konditorei Kretzschmar|text=ICON0}}
+|2013
+|
+|-
+|[[Brauerei Braunschweig]]
+|Braunschweig
+|{{Coordinate |NS=52.249  |EW=10.5319 |type=landmark |region=DE-NI |name=Brauerei Braunschweig|text=ICON0}}
+|1871
+|
+|-
+|[[Hofbrauhaus Wolters]]
+|Braunschweig
+|{{Coordinate |NS=52.248 |EW=10.532 |type=landmark |region=DE-NI |name=Hofbrauhaus Wolters|text=ICON0}}
+|1627
+|u. a. [[Hemelinger Actien Brauerei|Hemelinger]]
+|-
+|Liquid Story Brewing
+|Braunschweig
+|{{Coordinate |NS=52.2655 |EW=10.5286 |type=landmark |region=DE-NI |name=Liquid Story Brewing|text=ICON0}}
+|2021
+|
+|-
+|National Jürgens Brauerei<ref>{{Internetquelle |url=https://www.njb-brauerei.de/ |titel=https://www.njb-brauerei.de/ |abruf=2018-08-16}}</ref><!--Wir haben einen Artikel National Jürgens Brauerei. Diese Brauerei hat 1977 den Betrieb eingestellt. Die 2016 gegründete Brauerei lässt neben den neuen Craft Bieren mit Stand 2019 mit Hilfe eines Gesellschafters aus der Jürgens-Familie die alten NJB-Biermarken Gala Hell und Brunswiek Alt wieder aufleben. -->
+|Braunschweig
+|{{Coordinate |NS=52.2768 |EW=10.5303 |type=landmark |region=DE-NI |name=National Jürgens Brauerei|text=ICON0}}
+|2016
+|
+|-
+|Schadt’s Brauerei-Gasthaus
+|Braunschweig
+|{{Coordinate |NS=52.2656 |EW=10.5228 |type=landmark |region=DE-NI |name=Schadt’s Brauerei-Gasthaus|text=ICON0}}
+|1985
+|
+|-
+|Hoffbruhuus Heidhoff
+|[[Bruchhausen-Vilsen]]
+|{{Coordinate |NS=52.7556 |EW=8.9073 |type=landmark |region=DE-NI |name=Hoffbruhuus Heidhoff|text=ICON0}}
+|2016
+|
+|-
+|Frommanns Landhotel und Privatbrauerei
+|[[Buchholz in der Nordheide]]
+|{{Coordinate |NS=53.3663 |EW=9.8744 |type=landmark |region=DE-NI |name=Frommanns Landhotel und Privatbrauerei|text=ICON0}}
+|2006
+|
+|-
+|Burgwedeler Brauerei<ref>{{Internetquelle |url=https://www.haz.de/Umland/Burgwedel/Nachrichten/Als-haette-Burgwedel-aufs-lokale-Bier-gewartet |titel=Als hätte Burgwedel aufs lokale Bier gewartet |abruf=2020-06-27}}</ref>
+|[[Burgwedel]]
+|{{Coordinate |NS=52.4921 |EW=9.8543 |type=landmark |region=DE-NI |name=Burgwedeler Brauerei|text=ICON0}}
+|2017
+|
+|-
+|Fuhrberger Brauerei
+|Burgwedel
+|{{Coordinate |NS=52.5634 |EW=9.8489 |type=landmark |region=DE-NI |name=Fuhrberger Brauerei|text=ICON0}}
+|2021
+|
+|-
+| Brauerei Carl Betz GmbH
+| [[Celle]]
+|{{Coordinate |NS=52.6084 |EW=10.0619 |type=landmark |region=DE-NI |name=Brauerei Carl Betz|text=ICON0}}
+|1893
+|
+|-
+|[[Altenauer Brauerei]]
+|[[Clausthal-Zellerfeld]]
+|{{Coordinate|NS=51.8007|EW=10.4483|type=building|region=DE-NI|name=Altenauer Brauerei|text=ICON0}}
+|1617 / 2021
+|
+|-
+|Kurbetriebsgesellschaft „Die Oberharzer“ mbH
+|Clausthal-Zellerfeld
+|{{Coordinate |NS=51.8175 |EW=10.3323 |type=landmark |region=DE-NI |name=Kurbetriebsgesellschaft „Die Oberharzer“|text=ICON0}}
+|2014
+|Braustätte: "[[Zellerfelder Münze|Brauakademie im Kunsthandwerkerhof]]"
+|-
+|Forschungsbrauerei der [[Technische Universität Clausthal|TU Clausthal]]
+|Clausthal-Zellerfeld
+|{{Coordinate |NS=51.7997  |EW= 10.3445|type=landmark |region=DE-NI |name=Forschungsbrauerei der TU Clausthal|text=ICON0}}
+|2019
+|
+|-
+|WendlandBräu / Inh. Mathias Edler
+| [[Clenze]]
+|{{Coordinate |NS=52.9217 |EW= 10.9984 |type=landmark |region=DE-NI |name=WendlandBräu |text=ICON0}}
+|2009
+|
+|-
+|Craftbeer Manufaktur
+|[[Cramme]]
+|{{Coordinate |NS= 52.1134 |EW=10.4582 |type=landmark |region=DE-NI |name=Craftbeer Manufaktur |text=ICON0}}
+|2018
+|
+|-
+|Brauerei Alte Liebe
+|[[Cuxhaven]]
+|{{Coordinate |NS= 53.8604 |EW= 8.7122 |type=landmark |region=DE-NI |name=Brauerei Alte Liebe|text=ICON0}}
+|2022
+|
+|-
+|Die Bake Braumanufaktur
+|Cuxhaven
+|{{Coordinate |NS=53.8491 |EW=8.7060 |type=landmark |region=DE-NI |name=Die Bake Braumanufaktur|text=ICON0}}
+|2023
+|
+|-
+|Dachs Brauhandwerk GmbH
+|[[Dahlenburg]]
+|{{Coordinate |NS=53.202 |EW= 10.6793 |type=landmark |region=DE-NI |name=Dachs Brauhandwerk|text=ICON0}}
+|2009
+|seit 2021 als GmbH
+|-
+|Duderstädter Braumanufaktur GmbH & Co. KG
+|[[Duderstadt]]
+|{{Coordinate |NS=51.516 |EW=10.235 |type=landmark |region=DE-NI |name=Duderstädter Braumanufaktur |text=ICON0}}
+|2013
+|Schankstätte: Hotel zum Löwen
+|-
+|Zweibrückenbrauerei
+|[[Edewecht]]
+|{{Coordinate |NS=53.0903 |EW=8.054 |type=landmark |region=DE-NI |name=Zweibrückenbrauerei|text=ICON0}}
+|2022
+|
+|-
+|Brauerei „De Lütte“
+|[[Egestorf]]
+|{{Coordinate |NS=53.1618 |EW=10.0623 |type=landmark |region=DE-NI |name=Brauerei „De Lütte“|text=ICON0}}
+|2024
+|
+|-
+|Egestorfer Fuhrenbräu
+|Egestorf
+|{{Coordinate |NS=53.1805 |EW=10.0626 |type=landmark |region=DE-NI |name=Egestorfer Fuhrenbräu|text=ICON0}}
+|2016
+|
+|-
+|[[Einbecker Brauhaus]]
+|[[Einbeck]]
+|{{Coordinate|NS=51.8162|EW=9.8646|type=landmark|region=DE-NI|name=Einbecker Brauhaus|text=ICON0}}
+|1967 (1378)
+|
+|-
+|Herrenholzer Privatbrauerei
+|[[Goldenstedt]]
+|{{Coordinate |NS=52.7573|EW=8.3481 |type=landmark |region=DE-NI |name=Herrenholzer Privatbrauerei|text=ICON0}}
+|2023
+|
+|-
+|Brauhaus Goslar
+|[[Goslar]]
+|{{Coordinate |NS=51.9053|EW=10.4282 |type=landmark |region=DE-NI |name=Brauhaus Goslar|text=ICON0}}
+|2004
+|
+|-
+|Grasberger Brauerei
+|[[Grasberg]]
+|{{Coordinate |NS=53.1915|EW=8.9813 |type=landmark |region=DE-NI |name=Grasberger Brauerei|text=ICON0}}
+|2023
+|
+|-
+|Brauerei „Gut Strackholt“
+|[[Großefehn]]
+|{{Coordinate |NS=53.3674|EW=7.6378 |type=landmark |region=DE-NI |name=Brauerei „Gut Strackholt“|text=ICON0}}
+|2021
+|
+|-
+|Ostfriesen Bräu – Historische Landbrauerei mit Brauhaus
+|Großefehn
+|{{Coordinate |NS=53.3502|EW=7.6111 |type=landmark |region=DE-NI |name=Ostfriesen Bräu – Historische Landbrauerei mit Brauhaus|text=ICON0}}
+|1999
+|
+|-
+|Brauhaus Ernst August<ref>{{Internetquelle |url=https://www.brauhaus.net/brauerei/hanoeversch-bio-biere/ |titel=Hanöversch ..das Frischebier! {{!}} Brauhaus Ernst August - Hannover |datum=2016-10-24 |abruf=2020-06-27}}</ref>
+|[[Hannover]]
+|{{Coordinate |NS=52.3730|EW=9.7344 |type=landmark |region=DE-NI |name=Brauhaus Ernst August|text=ICON0}}
+|1986
+|
+|-
+|[[Privatbrauerei Herrenhausen]]
+|Hannover
+|{{Coordinate |NS=52/23/38/N |EW=9/40/50/E |type=landmark |region=DE-NI|name=Privatbrauerei Herrenhausen|text=ICON0}}
+|1868
+|
+|-
+|[[Gilde Brauerei]]
+|Hannover
+|{{Coordinate |NS=52.3545 |EW=9.7543 |type=landmark |region=DE-NI |name=Gilde Brauerei|text=ICON0}}
+|1546
+|u. a. [[Lindener Aktien-Brauerei|Lindener Spezial]]
+|-
+|Meiers Lebenslust<ref>{{Internetquelle |url=https://www.meiers-lebenslust.de/brauerei |titel=Brauerei |abruf=2021-10-12}}</ref>
+|Hannover
+|{{Coordinate |NS=52.3686|EW=9.7404 |type=landmark |region=DE-NI |name=Meiers Lebenslust|text=ICON0}}
+|2012
+|
+|-
+|Mashsee<ref>{{Internetquelle |url=https://www.mashsee-shop.de/catalog/index.php?c=2 |titel=Biere von Mashsee |werk=mashsee-shop.de |abruf=2020-08-28}}</ref>
+|Hannover
+|{{Coordinate |NS=52.3279|EW=9.7848 |type=landmark |region=DE-NI |name=Mashsee|text=ICON0}}
+|2014
+|
+|-
+|[[Rathaus Münden|Ratsbrauhaus]]
+|[[Hann. Münden]]
+|{{Coordinate|NS=51.417291|EW=9.651204|type=landmark|region=DE-NI|name=Ratsbrauhaus Hann. Münden|text=ICON0}}
+|2003
+|
+|-
+|Hildesheimer Braumanufaktur<ref>{{Internetquelle |url=https://www.hildesheimer-braumanufaktur.de/ |titel=https://www.hildesheimer-braumanufaktur.de/ |abruf=2018-08-16}}</ref>
+|[[Hildesheim]]
+|{{Coordinate |NS=52.1510|EW=9.9701 |type=landmark |region=DE-NI |name=Hildesheimer Braumanufaktur|text=ICON0}}
+|2016
+|
+|-
+|HarryS Craft Beer
+|[[Holle]]
+|{{Coordinate |NS=52.1120|EW=10.1684 |type=landmark |region=DE-NI |name=HarryS Craft Beer|text=ICON0}}
+|2018
+|
+|-
+|Schwarzes Huhn – Biermanufaktur Grasdorf
+|Holle
+|{{Coordinate |NS=52.1073|EW=10.1638|type=landmark |region=DE-NI |name=Schwarzes Huhn – Biermanufaktur Grasdorf|text=ICON0}}
+|2009
+|
+|-
+|Altstadtbrauerei
+|[[Jever]]
+|{{Coordinate |NS=53.5745|EW=7.9012|type=landmark |region=DE-NI |name=Altstadtbrauerei|text=ICON0}}
+|2009
+|
+|-
+|[[Jever (Bier)|Friesisches Brauhaus zu Jever]]
+|Jever
+|{{Coordinate|NS=53.5757|EW=7.9011|type=landmark|region=DE-NI|name=Friesisches Brauhaus zu Jever|text=ICON0}}
+|1848
+|u. a. [[Jever (Bier)|Jever]] und [[Wicküler-Brauerei]]
+|-
+|Olli's Braumanufaktur
+|[[Katlenburg-Lindau]]
+|{{Coordinate |NS=51.6902|EW=10.1092 |type=landmark |region=DE-NI |name=Olli's Braumanufaktur|text=ICON0}}
+|2022
+|
+|-
+|Handgebrautes
+|[[Kirchlinteln]]
+|{{Coordinate |NS=52.9557|EW=9.4198|type=landmark |region=DE-NI |name=Handgebrautes|text=ICON0}}
+|2020
+|
+|-
+|Mad Dukes Brewery
+|[[Kissenbrück]]
+|{{Coordinate |NS=52.2517|EW=10.8176 |type=landmark |region=DE-NI |name=Mad Dukes Brewery|text=ICON0}}
+|2017
+|
+|-
+|Brauwerk 2010
+|[[Königslutter am Elm]]
+|{{Coordinate |NS=52.2517|EW=10.8177|type=landmark |region=DE-NI |name=Brauwerk 2010|text=ICON0}}
+|2015
+|
+|-
+|Brauerei Ranters
+|[[Laar (Grafschaft Bentheim)]]
+|{{Coordinate |NS=52.6278|EW=6.7537 |type=landmark |region=DE-NI |name=Brauerei Ranters|text=ICON0}}
+|2021
+|
+|-
+|Häsefelder Privatbrauerei
+|[[Langwedel (Weser)]]
+|{{Coordinate |NS=52.9832|EW=9.1668|type=landmark |region=DE-NI |name=Häsefelder Privatbrauerei|text=ICON0}}
+|2013
+|
+|-
+|Brauhaus Felsenkeller, [[Rupp-Bräu]]
+|[[Lauenau]]
+|{{Coordinate |NS=52.2791|EW=9.3692 |type=landmark |region=DE-NI |name=Brauhaus Felsenkeller|text=ICON0}}
+|1861
+|
+|-
+|Braumanufaktur Wendhausen
+|[[Lehre (Niedersachsen)|Lehre]]
+|{{Coordinate |NS=52.3147|EW=10.6292|type=landmark |region=DE-NI |name=Braumanufaktur Wendhausen|text=ICON0}}
+|2022
+|
+|-
+|Lupita Brauerei
+|[[Luckau (Wendland)]]
+|{{Coordinate |NS=52.9217|EW=10.9984|type=landmark |region=DE-NI |name=Lupita Brauerei|text=ICON0}}
+|2019
+|
+|-
+|Brau- & Tafelhaus Mälzer
+|[[Lüneburg]]
+|{{Coordinate |NS=53.2469|EW=10.4081|type=landmark |region=DE-NI |name=Brau- & Tafelhaus Mälzer|text=ICON0}}
+|1997
+|
+|-
+|Gasthausbrauerei und Brennerei Nolte
+|Lüneburg
+|{{Coordinate |NS=53.2462|EW=10.4391 |type=landmark |region=DE-NI |name=Gasthausbrauerei und Brennerei Nolte|text=ICON0}}
+|1906 / 1993
+|
+|-
+|Landhaus-Brauerei Borchert
+|[[Lünne]]
+|{{Coordinate |NS=52.4287|EW=7.4271 |type=landmark |region=DE-NI |name=Landhaus-Brauerei Borchert|text=ICON0}}
+|1997
+|
+|-
+|Bootshaus Brauerei
+|[[Marl]]
+|{{Coordinate |NS=52.4869|EW=8.365|type=landmark |region=DE-NI |name=Bootshaus Brauerei|text=ICON0}}
+|2020
+|
+|-
+|Martfelder Hausbräu
+|[[Martfeld]]
+|{{Coordinate |NS= 52.8857|EW=9.653|type=landmark |region=DE-NI |name=Martfelder Hausbräu|text=ICON0}}
+|2013
+|
+|-
+|Gesmolder Braugemeinschaft
+|[[Melle]]
+|{{Coordinate |NS=52.2062|EW=8.2829|type=landmark |region=DE-NI |name=Gesmolder Braugemeinschaft|text=ICON0}}
+|2012
+|
+|-
+|Brauhaus Alt Neuhaus
+|[[Neuhaus (Oste)]]
+|{{Coordinate |NS=53.8014|EW=9.3472 |type=landmark |region=DE-NI |name=Brauhaus Alt Neuhaus|text=ICON0}}
+|2005
+|u. a. [[Adolph Bernhard Cronemeyer|Cronemeyers]]
+|-
+|Butjenter Brauhaus
+|[[Nordenham]]
+|{{Coordinate |NS=53.4827|EW=8.4417 |type=landmark |region=DE-NI |name=Butjenter Brauhaus|text=ICON0}}
+|2016
+|
+|-
+|Norderneyer Brauhaus
+|[[Norderney]]
+|{{Coordinate |NS=53.7114|EW=7.1748 |type=landmark |region=DE-NI |name=Norderneyer Brauhaus|text=ICON0}}
+|2012<ref>{{Webarchiv|url=http://www.nomo-norderney.de/norderney-bekommt-sein-eigenes-bier |wayback=20201001182900 |text=Norderney bekommt sein eigenes Bier |archiv-bot=2026-04-24 01:54:47 InternetArchiveBot }}</ref>
+|
+|-
+|Grafschafter Brauhaus<ref>{{Internetquelle |url=http://grafschafterbrauhaus.de/Ueber-uns/ |titel=Grafschafter Brauhaus - Über uns |offline=1 |archiv-url=https://web.archive.org/web/20171201035654/http://grafschafterbrauhaus.de/Ueber-uns/ |archiv-datum=2017-12-01 |abruf=2017-11-19}}</ref>
+|[[Nordhorn]]
+|{{Coordinate |NS=52.4322|EW=7.7485 |type=landmark |region=DE-NI |name=Grafschafter Brauhaus|text=ICON0}}
+|1999<ref>{{Internetquelle |autor=nt |url=https://bierwelt.org/2011/09/30/grafschafter-brauhaus/ |titel=Grafschafter Brauhaus {{!}} Bierwelt.org - Deutsche und Internationale Biervielfalt |abruf=2023-05-20}}</ref>
+|
+|-
+|Hausbrauerei Meierhöfer
+|[[Obernkirchen]]
+|{{Coordinate |NS= 52.2722|EW=9.967|type=landmark |region=DE-NI |name=Hausbrauerei Meierhöfer|text=ICON0}}
+|1999
+|
+|-
+|Old Garden's Biermanufaktur
+|[[Oldenburg (Oldb)|Oldenburg]]
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=Old Garden's Biermanufaktur|text=ICON0}}
+|2021
+|
+|-
+|Oldenbräu
+|Oldenburg
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=Oldenbräu|text=ICON0}}
+|2018
+|
+|-
+|OLs Oldenburger Brauerei
+|Oldenburg
+|{{Coordinate |NS=53.1408|EW=8.2211|type=landmark |region=DE-NI |name=OLs Oldenburger Brauerei|text=ICON0}}
+|2010
+|
+|-
+|Brauerei Beura
+|[[Osnabrück]]
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=Brauerei Beura|text=ICON0}}
+|2016
+|
+|-
+|Hausbrauerei Rampendahl
+|Osnabrück
+|{{Coordinate |NS=52.2785|EW=8.4336 |type=landmark |region=DE-NI |name=Hausbrauerei Rampendahl|text=ICON0}}
+|
+|
+|-
+|Osterholzer Hausbrauerei
+|[[Osterholz-Scharmbeck]]
+|{{Coordinate |NS=53.235|EW=8.8127 |type=landmark |region=DE-NI |name=Osterholzer Hausbrauerei|text=ICON0}}
+|2014
+|
+|-
+|Dorster Kesselbräu – Hausbrauerei T. Beushausen
+|[[Osterode am Harz]]
+|{{Coordinate |NS=51.6996|EW=10.1585|type=landmark |region=DE-NI |name=Dorster Kesselbräu|text=ICON0}}
+|2012
+|
+|-
+|Die Bierbrauer TS
+|Papenburg
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=Die Bierbrauer TS|text=ICON0}}
+|2019
+|
+|-
+|Hüpscher Werkstatt Bräu
+|[[Pattensen]]
+|{{Coordinate |NS=52.2404|EW=9.7313 |type=landmark |region=DE-NI |name=Hüpscher Werkstatt Bräu|text=ICON0}}
+|2013
+|
+|-
+|Pibe's Brauerei
+|[[Reinstorf]]
+|{{Coordinate |NS=53.2652|EW=10.5610 |type=landmark |region=DE-NI |name=Pibe's Brauerei|text=ICON0}}
+|2016
+|
+|-
+|Goldbecker Mühlenbier
+|[[Rinteln]]
+|{{Coordinate |NS=52.2328|EW=9.8485 |type=landmark |region=DE-NI |name=Goldbecker Mühlenbier|text=ICON0}}
+|2020
+|
+|-
+|REIMOT-Braumanufaktur / Sarstedter Bierfreunde
+|[[Sarstedt]]
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=REIMOT-Braumanufaktur|text=ICON0}}
+|2019
+|
+|-
+|Hausbrauerei in Klindworths Gasthof
+|[[Sauensiek]]
+|{{Coordinate |NS=53.3797|EW=9.5958|type=landmark |region=DE-NI |name=Hausbrauerei in Klindworths Gasthof|text=ICON0}}
+|2007
+|
+|-
+|Mühlenbrauerei der Wassermühle Karoxbostel
+|[[Seevetal]]
+|{{Coordinate |NS=53.3945|EW=10.6717 |type=landmark |region=DE-NI |name=Mühlenbrauerei der Wassermühle Karoxbostel|text=ICON0}}
+|2019
+|
+|-
+|Gutshofbrauerei Das Freie
+|[[Sehnde]]
+|{{Coordinate |NS=52.3124|EW=10.327|type=landmark |region=DE-NI |name=Gutshofbrauerei Das Freie|text=ICON0}}
+|2014
+|
+|-
+|Selsinger Hof
+|[[Selsingen]]
+|{{Coordinate |NS=53.3718|EW=9.2139|type=landmark |region=DE-NI |name=Selsinger Hof|text=ICON0}}
+|2008
+|
+|-
+|Brauhaus Joh. Albrecht
+|[[Soltau]]
+|{{Coordinate |NS=52.9915|EW=9.848 |type=landmark |region=DE-NI |name=Brauhaus Joh. Albrecht|text=ICON0}}
+|1990
+|
+|-
+|Robens Craft Beer
+|[[Springe]]
+|{{Coordinate |NS=52.1760|EW=9.6533 |type=landmark |region=DE-NI |name=Robens Craft Beer|text=ICON0}}
+|2006
+|
+|-
+|Stader Ratskeller
+|[[Stade]]
+|{{Coordinate |NS=53.6015|EW=9.4762 |type=landmark |region=DE-NI |name=Stader Ratskeller|text=ICON0}}
+|2008
+|
+|-
+|Brauerei Amtspforde
+|[[Stadthagen]]
+|{{Coordinate |NS=52.3154|EW=9.2019|type=landmark |region=DE-NI |name=Brauerei Amtspforde|text=ICON0}}
+|2019
+|
+|-
+|Brauhaus Steinfeld
+|[[Steinfeld (Oldenburg)]]
+|{{Coordinate |NS=52.5869|EW=8.2150 |type=landmark |region=DE-NI |name=Brauhaus Steinfeld|text=ICON0}}
+|2008
+|
+|-
+|Privatbrauerei Braugut Stuhr<ref>{{Internetquelle |autor=Anke Gellert-Helpenstein |url=https://www.nrz.de/lokales/kleve-und-umland/article402513833/schloss-wissener-handwerksbier.html |titel=Schloss Wissener Handwerksbier |werk=Neue Rhein/Neue Ruhr Zeitung |hrsg=Funke Mediengruppe |datum=2016-06-29 |sprache=de |abruf=2021-10-12}}</ref>
+|[[Stuhr]]
+|{{Coordinate |NS=52.9563|EW=8.7040|type=landmark |region=DE-NI |name=Privatbrauerei Braugut Stuhr|text=ICON0}}
+|2014
+|
+|-
+|Burzel Bräu<ref>{{Internetquelle |url=https://www.kreiszeitung.de/lokales/rotenburg/torben-julia-sass-betreiben-kleinste-brauerei-region-4194861.html |titel=„Burzel-Bräu“ aus der Tarmstedter Garage |datum=2014-10-22 |abruf=2023-05-20}}</ref>
+|[[Tarmstedt]]
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=Burzel Bräu|text=ICON0}}
+|2014
+|
+|-
+|Bogler’s Brauerei
+|[[Uetze]]
+|{{Coordinate |NS=52.4498|EW=10.1429 |type=landmark |region=DE-NI |name=Bogler’s Brauerei|text=ICON0}}
+|2011
+|
+|-
+|[[Bergbräu]]
+|[[Uslar]]
+|{{Coordinate |NS=51.6586|EW=9.6447|type=landmark |region=DE-NI |name=Bergbräu Uslar|text=ICON0}}
+|1868
+|seit 2006 als GmbH & Co. KG
+|-
+|Vareler Brauhaus
+|[[Varel]]
+|{{Coordinate |NS=53.4181|EW=8.1067|type=landmark |region=DE-NI |name=Vareler Brauhaus|text=ICON0}}
+|2008
+|
+|-
+|Domschatten Privatbrauerei
+|[[Vechta]]
+|{{Coordinate |NS=52.7879|EW=8.2536|type=landmark |region=DE-NI |name=Domschatten Privatbrauerei|text=ICON0}}
+|2023
+|
+|-
+|Verdener Brau Manufaktur
+|[[Verden (Aller)]]
+|{{Coordinate |NS=52.9193|EW=9.23 |type=landmark |region=DE-NI |name=Verdener Brau Manufaktur|text=ICON0}}
+|2017
+|
+|-
+|Loyds Braumanufactur
+|[[Wagenfeld]]
+|{{Coordinate |NS=52.5491|EW=8.5894|type=landmark |region=DE-NI |name=Loyds Braumanufactur|text=ICON0}}
+|2015
+|
+|-
+|Hünziger Brauhaus Schnuckenbräu / Meyer Braugesellschaft
+|[[Walsrode]]
+|{{Coordinate |NS=52.8982|EW=9.5884|type=landmark |region=DE-NI |name=Hünziger Brauhaus Schnuckenbräu|text=ICON0}}
+|2000
+|
+|-
+|Hausbrauerei im Tungeler Krug
+|[[Wardenburg]]
+|{{Coordinate |NS=53.9142|EW=8.1920|type=landmark |region=DE-NI |name=Hausbrauerei im Tungeler Krug|text=ICON0}}
+|2017
+|
+|-
+|Weerhuus Privatbrauerei
+|[[Wathlingen]]
+|{{Coordinate |NS=52.5400|EW=10.1539|type=landmark |region=DE-NI |name=Weerhuus Privatbrauerei|text=ICON0}}
+|2018
+|
+|-
+|Carlenberger Landbrauerei
+|[[Wennigsen (Deister)]]
+|{{Coordinate |NS=52.2826|EW=9.5764|type=landmark |region=DE-NI |name=Carlenberger Landbrauerei|text=ICON0}}
+|2021
+|
+|-
+|Küstenbrauerei zu Werdum
+|[[Werdum]]
+|{{Coordinate |NS=53.6601|EW=7.7163|type=landmark |region=DE-NI |name=Küstenbrauerei zu Werdum|text=ICON0}}
+|2000
+|
+|-
+|Braugasthaus Mühlengrund
+|[[Wienhausen]]
+|{{Coordinate |NS=52.5801|EW=10.1874|type=landmark |region=DE-NI |name=Braugasthaus Mühlengrund|text=ICON0}}
+|1998 (1586)
+|
+|-
+|[[Privatbrauerei Wittingen]]
+|[[Wittingen]]
+|{{Coordinate |NS=52.7266|EW=10.7443|type=landmark |region=DE-NI |name=Privatbrauerei Wittingen|text=ICON0}}
+|1429
+|seit 2006 als GmbH
+|-
+|Anthons Privatbrauerei
+|[[Wittmund]]
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=Anthons Privatbrauerei|text=ICON0}}
+|2018
+|
+|-
+|Denver's Craftbeer<ref>{{Webarchiv |url=https://www.news38.de/wolfenbuettel/article211359957/Denvers-Bier-aus-und-fuer-Wolfenbuettel.html |text=Archivierte Kopie |wayback=20181225080843}}</ref>
+|[[Wolfenbüttel]]
+|{{Coordinate |NS= |EW= |type=landmark |region=DE-NI |name=Denver's Craftbeer|text=ICON0}}
+|2017
+|
+|-
+|[[Altes Brauhaus zu Fallersleben]]
+|[[Wolfsburg]]
+|{{Coordinate |NS=52.4167|EW=10.7171|type=landmark |region=DE-NI |name=Altes Brauhaus zu Fallersleben|text=ICON0}}
+|1986 (1765)
+|
+|}
+
+== Siehe auch ==
+* [[Liste aktiver Brauereien in Deutschland]]
+
+== Weblinks ==
+{{Commonscat|Breweries in Lower Saxony|Brauereien in Niedersachsen}}
+* [http://www.german-breweries.com/all_breweries.htm Liste aktiver Brauereien in Deutschland] aus dem ''Germany Good Beer Guide''
+* [https://www.biermap24.de/brauereiliste.php Liste deutscher Brauereien] in ''biermap24.de''
+* [http://www.klausehm.de/Uebersicht.html Historisches Brauereiverzeichnis Deutschland] in ''klausehm.de''
+
+== Einzelnachweise ==
+<references/>
+
+{{Hinweis Seiten-Koordinaten}}
+
+{{Navigationsleiste Liste der Brauereien nach Bundesland}}
+
+[[Kategorie:Brauerei (Niedersachsen)|!]]
+[[Kategorie:Liste (deutsche Unternehmen)|Brauereien in Niedersachsen]]
+[[Kategorie:Liste (Brauereien)|Niedersachsen]]
