@@ -214,10 +214,50 @@ function ChallengeButton({ active }: { active: boolean }) {
   const p = st.progress
   const pct = st.active ? (p ? Math.min(1, p.cur / p.goal) : 0) : 0
   const mode = !st.night.open ? 'closed' : st.active ? 'running' : 'choose'
+  // Hinweis-Blase: einmal pro Abend, sobald Challenges zur Wahl stehen
+  const hintKey = `plopp-ch-hint-${st.night.night}`
+  const [hintSeen, setHintSeen] = useState(() => {
+    try {
+      return localStorage.getItem(hintKey) === '1'
+    } catch {
+      return true
+    }
+  })
+  const showHint = mode === 'choose' && st.loaded && !hintSeen && !active
+  const seen = () => {
+    setHintSeen(true)
+    try {
+      localStorage.setItem(hintKey, '1')
+    } catch {
+      /* egal */
+    }
+  }
+  useEffect(() => {
+    if (active && mode === 'choose') seen()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, mode])
   return (
+    <span className="ch-wrap">
+    {showHint && (
+      <button
+        className="ch-hint"
+        onClick={() => {
+          seen()
+          go('/challenge')
+        }}
+      >
+        🎯 Neue Abend-Challenges!
+        <span className="ch-hint-x" role="button" aria-label="Schließen" onClick={(e) => (e.stopPropagation(), seen())}>
+          ×
+        </span>
+      </button>
+    )}
     <button
       className={`back ch-btn ch-${mode} ${active ? 'on' : ''}`}
-      onClick={() => go('/challenge')}
+      onClick={() => {
+        seen()
+        go('/challenge')
+      }}
       aria-label={
         mode === 'closed' ? 'Abend-Challenges (ab 16 Uhr)' : mode === 'choose' ? 'Abend-Challenge wählen' : 'Laufende Challenge'
       }
@@ -228,6 +268,7 @@ function ChallengeButton({ active }: { active: boolean }) {
       <IconMoon size={20} className="ch-icon" />
       {mode === 'choose' && <span className="ch-dot">!</span>}
     </button>
+    </span>
   )
 }
 

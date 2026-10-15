@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { myCheckins, myWishlist, setWishlist } from '../api'
-import { ACHIEVEMENTS, computeStats, progress, useStatsContext, type BeerAgg } from '../achievements'
+import { ACHIEVEMENTS, computeStats, progress, timeline, useStatsContext, type BeerAgg } from '../achievements'
 import {
   BeerRow,
   ChipBar,
@@ -17,10 +17,10 @@ import {
   useAsync,
 } from '../components'
 import { go } from '../router'
+import { fmtLeft, useChallenges } from '../challenges'
 import { usePageState } from '../pageState'
-import { haptic, load, save } from '../ui/fx'
-import { IconChevron, IconFindAdd, IconTrophy } from '../ui/icons'
-import { nudge, subscribeSlosh } from '../ui/tilt'
+import { haptic, load, save, useUnit } from '../ui/fx'
+import { IconChevron, IconFindAdd, IconMoon, IconTrophy } from '../ui/icons'
 
 type Sort = 'recent' | 'count' | 'rating' | 'name'
 const SORTS: { id: Sort; label: string }[] = [
@@ -30,6 +30,7 @@ const SORTS: { id: Sort; label: string }[] = [
   { id: 'name', label: 'A–Z' },
 ]
 const PREFS = 'bier-mybeers'
+const CURRENT_LABEL = { day: 'heute', week: 'diese Woche', month: 'diesen Monat', year: 'dieses Jahr' } as const
 
 const HERO_BUBBLES = [8, 22, 37, 55, 68, 81, 93].map((left, i) => ({
   left,
@@ -82,15 +83,18 @@ export default function MyBeers() {
     checkins.reload()
     wish.reload()
   }
-  const maxMonth = Math.max(1, ...stats.months.map((m) => m.count))
+  const [unit] = useUnit()
+  const buckets = useMemo(() => timeline(checkins.data ?? [], unit), [checkins.data, unit])
+  const maxBucket = Math.max(1, ...buckets.map((b) => b.checkins.length))
+  const current = buckets[buckets.length - 1]?.checkins.length ?? 0
   const wishCount = wish.data?.length ?? 0
   const loading = checkins.loading && !checkins.data
 
   return (
     <div className="page">
+      <ChallengeTeaser />
       {checkins.data && stats.checkins > 0 && (
         <button className="hero" onClick={() => go('/stats')} aria-label="Statistik und Abzeichen öffnen">
-          <HeroLiquid />
           {HERO_BUBBLES.map((b, i) => (
             <span
               key={i}
@@ -113,9 +117,9 @@ export default function MyBeers() {
           <div className="hero-stats">
             <div>
               <b>
-                <CountUp value={stats.thisMonth} />
+                <CountUp value={current} />
               </b>
-              <span>diesen Monat</span>
+              <span>{CURRENT_LABEL[unit]}</span>
             </div>
             <div>
               <b>
@@ -132,11 +136,11 @@ export default function MyBeers() {
             </div>
           </div>
           <div className="hero-spark" aria-hidden="true">
-            {stats.months.map((m, i) => (
+            {buckets.map((m, i) => (
               <i
                 key={m.key}
-                className={i === stats.months.length - 1 ? 'cur' : ''}
-                style={{ height: `${(m.count / maxMonth) * 100}%`, animationDelay: `${i * 35}ms` }}
+                className={i === buckets.length - 1 ? 'cur' : ''}
+                style={{ height: `${(m.checkins.length / maxBucket) * 100}%`, animationDelay: `${i * 35}ms` }}
               />
             ))}
           </div>
@@ -316,14 +320,20 @@ function Grouped({
   )
 }
 
-/** Bier im Sammlungs-Glas: der Spiegel schwappt mit der Neigung des Handys */
-function HeroLiquid() {
-  const ref = useRef<HTMLSpanElement>(null)
-  useEffect(() => {
-    if (!ref.current) return
-    const off = subscribeSlosh(ref.current, 0.35)
-    nudge(7)
-    return off
-  }, [])
-  return <span ref={ref} className="hero-liquid" aria-hidden="true" />
+/** Auffällige Karte, solange am Abend noch keine Challenge gewählt ist */
+function ChallengeTeaser() {
+  const st = useChallenges()
+  if (!st.loaded || !st.night.open || st.active) return null
+  return (
+    <button className="ch-teaser" onClick={() => go('/challenge')}>
+      <span className="ch-teaser-cap" aria-hidden="true">
+        <IconMoon size={22} />
+      </span>
+      <span className="ch-teaser-text">
+        <b>Abend-Challenge wählen</b>
+        <span>noch {fmtLeft(st.night.end.getTime() - Date.now())}</span>
+      </span>
+      <IconChevron size={20} />
+    </button>
+  )
 }

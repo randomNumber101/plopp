@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react'
 /** Kleine Effekte: Vibration, Feier-Animation */
 
 export function haptic(ms = 12) {
@@ -40,4 +41,16 @@ export function save(key: string, value: unknown) {
   } catch {
     /* egal */
   }
+}
+
+/** Gewählte Zeitskala (Rückblick in der Statistik und Sammlungskarte auf der Startseite) */
+const UNIT_KEY = 'bier-unit'
+type TimeUnit = 'day' | 'week' | 'month' | 'year'
+export function useUnit(): [TimeUnit, (u: TimeUnit) => void] {
+  const [unit, setUnit] = useState<TimeUnit>(() => load<TimeUnit>(UNIT_KEY, 'month'))
+  const set = useCallback((u: TimeUnit) => {
+    setUnit(u)
+    save(UNIT_KEY, u)
+  }, [])
+  return [unit, set]
 }

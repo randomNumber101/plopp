@@ -9,8 +9,8 @@ import { usePageState } from '../pageState'
 import { setPrefill } from '../store'
 import { BREWERY_TYPES, type BreweryProgress } from '../types'
 import { beerNameShortener, initials } from '../brewery'
-import { loadRegions, regionProgress } from '../regions'
-import { IconFit, IconFlag, IconLocate, IconMinus, IconPlus, IconSearch } from '../ui/icons'
+import { loadRegions, regionAt, regionProgress } from '../regions'
+import { IconFit, IconLocate, IconMinus, IconPlus, IconSearch } from '../ui/icons'
 
 type Filter = 'beers' | 'drunk' | 'open' | 'wish' | 'all'
 
@@ -23,6 +23,13 @@ const FILTERS: { id: Filter; label: string; test: (b: BreweryProgress) => boolea
 ]
 
 const VIEW_KEY = 'bier-map-view'
+/** Deutschland als Startausschnitt */
+const GERMANY: L.LatLngBoundsExpression = [
+  [47.27, 5.87],
+  [55.06, 15.04],
+]
+const inGermany = (b: { lat: number | null; lng: number | null }) =>
+  b.lat != null && b.lng != null && b.lat > 47.2 && b.lat < 55.1 && b.lng > 5.8 && b.lng < 15.1
 const VERIFIED_KEY = 'bier-map-verified'
 
 function loadView(): { lat: number; lng: number; zoom: number; filter: Filter } | null {
@@ -97,7 +104,10 @@ export default function MapPage() {
   const pendingFocus = useRef<string | null>(null)
   // Ebene: Brauerei-Pins oder zusätzlich „Regionen freispielen“
   const [layer, setLayer] = usePageState<'pins' | 'regions'>('map-layer', 'pins')
-  const regions = useAsync(() => (layer === 'regions' ? loadRegions() : Promise.resolve(null)), [layer])
+  // Region als Filter für die Brauerei-Pins (aus „Brauereien anzeigen“ in einer Region)
+  const [regionSel, setRegionSel] = usePageState<{ id: string; name: string } | null>('map-region', null)
+  const needRegions = layer === 'regions' || !!regionSel
+  const regions = useAsync(() => (needRegions ? loadRegions() : Promise.resolve(null)), [needRegions])
   const regionLayer = useRef<L.GeoJSON | null>(null)
   const [onlyVerified, setOnlyVerified] = useState(() => {
     try {
@@ -127,7 +137,7 @@ export default function MapPage() {
     if (!el.current || map.current) return
     const m = L.map(el.current, { zoomControl: false, attributionControl: true, maxZoom: 18 })
     if (initial) m.setView([initial.lat, initial.lng], initial.zoom)
-    else m.setView([51.1, 10.4], 6)
+    else m.fitBounds(GERMANY, { padding: [10, 10] })
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
       attribution: '&copy; OpenStreetMap',
@@ -213,9 +223,11 @@ export default function MapPage() {
     } catch {
       /* egal */
     }
+    if (regionSel && !regions.data) return
     const list: PinMarker[] = []
     for (const b of data.data) {
       if (b.lat == null || b.lng == null || !test(b)) continue
+      if (regionSel && regionAt(regions.data!, b.lat, b.lng)?.id !== regionSel.id) continue
       if (onlyVerified && b.trust && b.trust !== 'verified' && b.trust !== 'user') continue
       const mk = L.marker([b.lat, b.lng], { icon: pinIcon(b, false), title: b.name }) as PinMarker
       mk.brewery = b
@@ -228,19 +240,23 @@ export default function MapPage() {
       list.push(mk)
     }
     c.addLayers(list)
-    // Beim ersten Laden und nach Filterwechsel auf die sichtbaren Brauereien zoomen
-    const filterChanged = lastFilter.current !== `${filter}${onlyVerified}`
-    lastFilter.current = `${filter}${onlyVerified}`
+    // Beim ersten Laden und nach Filterwechsel auf die sichtbaren Brauereien in Deutschland zoomen
+    const sig = `${filter}${onlyVerified}${regionSel?.id ?? ''}`
+    const filterChanged = lastFilter.current !== sig
+    lastFilter.current = sig
     if ((!fitted.current || filterChanged) && list.length) {
       fitted.current = true
-      if (!pendingFocus.current) map.current?.fitBounds(c.getBounds(), { padding: [40, 40], maxZoom: 10 })
+      const de = list.filter((mk) => inGermany(mk.brewery))
+      const target = regionSel ? list : de.length ? de : list
+      if (!pendingFocus.current)
+        map.current?.fitBounds(L.latLngBounds(target.map((mk) => mk.getLatLng())), { padding: [40, 40], maxZoom: regionSel ? 11 : 10 })
     }
     if (pendingFocus.current) {
       const mk = markers.current.get(pendingFocus.current)
       pendingFocus.current = null
       if (mk) showMarker(mk)
     }
-  }, [data.data, filter, onlyVerified])
+  }, [data.data, filter, onlyVerified, regionSel, regions.data])
 
   // Regionen einfärben: grau = noch nicht erkundet, je mehr Brauereien probiert, desto kräftiger
   const rprog = useMemo(
@@ -272,10 +288,19 @@ export default function MapPage() {
         lyr.bindPopup(
           `<b>${esc(p.region.name)}</b><br>` +
             (p.breweries
-              ? `${p.visited} von ${p.breweries} Brauereien probiert (${pct} %)<br>${p.drunk} von ${p.beers} Bieren`
-              : 'keine Brauereien mit Bieren im Katalog') +
-            (p.visited ? '' : '<br><i>noch nicht erkundet</i>'),
+              ? `${p.visited} von ${p.breweries} Brauereien probiert (${pct} %)<br>${p.drunk} von ${p.beers} Bieren` +
+                `<br><button type="button" class="region-show">Brauereien anzeigen →</button>`
+              : 'keine Brauereien mit Bieren im Katalog'),
         )
+        lyr.on('popupopen', (e: L.PopupEvent) => {
+          const btn = e.popup.getElement()?.querySelector<HTMLButtonElement>('.region-show')
+          if (btn)
+            btn.onclick = () => {
+              m.closePopup()
+              setRegionSel({ id: p.region.id, name: p.region.name })
+              setLayer('pins')
+            }
+        })
       },
     }).addTo(m)
     gj.bringToBack()
@@ -283,7 +308,7 @@ export default function MapPage() {
     return () => {
       gj.remove()
     }
-  }, [layer, regions.data, rprog])
+  }, [layer, regions.data, rprog, setLayer, setRegionSel])
 
   // Auswahl hervorheben
   useEffect(() => {
@@ -359,6 +384,14 @@ export default function MapPage() {
     )
   }
 
+  function switchLayer(l: 'pins' | 'regions') {
+    setLayer(l)
+    setSelected(null)
+    setGroup(null)
+    if (l === 'regions') setRegionSel(null)
+    map.current?.flyToBounds(GERMANY, { padding: [10, 10], duration: 0.6 })
+  }
+
   function showAll() {
     const c = cluster.current
     if (c && c.getLayers().length) map.current?.fitBounds(c.getBounds(), { padding: [40, 40], maxZoom: 10 })
@@ -393,7 +426,21 @@ export default function MapPage() {
             </div>
           )}
         </div>
+        <div className="map-mode" role="tablist">
+          <button role="tab" aria-selected={layer === 'pins'} className={layer === 'pins' ? 'on' : ''} onClick={() => switchLayer('pins')}>
+            Brauereien
+          </button>
+          <button role="tab" aria-selected={layer === 'regions'} className={layer === 'regions' ? 'on' : ''} onClick={() => switchLayer('regions')}>
+            Regionen
+          </button>
+        </div>
+        {layer === 'pins' && (
         <div className="chips">
+          {regionSel && (
+            <button className="chip-btn on region-chip" onClick={() => setRegionSel(null)} title="Regionsfilter entfernen">
+              {regionSel.name} ×
+            </button>
+          )}
           <button
             className={`chip-btn ${onlyVerified ? 'on' : ''}`}
             onClick={() => setOnlyVerified(!onlyVerified)}
@@ -407,6 +454,7 @@ export default function MapPage() {
             </button>
           ))}
         </div>
+        )}
       </div>
 
       <div className="map-tools">
@@ -421,14 +469,6 @@ export default function MapPage() {
         </button>
         <button className="map-tool" onClick={showAll} aria-label="Alle zeigen" title="Alle zeigen">
           <IconFit size={22} />
-        </button>
-        <button
-          className={`map-tool ${layer === 'regions' ? 'on' : ''}`}
-          onClick={() => setLayer(layer === 'regions' ? 'pins' : 'regions')}
-          aria-label="Regionen freispielen"
-          title="Regionen freispielen"
-        >
-          <IconFlag size={22} />
         </button>
       </div>
 

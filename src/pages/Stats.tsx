@@ -17,6 +17,7 @@ import { usePageState } from '../pageState'
 import { loadRegions, regionProgress } from '../regions'
 import { quizStats, type Answer } from '../quiz'
 import { STATES, type Checkin } from '../types'
+import { useUnit } from '../ui/fx'
 
 const SHORT: Record<string, string> = {
   'Baden-Württemberg': 'BW',
@@ -232,7 +233,7 @@ const UNITS: { id: Unit; label: string }[] = [
 ]
 
 function Review({ list, avgAbv }: { list: Checkin[]; avgAbv: number | null }) {
-  const [unit, setUnit] = usePageState<Unit>('stats-unit', 'month')
+  const [unit, setUnit] = useUnit()
   const buckets = useMemo(() => timeline(list, unit), [list, unit])
   const [sel, setSel] = useState<number | null>(null)
   const idx = sel != null && sel < buckets.length ? sel : buckets.length - 1
