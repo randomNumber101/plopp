@@ -1,42 +1,31 @@
 /**
- * Das Zeichen neben „Plopp!“: eine kleine Flasche mit Kronkorken.
- * – Bierspiegel schwappt mit der Neigung des Handys (tilt.ts)
- * – Kohlensäure steigt auf, Wellen laufen
- * – bei „Plopp“ (Start, Tippen, neuer Check-in) fliegt der Kronkorken hoch und Schaum spritzt
- * Alles reine CSS-Transforms; ohne Bewegung läuft kein JavaScript.
+ * Das Zeichen neben „Plopp!“: ein fliegender Kronkorken mit Bewegungsstrichen und etwas Schaum.
+ * Bei „Plopp“ (Start, Tippen, neuer Check-in) holt der Korken aus, fliegt kreiselnd hoch und landet wieder,
+ * die Striche ziehen nach, der Schaum spritzt. Reine CSS-Animation.
  */
 import { useEffect, useRef, useState } from 'react'
-import { nudge, subscribeSlosh } from './tilt'
 
-const BOTTLE = 'M13.4 5.5h5.2v8c0 2.3 5.6 3.1 5.6 7.6V34a3 3 0 0 1-3 3H10.8a3 3 0 0 1-3-3V21.1c0-4.5 5.6-5.3 5.6-7.6Z'
-const CAP =
-  'M16.00 -0.50L16.88 0.32L18.05 0.05L18.40 1.20L19.55 1.55L19.28 2.72L20.10 3.60L19.28 4.48L19.55 5.65L18.40 6.00L18.05 7.15L16.88 6.88L16.00 7.70L15.12 6.88L13.95 7.15L13.60 6.00L12.45 5.65L12.72 4.48L11.90 3.60L12.72 2.72L12.45 1.55L13.60 1.20L13.95 0.05L15.12 0.32Z'
-// Welle mit Periode 16 – wird endlos um 16 verschoben
-const WAVE = (y: number) => `M-16 ${y} q4 -1.5 8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 t8 0 V62 H-16Z`
+const CAP = '36.00,8.00 38.56,10.99 41.90,8.89 43.46,12.50 47.27,11.48 47.70,15.39 51.64,15.53 50.90,19.40 54.62,20.69 52.77,24.17 55.94,26.51 53.15,29.29 55.50,32.45 52.01,34.28 53.32,38.00 49.45,38.72 49.60,42.66 45.69,42.21 44.68,46.02 41.07,44.44 38.98,47.78 36.00,45.20 33.02,47.78 30.93,44.44 27.32,46.02 26.31,42.21 22.40,42.66 22.55,38.72 18.68,38.00 19.99,34.28 16.50,32.45 18.85,29.29 16.06,26.51 19.23,24.17 17.38,20.69 21.10,19.40 20.36,15.53 24.30,15.39 24.73,11.48 28.54,12.50 30.10,8.89 33.44,10.99'
 
 /** „Plopp!“ auslösen – z. B. nach einem Check-in */
 export const plopp = () => window.dispatchEvent(new Event('plopp-pop'))
 
 export default function PloppMark({ size = 24 }: { size?: number }) {
-  const ref = useRef<SVGSVGElement>(null)
   const [popping, setPopping] = useState(false)
   const busy = useRef(false)
-
-  useEffect(() => (ref.current ? subscribeSlosh(ref.current) : undefined), [])
 
   useEffect(() => {
     const pop = () => {
       if (busy.current) return
       busy.current = true
       setPopping(true)
-      nudge(11)
       window.setTimeout(() => {
         busy.current = false
         setPopping(false)
-      }, 1100)
+      }, 1250)
     }
     window.addEventListener('plopp-pop', pop)
-    const first = window.setTimeout(pop, 700)
+    const first = window.setTimeout(pop, 600)
     return () => {
       window.removeEventListener('plopp-pop', pop)
       window.clearTimeout(first)
@@ -44,39 +33,30 @@ export default function PloppMark({ size = 24 }: { size?: number }) {
   }, [])
 
   return (
-    <svg
-      ref={ref}
-      className={`plopp-mark ${popping ? 'pop' : ''}`}
-      width={size * 0.8}
-      height={size}
-      viewBox="0 -1 32 40"
-      aria-hidden="true"
-    >
-      <defs>
-        <clipPath id="pm-clip">
-          <path d={BOTTLE} />
-        </clipPath>
-      </defs>
-      <g clipPath="url(#pm-clip)">
-        <rect x="0" y="0" width="32" height="40" fill="rgb(255 255 255 / 0.5)" />
-        <g className="pm-liquid">
-          <g className="pm-wave">
-            <path d={WAVE(20.5)} fill="#fffaf0" />
-            <path d={WAVE(23)} fill="#d98a00" />
-          </g>
+    <svg className={`plopp-mark ${popping ? 'pop' : ''}`} width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+      <g className="pf-lines" stroke="#2a1a0d" strokeWidth="4" strokeLinecap="round">
+        <path d="M20 42 L8 50" />
+        <path d="M24 50 L14 59" />
+        <path d="M14 35 L4 39" />
+      </g>
+      <g className="pf-foam" fill="#fffaf0" stroke="#2a1a0d" strokeWidth="1.6">
+        <circle className="f1" cx="13.4" cy="58" r="3.6" />
+        <circle className="f2" cx="17" cy="57.5" r="4.1" />
+        <circle className="f3" cx="20.6" cy="58" r="3.6" />
+      </g>
+      <g className="pf-spark" fill="#fffaf0" stroke="#2a1a0d" strokeWidth="1.2">
+        <circle cx="50" cy="48" r="2" />
+        <circle cx="56" cy="40" r="1.5" />
+        <circle cx="46" cy="56" r="1.4" />
+      </g>
+      <g transform="rotate(-18 36 28)">
+        <g className="pf-cap">
+          <polygon points={CAP} fill="#2a1a0d" />
+          <circle cx="36" cy="28" r="12" fill="#ffe6a3" />
+          <circle cx="36" cy="28" r="7.5" fill="none" stroke="#2a1a0d" strokeOpacity="0.18" strokeWidth="2" />
+          <path d="M29 22.5 a9 9 0 0 1 6-3" fill="none" stroke="#fff" strokeOpacity="0.8" strokeWidth="2.2" strokeLinecap="round" />
         </g>
-        <circle className="pm-bubble" cx="13" cy="35" r="1.1" />
-        <circle className="pm-bubble b2" cx="18.5" cy="35" r="0.8" />
-        <circle className="pm-bubble b3" cx="15.5" cy="35" r="0.9" />
       </g>
-      <path d={BOTTLE} fill="none" stroke="#2a1a0d" strokeWidth="2.3" strokeLinejoin="round" />
-      <path d="M10.6 24.5v6" stroke="#fff" strokeOpacity="0.55" strokeWidth="1.6" strokeLinecap="round" />
-      <g className="pm-spurt" fill="#fffaf0" stroke="#2a1a0d" strokeWidth="0.8">
-        <circle cx="16" cy="3" r="2.6" />
-        <circle cx="12.8" cy="0.6" r="1.5" />
-        <circle cx="19.2" cy="-0.2" r="1.2" />
-      </g>
-      <path className="pm-cap" d={CAP} fill="#2a1a0d" />
     </svg>
   )
 }

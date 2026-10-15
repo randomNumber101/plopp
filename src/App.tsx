@@ -11,7 +11,7 @@ import { Celebration, Spinner, Toaster } from './components'
 import { IconBack, IconBrewery, IconFindAdd, IconMap, IconMoon, IconMore, IconMug } from './ui/icons'
 import { haptic } from './ui/fx'
 import PloppMark, { plopp } from './ui/PloppMark'
-import { needsTiltPermission, nudge, requestTilt } from './ui/tilt'
+import { nudge } from './ui/tilt'
 import Login from './pages/Login'
 import MyBeers from './pages/MyBeers'
 import NewBeer from './pages/NewBeer'
@@ -153,8 +153,6 @@ export default function App() {
           <button
             className="title"
             onClick={() => {
-              // iOS fragt den Bewegungssensor nur nach einem Tipp ab
-              if (needsTiltPermission()) void requestTilt()
               plopp()
               go('/')
             }}
