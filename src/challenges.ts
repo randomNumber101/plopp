@@ -222,7 +222,7 @@ export const CHALLENGES: ChallengeDef[] = [
     check: ({ tonight }) => ({ cur: Math.min(2, tonight.filter((c) => c.rating != null && c.note?.trim()).length), goal: 2 }),
   },
   {
-    id: 'sterne', icon: '🧢', title: 'Korken-Kritiker', kind: 'auto',
+    id: 'sterne', icon: '🍾', title: 'Korken-Kritiker', kind: 'auto',
     desc: 'Mindestens 2 Biere trinken und jedes davon bewerten',
     check: ({ tonight }) => {
       const all = tonight.length

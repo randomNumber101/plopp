@@ -54,3 +54,8 @@ export function useUnit(): [TimeUnit, (u: TimeUnit) => void] {
   }, [])
   return [unit, set]
 }
+
+/** Rummel-Vorhang beim Start einer Abend-Challenge auslösen */
+export function startRummel(id: string) {
+  window.dispatchEvent(new CustomEvent('rummel-start', { detail: id }))
+}

@@ -156,7 +156,7 @@ export default function App() {
     : active
 
   return (
-    <div className={`app ${active === 'map' ? 'app-map' : ''}`}>
+    <div className={`app ${active === 'map' ? 'app-map' : ''} ${active === 'challenge' || active === 'quiz' ? 'app-rummel' : ''}`}>
       <header className="topbar" ref={headRef}>
         <div className="topbar-row">
           {isSub && (
@@ -291,11 +291,7 @@ function RummelBanner({ hidden }: { hidden: boolean }) {
   )
 }
 
-/** Rummel-Vorhang beim Start einer Challenge: Markise, Lichter, Titel – klappt nach gut zwei Sekunden zum Banner zusammen */
-export function startRummel(id: string) {
-  window.dispatchEvent(new CustomEvent('rummel-start', { detail: id }))
-}
-
+/** Rummel-Vorhang beim Start einer Challenge (startRummel): Markise, Lichter, Titel – klappt dann zum Banner zusammen */
 function RummelIntro() {
   const [id, setId] = useState<string | null>(null)
   useEffect(() => {
