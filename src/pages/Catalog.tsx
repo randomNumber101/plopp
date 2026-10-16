@@ -7,7 +7,8 @@ import type { Beer } from '../types'
 import { load, save } from '../ui/fx'
 import { IconChevron, IconHistory, IconPlus, IconScan } from '../ui/icons'
 import { usePageState } from '../pageState'
-import { beerNameShortener, initials } from '../brewery'
+import { beerNameShortener } from '../brewery'
+import { Cap, capMark, houseColor } from '../ui/kasten'
 import { searchIndex, toBeer, useSearchIndex, type BreweryGroup } from '../search'
 
 const RECENT = 'bier-recent-searches'
@@ -209,7 +210,7 @@ function SearchGroup({
           {br.logo_url ? (
             <img className="sgroup-logo" src={br.logo_url} alt="" loading="lazy" referrerPolicy="no-referrer" />
           ) : (
-            <span className="sgroup-logo sgroup-ini">{initials(br.name)}</span>
+            <Cap color={houseColor(br)} mark={capMark(br.name)} size={40} />
           )}
           <span className="sgroup-name">
             <b>{br.name}</b>

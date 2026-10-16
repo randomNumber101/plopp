@@ -19,6 +19,7 @@ export interface IndexBrewery {
   logo_url: string | null
   trust: Trust
   brewery_type: string | null
+  cap_color: string | null
   words: string[]
   compact: string
   beerCount: number
@@ -46,7 +47,7 @@ export interface SearchIndex {
 
 type Raw = {
   v: number
-  breweries: [string, string, string | null, string | null, string, string | null][]
+  breweries: [string, string, string | null, string | null, string, string | null, (string | null)?][]
   beers: [string, string, string | null, number | null, string | null, string | null, string][]
 }
 
@@ -84,9 +85,9 @@ const listeners = new Set<(i: SearchIndex) => void>()
 
 export function buildIndex(raw: Raw, loadedAt: number): SearchIndex {
   const breweries = new Map<string, IndexBrewery>()
-  for (const [id, name, city, logo_url, trust, brewery_type] of raw.breweries) {
+  for (const [id, name, city, logo_url, trust, brewery_type, cap_color] of raw.breweries) {
     const w = words(name)
-    breweries.set(id, { id, name, city, logo_url, trust: trustOf(trust), brewery_type, words: w, compact: w.join(''), beerCount: 0 })
+    breweries.set(id, { id, name, city, logo_url, trust: trustOf(trust), brewery_type, cap_color: cap_color ?? null, words: w, compact: w.join(''), beerCount: 0 })
   }
   const beers: IndexBeer[] = raw.beers.map(([id, name, style, abv, brewery_id, image_url, trust]) => {
     const w = words(name)
