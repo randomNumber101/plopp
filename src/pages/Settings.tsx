@@ -39,19 +39,29 @@ export default function Settings({ session }: { session: Session }) {
   return (
     <div className="page">
       <h2>Mehr</h2>
+      <div className="more-tiles">
+        <button className="mt-stats" onClick={() => go('/stats')}>
+          Statistik
+        </button>
+        <button
+          className="mt-herzen"
+          onClick={() => {
+            try {
+              sessionStorage.setItem('plopp-scroll', 'herzen')
+            } catch {
+              /* egal */
+            }
+            go('/stats')
+          }}
+        >
+          Abzeichen
+        </button>
+        <button className="mt-quiz" onClick={() => go('/quiz')}>
+          Bierquiz
+        </button>
+      </div>
       <div className="menu">
-        <button onClick={() => go('/stats')}>
-          <span className="m-icon">🏆</span>
-          <span className="m-main">Statistik & Abzeichen</span>
-          <IconChevron size={18} className="m-chev" />
-        </button>
-        <button onClick={() => go('/catalog')}>
-          <span className="m-icon">🔎</span>
-          <span className="m-main">Bier erfassen (Suche)</span>
-          <IconChevron size={18} className="m-chev" />
-        </button>
         <button onClick={() => go('/suggestions')}>
-          <span className="m-icon">📝</span>
           <span className="m-main">
             Änderungsvorschläge
             <div className="row-sub">
@@ -63,7 +73,6 @@ export default function Settings({ session }: { session: Session }) {
         </button>
         {review.data?.admin && (
           <button onClick={() => go('/katalog')}>
-            <span className="m-icon">🗂️</span>
             <span className="m-main">
               Katalog
               <div className="row-sub">
@@ -75,15 +84,12 @@ export default function Settings({ session }: { session: Session }) {
           </button>
         )}
         <button onClick={download}>
-          <span className="m-icon">⬇️</span>
           <span className="m-main">Meine Daten exportieren (JSON)</span>
         </button>
         <button onClick={() => setPwOpen(!pwOpen)}>
-          <span className="m-icon">🔑</span>
           <span className="m-main">Passwort ändern</span>
         </button>
         <button onClick={() => supabase.auth.signOut()}>
-          <span className="m-icon">👋</span>
           <span className="m-main">
             Abmelden
             <div className="row-sub">{session.user.email}</div>

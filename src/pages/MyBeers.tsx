@@ -234,7 +234,7 @@ function Grouped({
       right={
         place != null && a.avg != null ? (
           <span className="rank-score">
-            <b>{formatRating(a.avg)} ★</b>
+            <b>{formatRating(a.avg)}</b>
             <span className="count">{a.count}×</span>
           </span>
         ) : (

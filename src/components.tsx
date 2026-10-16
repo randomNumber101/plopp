@@ -360,7 +360,7 @@ const RATING_WORDS: [number, string][] = [
 ]
 export const ratingWord = (v: number) => RATING_WORDS.find(([max]) => v < max)?.[1] ?? ''
 
-/** Bewertung mit Sternen (ganze Sterne antippen) und Regler für Zwischenwerte in Zehnteln */
+/** Bewertung mit Kronkorken (ganze antippen) und Regler für Zwischenwerte in Zehnteln */
 export function RatingInput({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
   const v = value ?? 0
   return (
@@ -384,7 +384,7 @@ export function RatingInput({ value, onChange }: { value: number | null; onChang
         />
         <span className="rating-num">{value != null ? formatRating(value) : '–'}</span>
       </div>
-      <div className="rate-label">{value != null ? ratingWord(value) : 'Sterne antippen oder Regler schieben'}</div>
+      <div className="rate-label">{value != null ? ratingWord(value) : ''}</div>
     </div>
   )
 }

@@ -2603,10 +2603,11 @@ button.tag {
   gap: 12px;
   padding: 14px;
   border: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px dashed var(--border);
   background: none;
   text-align: left;
-  font-weight: 800;
+  font-weight: 700;
+  min-height: 56px;
   cursor: pointer;
   color: var(--text);
   text-decoration: none;
@@ -5582,4 +5583,52 @@ html:has(.app-map) body {
   background: rgb(255 255 255 / 0.16);
   color: #fff;
   border: none;
+}
+
+/* Mehr: drei große Kacheln – Statistik im Kasten-Grün, Abzeichen und Quiz im Rummel-Look */
+.more-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.more-tiles button {
+  height: 100px;
+  border: none;
+  border-radius: 14px;
+  display: flex;
+  align-items: flex-end;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+
+.more-tiles button:active {
+  transform: translateY(2px);
+}
+
+.mt-stats {
+  background: var(--crate);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.45rem;
+  box-shadow: 0 4px 0 var(--crate-deep);
+}
+
+.mt-herzen {
+  background: var(--night) radial-gradient(circle at 80% 26%, var(--ginger) 0 13px, transparent 14px);
+  color: var(--bulb);
+  font-family: var(--font-rummel);
+  font-size: 1.02rem;
+  box-shadow: 0 4px 0 #0b0d26;
+}
+
+.mt-quiz {
+  background: var(--rummel-red) radial-gradient(circle at 80% 26%, var(--bulb) 0 7px, transparent 8px);
+  color: var(--night-text);
+  font-family: var(--font-rummel);
+  font-size: 1.02rem;
+  box-shadow: 0 4px 0 var(--rummel-red-deep);
 }

@@ -222,7 +222,7 @@ export const CHALLENGES: ChallengeDef[] = [
     check: ({ tonight }) => ({ cur: Math.min(2, tonight.filter((c) => c.rating != null && c.note?.trim()).length), goal: 2 }),
   },
   {
-    id: 'sterne', icon: '⭐', title: 'Sterne-Koch', kind: 'auto',
+    id: 'sterne', icon: '🧢', title: 'Korken-Kritiker', kind: 'auto',
     desc: 'Mindestens 2 Biere trinken und jedes davon bewerten',
     check: ({ tonight }) => {
       const all = tonight.length
@@ -232,7 +232,7 @@ export const CHALLENGES: ChallengeDef[] = [
   },
   {
     id: 'juror', icon: '🧐', title: 'Strenger Juror', kind: 'auto',
-    desc: 'Zwei Biere bewerten, die mindestens 1,5 Sterne auseinander liegen',
+    desc: 'Zwei Biere bewerten, die mindestens 1,5 Korken auseinander liegen',
     check: ({ tonight }) => {
       const r = tonight.map((c) => c.rating).filter((x): x is number => x != null)
       const diff = r.length >= 2 ? Math.max(...r) - Math.min(...r) : 0
@@ -241,7 +241,7 @@ export const CHALLENGES: ChallengeDef[] = [
   },
   {
     id: 'volle', icon: '💎', title: 'Volle Punktzahl', kind: 'auto',
-    desc: 'Finde heute ein Bier, das 5 Sterne verdient',
+    desc: 'Finde heute ein Bier, das volle 5 Korken verdient',
     check: ({ tonight }) => ({ cur: tonight.some((c) => (c.rating ?? 0) >= 5) ? 1 : 0, goal: 1 }),
   },
   {

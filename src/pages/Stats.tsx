@@ -87,7 +87,7 @@ export default function Stats() {
         </div>
         <div className="stat">
           <b>{s.avgRating != null ? <CountUp value={s.avgRating} decimals={1} /> : '–'}</b>
-          <span>Ø Sterne</span>
+          <span>Ø Note</span>
         </div>
       </div>
 
@@ -305,7 +305,7 @@ function Review({ list, avgAbv }: { list: Checkin[]; avgAbv: number | null }) {
                     `${b.checkins.length} Check-in${b.checkins.length === 1 ? '' : 's'}`,
                     `${beers.length} verschiedene`,
                     fresh ? `${fresh} neu` : null,
-                    avg != null ? `Ø ${formatRating(avg)} ★` : null,
+                    avg != null ? `Ø ${formatRating(avg)}` : null,
                   ]
                     .filter(Boolean)
                     .join(' · ')
