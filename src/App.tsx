@@ -30,6 +30,7 @@ const Suggestions = lazy(() => import('./pages/Suggestions'))
 const CatalogAdmin = lazy(() => import('./pages/CatalogAdmin'))
 const ChallengePage = lazy(() => import('./pages/Challenge'))
 const QuizPage = lazy(() => import('./pages/Quiz'))
+const BadgesPage = lazy(() => import('./pages/Badges'))
 
 const NAV = [
   { path: '', Icon: IconCrate, label: 'Meine' },
@@ -54,11 +55,23 @@ function useHeadHeight(ready: boolean) {
   return ref
 }
 
+/** Farbe der Browser-/Statusleiste: wie der Kopf (hell/dunkel), auf dem Rummel nachtblau */
+function useThemeColor(rummel: boolean) {
+  useEffect(() => {
+    const metas = [...document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')]
+    for (const m of metas) {
+      m.dataset.base ??= m.content
+      m.content = rummel ? '#1b1f4a' : m.dataset.base
+    }
+  }, [rummel])
+}
+
 export default function App() {
   const [fizz, setFizz] = useState(0)
   const [session, setSession] = useState<Session | null | undefined>(undefined)
   const headRef = useHeadHeight(!!session)
   const route = useRoute()
+  useThemeColor(route[0] === 'challenge' || route[0] === 'quiz')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -136,6 +149,9 @@ export default function App() {
     case 'quiz':
       content = <QuizPage key={route.join('/')} mode={id === 'challenge' ? 'challenge' : 'free'} />
       break
+    case 'abzeichen':
+      content = <BadgesPage />
+      break
     case 'invite':
       content = id ? <InviteWhileLoggedIn session={session} code={id} /> : <MyBeers />
       break
@@ -144,19 +160,20 @@ export default function App() {
   }
 
   const active = page ?? ''
-  const isSub = ['beer', 'brewery', 'new', 'scan', 'stats', 'invite', 'suggestions', 'katalog', 'challenge', 'quiz'].includes(active)
+  const rummel = active === 'challenge' || active === 'quiz'
+  const isSub = ['beer', 'brewery', 'new', 'scan', 'stats', 'abzeichen', 'invite', 'suggestions', 'katalog', 'challenge', 'quiz'].includes(active)
   const navActive = isSub
     ? active === 'brewery'
       ? 'breweries'
       : active === 'scan' || active === 'new'
         ? 'catalog'
-        : ['stats', 'invite', 'suggestions', 'katalog'].includes(active)
+        : ['stats', 'abzeichen', 'invite', 'suggestions', 'katalog'].includes(active)
           ? 'settings'
           : '-'
     : active
 
   return (
-    <div className={`app ${active === 'map' ? 'app-map' : ''} ${active === 'challenge' || active === 'quiz' ? 'app-rummel' : ''}`}>
+    <div className={`app ${active === 'map' ? 'app-map' : ''} ${rummel ? 'app-rummel' : ''}`}>
       <header className="topbar" ref={headRef}>
         <div className="topbar-row">
           {isSub && (

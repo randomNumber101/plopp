@@ -207,10 +207,10 @@ export default function KastenStapel({ caps }: { caps: CrateCap[] }) {
   const capSize = Math.round(slot * 0.84)
   const B = Math.max(1, buckets.length)
   const colW = W / B
-  const discW = Math.max(12, Math.min(40, colW - 10))
+  const discW = Math.max(14, Math.min(44, colW - 8))
   const base = H - 44
   const maxN = Math.max(1, ...buckets.map((b) => b.items.length))
-  const step = Math.min(11, (base - 34) / maxN)
+  const step = Math.min(7, (base - 40) / maxN)
 
   const slotPos = (i: number) => ({ x: pad + (i % 5) * (slot + gap), y: 24 + Math.floor(i / 5) * (slot + gap) })
   const selBucket = sel ? [...(stackMode ? buckets : evenings)].find((b) => b.key === sel) : undefined
@@ -303,18 +303,18 @@ export default function KastenStapel({ caps }: { caps: CrateCap[] }) {
               onClick={() => setSel(sel === b.key ? null : b.key)}
               aria-label={`${b.title}: ${b.items.length} neue Biere`}
             >
-              <span className="ks-col-n" style={{ bottom: H - base + b.items.length * step + 8 }}>
+              <span className="ks-col-n" style={{ bottom: H - base + (b.items.length - 1) * step + 4 }}>
                 {b.items.length}
               </span>
-              <span className="ks-col-label" style={{ top: base + 14 }}>
+              <span className="ks-col-label" style={{ top: base - 2 }}>
                 {B > 12 && j % 2 ? '' : b.label}
               </span>
             </button>
           ))}
-        {stackMode && <span className="ks-base" style={{ top: base + 10 }} />}
+        {stackMode && <span className="ks-base" style={{ top: base + 15 }} />}
         {crate.map((c, i) => {
           const dim = sel && keyOfCap(i) !== sel
-          let style: React.CSSProperties
+          let style: React.CSSProperties & { '--c'?: string }
           if (!stackMode) {
             const p = slotPos(i)
             const o = (slot - capSize) / 2
@@ -334,8 +334,9 @@ export default function KastenStapel({ caps }: { caps: CrateCap[] }) {
               left: colW * (j + 0.5) - discW / 2,
               top: base - n * step,
               width: discW,
-              height: 10,
-              background: c.color,
+              height: 15,
+              background: undefined,
+              '--c': c.color,
               color: 'transparent',
               fontSize: 0,
               transitionDelay: `${j * 50 + n * 25}ms`,

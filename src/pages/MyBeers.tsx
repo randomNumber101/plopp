@@ -19,7 +19,7 @@ import {
 import { go } from '../router'
 import { usePageState } from '../pageState'
 import { haptic, load, save } from '../ui/fx'
-import { IconChevron, IconFindAdd } from '../ui/icons'
+import { IconChevron, IconFindAdd, IconTrophy } from '../ui/icons'
 import KastenStapel, { capsFromCheckins } from '../ui/KastenStapel'
 
 type Sort = 'recent' | 'count' | 'rating' | 'name'
@@ -83,34 +83,37 @@ export default function MyBeers() {
     <div className="page">
       {checkins.data && <KastenStapel caps={caps} />}
       {checkins.data && stats.checkins > 0 && (
-        <button className="ks-stats" onClick={() => go('/stats')} aria-label="Statistik und Abzeichen öffnen">
-          <span>
-            <b>
-              <CountUp value={stats.unique} />
-            </b>
-            {stats.unique === 1 ? 'Bier' : 'Biere'}
-          </span>
-          <span>
-            <b>
-              <CountUp value={stats.breweries} />
-            </b>
-            Brauereien
-          </span>
-          <span>
-            <b>
-              <CountUp value={stats.states.size} />
-              /16
-            </b>
-            Länder
-          </span>
-          <span>
-            <b>
-              {badges}
-            </b>
-            Herzen
-          </span>
-          <IconChevron size={18} />
-        </button>
+        <div className="ks-stats">
+          <button className="ks-stats-main" onClick={() => go('/stats')} aria-label="Statistik öffnen">
+            <span className="ks-trophy" aria-hidden="true">
+              <IconTrophy size={22} />
+            </span>
+            <span>
+              <b>
+                <CountUp value={stats.unique} />
+              </b>
+              {stats.unique === 1 ? 'Bier' : 'Biere'}
+            </span>
+            <span>
+              <b>
+                <CountUp value={stats.breweries} />
+              </b>
+              Brauereien
+            </span>
+            <span>
+              <b>
+                <CountUp value={stats.states.size} />
+                /16
+              </b>
+              Länder
+            </span>
+            <IconChevron size={18} />
+          </button>
+          <button className="ks-stats-badges" onClick={() => go('/abzeichen')} aria-label="Abzeichen öffnen">
+            <b>{badges}</b>
+            Abzeichen
+          </button>
+        </div>
       )}
 
       <div className="tabs" style={{ '--i': tab === 'drunk' ? 0 : 1, '--n': 2 } as React.CSSProperties}>

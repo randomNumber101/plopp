@@ -9,7 +9,7 @@ import { usePageState } from '../pageState'
 import { setPrefill } from '../store'
 import { BREWERY_TYPES, type BreweryProgress } from '../types'
 import { beerNameShortener } from '../brewery'
-import { Cap, capMark, houseColor } from '../ui/kasten'
+import { Cap, capBackground, capMark, houseColor, inkOn } from '../ui/kasten'
 import { loadRegions, regionAt, regionProgress } from '../regions'
 import { IconFit, IconLocate, IconMinus, IconPlus, IconSearch } from '../ui/icons'
 
@@ -61,15 +61,16 @@ function esc(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 }
 
-/** Brauerei als Kronkorken: gelb = probiert, mit Haken = alles probiert, weiß = gemerkt, dunkel = offen */
+/** Brauerei als Kronkorken in ihrer Hausfarbe mit Kürzel. Probiert: gelbe Marke mit Anzahl (✓ = alles), noch offen: blasser */
 function pinIcon(b: BreweryProgress, selected: boolean) {
   const st = status(b)
+  const color = houseColor(b)
   const cls = `kpin st-${st} tr-${b.trust ?? 'user'}${selected ? ' selected' : ''}`
-  const badge = st === 'all' ? '<b class="kpin-badge">✓</b>' : b.drunk > 0 ? `<b class="kpin-badge">${b.drunk}</b>` : ''
-  const size = selected ? 40 : 30
+  const badge = st === 'all' ? '<b class="kpin-badge">✓</b>' : b.drunk > 0 ? `<b class="kpin-badge">${b.drunk}</b>` : st === 'wish' ? '<b class="kpin-badge wish">★</b>' : ''
+  const size = selected ? 44 : 34
   return L.divIcon({
     className: 'kpin-wrap',
-    html: `<div class="${cls}"><span class="kpin-cap"></span>${badge}</div>`,
+    html: `<div class="${cls}"><span class="kpin-cap" style="background:${capBackground(color)};color:${inkOn(color)}">${esc(capMark(b.name))}</span>${badge}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   })
@@ -89,17 +90,6 @@ function clusterIcon(cluster: L.MarkerCluster) {
     iconSize: [w, 40],
     iconAnchor: [w / 2, 20],
   })
-}
-
-const isAbroad = (b: BreweryProgress) => !!b.country && !/^(de|deu|deutschland|germany)$/i.test(b.country.trim())
-
-interface EdgeChip {
-  key: string
-  label: string
-  x: number
-  y: number
-  rot: number
-  bounds: L.LatLngBounds
 }
 
 export default function MapPage() {
@@ -270,56 +260,6 @@ export default function MapPage() {
     }
   }, [data.data, filter, onlyVerified, regionSel, regions.data])
 
-  // Brauereien im Ausland, die gerade außerhalb des Ausschnitts liegen: Pfeil-Chip am Rand, je Land einer
-  const [edges, setEdges] = useState<EdgeChip[]>([])
-  useEffect(() => {
-    const m = map.current
-    if (!m || !data.data || layer !== 'pins') {
-      setEdges([])
-      return
-    }
-    const test = FILTERS.find((f) => f.id === filter)!.test
-    const byCountry = new Map<string, BreweryProgress[]>()
-    for (const b of data.data) {
-      if (b.lat == null || b.lng == null || !isAbroad(b) || !test(b)) continue
-      if (regionSel) continue
-      const k = b.country!.trim()
-      byCountry.set(k, [...(byCountry.get(k) ?? []), b])
-    }
-    const update = () => {
-      const view = m.getBounds()
-      const size = m.getSize()
-      const out: EdgeChip[] = []
-      for (const [country, list] of byCountry) {
-        const off = list.filter((b) => !view.contains([b.lat!, b.lng!]))
-        if (!off.length) continue
-        const bounds = L.latLngBounds(off.map((b) => [b.lat!, b.lng!] as L.LatLngTuple))
-        const c = m.latLngToContainerPoint(bounds.getCenter())
-        const cx = size.x / 2
-        const cy = size.y / 2
-        const dx = c.x - cx
-        const dy = c.y - cy
-        const t = Math.min((cx - 52) / Math.abs(dx || 0.001), (cy - 70) / Math.abs(dy || 0.001))
-        if (t >= 1) continue
-        const tried = off.filter((b) => b.drunk > 0).length
-        out.push({
-          key: country,
-          label: `${country} ${tried}/${off.length}`,
-          x: Math.max(60, Math.min(size.x - 60, cx + dx * t)),
-          y: Math.max(225, Math.min(size.y - 95, cy + dy * t)),
-          rot: Math.round((Math.atan2(dy, dx) * 180) / Math.PI),
-          bounds,
-        })
-      }
-      setEdges(out)
-    }
-    update()
-    m.on('moveend zoomend resize', update)
-    return () => {
-      m.off('moveend zoomend resize', update)
-    }
-  }, [data.data, filter, layer, regionSel])
-
   // Regionen einfärben: grau = noch nicht erkundet, je mehr Brauereien probiert, desto kräftiger
   const rprog = useMemo(
     () => (regions.data && data.data ? regionProgress(regions.data, data.data) : null),
@@ -335,7 +275,7 @@ export default function MapPage() {
       type: 'FeatureCollection',
       features: regions.data.map((r) => ({ type: 'Feature', properties: { id: r.id }, geometry: r.geometry })),
     }
-    const gj = L.geoJSON(fc, {
+    const gj: L.GeoJSON = L.geoJSON(fc, {
       style: (f) => {
         const p = byId.get(f?.properties.id)
         const pct = p && p.breweries ? p.visited / p.breweries : 0
@@ -346,6 +286,14 @@ export default function MapPage() {
       },
       onEachFeature: (f, lyr) => {
         const p = byId.get(f.properties.id)
+        // angetippte Region umranden, bis das Fenster wieder zu ist
+        const path = lyr as L.Path
+        lyr.on('click', () => {
+          gj.eachLayer((o) => gj.resetStyle(o as L.Path))
+          path.setStyle({ color: '#12261a', weight: 4, dashArray: undefined, fillOpacity: 0.75 })
+          path.bringToFront()
+        })
+        lyr.on('popupclose', () => gj.resetStyle(path))
         if (!p) return
         const pct = p.breweries ? Math.round((p.visited / p.breweries) * 100) : 0
         lyr.bindPopup(
@@ -520,21 +468,6 @@ export default function MapPage() {
         )}
       </div>
 
-      {edges.map((e) => (
-        <button
-          key={e.key}
-          className="edge-chip"
-          style={{ left: e.x, top: e.y }}
-          onClick={() => map.current?.flyToBounds(e.bounds, { padding: [60, 60], maxZoom: 9, duration: 0.7 })}
-          aria-label={`Brauereien in ${e.key} zeigen`}
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: `rotate(${e.rot}deg)` }}>
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-          {e.label}
-        </button>
-      ))}
-
       <div className="map-tools">
         <button className="map-tool" onClick={() => map.current?.zoomIn()} aria-label="Hineinzoomen">
           <IconPlus size={22} />
@@ -593,7 +526,7 @@ export default function MapPage() {
             <i className="lg lg-some" /> probiert
           </span>
           <span>
-            <i className="lg lg-none" /> offen
+            <i className="lg lg-none" /> noch offen
           </span>
           <span>
             <i className="lg lg-crate" /> Gruppe

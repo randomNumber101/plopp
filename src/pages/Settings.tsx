@@ -43,17 +43,7 @@ export default function Settings({ session }: { session: Session }) {
         <button className="mt-stats" onClick={() => go('/stats')}>
           Statistik
         </button>
-        <button
-          className="mt-herzen"
-          onClick={() => {
-            try {
-              sessionStorage.setItem('plopp-scroll', 'herzen')
-            } catch {
-              /* egal */
-            }
-            go('/stats')
-          }}
-        >
+        <button className="mt-herzen" onClick={() => go('/abzeichen')}>
           Abzeichen
         </button>
         <button className="mt-quiz" onClick={() => go('/quiz')}>

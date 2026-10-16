@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { breweryProgress, myCheckins } from '../api'
 import {
   ACHIEVEMENTS,
-  GROUPS,
   computeStats,
   markSeen,
   progress,
@@ -47,17 +46,7 @@ export default function Stats() {
   useEffect(() => {
     if (data.data) markSeen(s)
   }, [data.data, s])
-  // aus „Mehr → Abzeichen“: direkt zur Herzenbude
-  useEffect(() => {
-    if (!data.data) return
-    try {
-      if (sessionStorage.getItem('plopp-scroll') !== 'herzen') return
-      sessionStorage.removeItem('plopp-scroll')
-    } catch {
-      return
-    }
-    requestAnimationFrame(() => document.getElementById('herzen')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }, [data.data])
+
 
   if (data.loading && !data.data) return <Spinner />
   if (data.error) return <ErrorBox msg={data.error} />
@@ -71,7 +60,6 @@ export default function Stats() {
   const styles = [...s.styles.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6)
   const maxStyle = Math.max(1, ...styles.map((x) => x[1]))
   const done = ACHIEVEMENTS.filter((a) => progress(a, s).done)
-  const open = ACHIEVEMENTS.filter((a) => !progress(a, s).done).sort((a, b) => progress(b, s).pct - progress(a, s).pct)
 
   return (
     <div className="page">
@@ -130,60 +118,22 @@ export default function Stats() {
 
       <QuizCard answers={ctx.quiz} />
 
-      <div className="herzenbude" id="herzen">
-      <div className="hb-awning" aria-hidden="true" />
-      <div className="hb-head">
-        <h3>Herzenbude</h3>
-        <span>
-          {done.length} von {ACHIEVEMENTS.length}
+      <button className="badge-link" onClick={() => go('/abzeichen')}>
+        <span className="badge-link-crate" aria-hidden="true">
+          <i className="kk" />
+          <i className="kk" />
+          <i className="kk off" />
         </span>
-      </div>
-      {GROUPS.map((grp) => {
-        const items = [...done, ...open].filter((a) => a.group === grp)
-        const n = items.filter((a) => progress(a, s).done).length
-        return (
-          <section key={grp} className="ach-group">
-            <div className="ach-group-head">
-              <b>{grp}</b>
-              <span className="muted small">
-                {n}/{items.length}
-              </span>
-            </div>
-            <div className="badges">
-              {items.map((a, i) => {
-                const p = progress(a, s)
-                return (
-                  <div
-                    key={a.id}
-                    className={`ach ${p.done ? 'done' : ''}`}
-                    style={{ animationDelay: `${Math.min(i, 12) * 30}ms`, '--tilt': `${((i * 7) % 7) - 3}deg`, '--str': `${12 + ((i * 5) % 18)}px` } as React.CSSProperties}
-                    title={a.desc}
-                  >
-                    <svg className="ach-heart" viewBox="0 0 160 146" preserveAspectRatio="none" aria-hidden="true">
-                      <path d="M80 140C40 112 6 86 6 46 6 22 24 6 46 6c15 0 27 8 34 20 7-12 19-20 34-20 22 0 40 16 40 40 0 40-34 66-74 94Z" />
-                      <path className="icing" d="M80 126C46 102 18 80 18 47 18 30 31 18 47 18c14 0 25 9 33 24 8-15 19-24 33-24 16 0 29 12 29 29 0 33-28 55-62 79Z" />
-                    </svg>
-                    <div className="ach-icon">{a.icon}</div>
-                    <div className="ach-title">{a.title}</div>
-                    <div className="ach-desc">{a.desc}</div>
-                    {!p.done && (
-                      <>
-                        <div className="ach-prog">
-                          <i style={{ width: `${p.pct}%` }} />
-                        </div>
-                        <div className="ach-desc">
-                          {p.value}/{a.goal}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )
-      })}
-      </div>
+        <span className="badge-link-text">
+          <b>Abzeichen</b>
+          <span>
+            {done.length} von {ACHIEVEMENTS.length} gesammelt
+          </span>
+        </span>
+        <span className="badge-link-go" aria-hidden="true">
+          ›
+        </span>
+      </button>
 
       {styles.length > 0 && (
         <div className="card">

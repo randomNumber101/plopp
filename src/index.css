@@ -1752,10 +1752,25 @@ label.check input {
     height 0.45s ease, opacity 0.3s;
 }
 
+/* Kronkorken von der Seite: geriffelter Rand mit Zacken unten, helle Deckelfläche oben */
 .ks-cap.disc {
-  clip-path: none;
+  clip-path: polygon(0% 4.0px, 10% 1.6px, 20% 0.8px, 30% 0.3px, 40% 0.1px, 50% 0.0px, 60% 0.1px, 70% 0.3px, 80% 0.8px, 90% 1.6px, 100% 4.0px, 100.0% 100%, 96.4% calc(100% - 3px), 92.9% 100%, 89.3% calc(100% - 3px), 85.7% 100%, 82.1% calc(100% - 3px), 78.6% 100%, 75.0% calc(100% - 3px), 71.4% 100%, 67.9% calc(100% - 3px), 64.3% 100%, 60.7% calc(100% - 3px), 57.1% 100%, 53.6% calc(100% - 3px), 50.0% 100%, 46.4% calc(100% - 3px), 42.9% 100%, 39.3% calc(100% - 3px), 35.7% 100%, 32.1% calc(100% - 3px), 28.6% 100%, 25.0% calc(100% - 3px), 21.4% 100%, 17.9% calc(100% - 3px), 14.3% 100%, 10.7% calc(100% - 3px), 7.1% 100%, 3.6% calc(100% - 3px), 0.0% 100%);
+  border-radius: 0;
+  overflow: visible;
+  background: repeating-linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 1.5px, rgb(255 255 255 / 0.12) 1.5px 2.5px, transparent 2.5px 4.5px),
+    linear-gradient(to bottom, transparent 0 5px, rgb(0 0 0 / 0.12) 5px 100%), var(--c);
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.4));
+}
+
+.ks-cap.disc::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 8px;
   border-radius: 50%;
-  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.35);
+  background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--c) 78%, #fff) 0 52%, color-mix(in srgb, var(--c) 60%, #000) 56% 62%, color-mix(in srgb, var(--c) 80%, #fff) 66%);
 }
 
 .ks-cap.drop {
@@ -1983,22 +1998,29 @@ label.check input {
 
 .ks-stats {
   display: flex;
+  gap: 6px;
+}
+
+.ks-stats-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   border: none;
   border-radius: 14px;
   background: var(--text);
   color: var(--bg);
-  padding: 10px 10px 10px 14px;
+  padding: 8px 8px 8px 8px;
   cursor: pointer;
   text-align: left;
 }
 
-.ks-stats > span {
+.ks-stats-main > span:not(.ks-trophy) {
   flex: 1;
   display: flex;
   flex-direction: column;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   opacity: 0.9;
 }
@@ -2006,9 +2028,49 @@ label.check input {
 .ks-stats b {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 1.5rem;
+  font-size: 1.45rem;
   line-height: 1;
   color: var(--pfand);
+}
+
+.ks-trophy {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--pfand);
+  color: #12261a;
+  display: grid;
+  place-items: center;
+  margin-right: 4px;
+}
+
+.ks-stats-badges {
+  flex: 0 0 auto;
+  width: 88px;
+  border: none;
+  border-radius: 14px;
+  background: var(--night) radial-gradient(circle at 78% 24%, var(--ginger) 0 9px, transparent 10px);
+  color: var(--night-text);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 8px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ks-stats-badges b {
+  color: var(--bulb);
+}
+
+@media (prefers-color-scheme: dark) {
+  .ks-stats-main {
+    background: var(--surface-2);
+    color: var(--text);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5918,13 +5980,6 @@ html:has(.app-map) body {
   padding-bottom: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .ks-stats {
-    background: var(--surface-2);
-    color: var(--text);
-  }
-}
-
 .label-text .trust-badge * {
   color: #fff;
 }
@@ -6005,25 +6060,29 @@ html:has(.app-map) body {
   position: absolute;
   inset: 0;
   clip-path: var(--cap);
-  background: radial-gradient(circle, #12261a 0 55%, rgb(255 255 255 / 0.18) 56% 60%, #12261a 61%);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 12.5px;
+  line-height: 1;
 }
 
-.kpin.st-some .kpin-cap,
-.kpin.st-all .kpin-cap {
-  background: radial-gradient(circle, #ffd23f 0 55%, rgb(0 0 0 / 0.22) 56% 60%, #ffd23f 61%);
+.kpin.selected .kpin-cap {
+  font-size: 16px;
 }
 
-.kpin.st-wish .kpin-cap {
-  background: radial-gradient(circle, #ffffff 0 55%, rgb(0 0 0 / 0.2) 56% 60%, #ffffff 61%);
+/* noch nicht probiert: blasser */
+.kpin.st-none .kpin-cap,
+.kpin.st-wish .kpin-cap,
+.kpin.st-empty .kpin-cap {
+  filter: saturate(0.45) brightness(1.05);
+  opacity: 0.8;
 }
 
 .kpin.st-empty .kpin-cap {
-  inset: 6px;
-  background: #7c9584;
-}
-
-.kpin.tr-unverified .kpin-cap {
-  opacity: 0.75;
+  inset: 5px;
+  font-size: 0;
 }
 
 .kpin-badge {
@@ -6040,8 +6099,16 @@ html:has(.app-map) body {
   text-align: center;
 }
 
-.kpin.st-all .kpin-badge {
-  background: var(--crate-deep);
+.kpin-badge {
+  background: var(--pfand) !important;
+  color: #12261a !important;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.kpin-badge.wish {
+  background: #fff !important;
+  color: #b8952f !important;
+  box-shadow: 0 0 0 1.5px #b8952f;
 }
 
 .kpin.selected {
@@ -6098,30 +6165,6 @@ html:has(.app-map) body {
   background: var(--pfand);
 }
 
-.edge-chip {
-  position: absolute;
-  z-index: 790;
-  transform: translate(-50%, -50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 32px;
-  padding: 0 11px;
-  border: none;
-  border-radius: 16px;
-  background: #12261a;
-  color: #fff;
-  font-weight: 700;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  box-shadow: 0 3px 10px rgb(0 0 0 / 0.3);
-  cursor: pointer;
-}
-
-.edge-chip svg {
-  color: var(--pfand);
-}
-
 .lg {
   border: none;
   border-radius: 0;
@@ -6131,11 +6174,14 @@ html:has(.app-map) body {
 }
 
 .lg-some {
+  clip-path: none;
+  border-radius: 50%;
   background: var(--pfand);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgb(0 0 0 / 0.15);
 }
 
 .lg-none {
-  background: #12261a;
+  background: #9aa9a0;
 }
 
 .lg-crate {
@@ -6187,9 +6233,6 @@ html:has(.app-map) body {
 }
 
 @media (prefers-color-scheme: dark) {
-  .kpin-cap {
-    background: radial-gradient(circle, #e8f1ea 0 55%, rgb(0 0 0 / 0.25) 56% 60%, #e8f1ea 61%);
-  }
   .lg-none {
     background: #e8f1ea;
   }
@@ -6399,4 +6442,163 @@ html:has(.app-map) body {
 
 @media (prefers-reduced-motion: reduce) {
   .herzenbude .ach.done { animation: none; }
+}
+
+/* Statistik → Abzeichen */
+.badge-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  border-radius: 14px;
+  background: var(--crate);
+  color: #fff;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 -5px 0 var(--crate-mid), 0 4px 0 var(--crate-deep);
+}
+
+.badge-link-crate {
+  display: flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 8px;
+  background: var(--crate-deep);
+}
+
+.badge-link-crate .kk {
+  width: 24px;
+  height: 24px;
+  background: radial-gradient(circle, var(--pfand) 0 55%, rgb(0 0 0 / 0.22) 56% 60%, var(--pfand) 61%);
+}
+
+.badge-link-crate .kk.off {
+  background: #2d6a46;
+}
+
+.badge-link-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.badge-link-text b {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.badge-link-text span {
+  font-size: 0.88rem;
+  color: var(--crate-sub);
+}
+
+.badge-link-go {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--pfand);
+}
+
+/* Abzeichen-Seite: Sammlung als Kästen */
+.badges-page.losbude .herzenbude {
+  margin-top: 0;
+  border-radius: 0;
+}
+
+.bc-crate {
+  position: relative;
+  border-radius: 16px;
+  background: var(--crate);
+  color: #fff;
+  padding: 26px 10px 12px;
+  box-shadow: inset 0 -6px 0 var(--crate-mid), 0 6px 0 var(--crate-deep);
+  margin-bottom: 6px;
+}
+
+.bc-crate .ks-grip {
+  top: 9px;
+}
+
+.bc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 4px 10px;
+}
+
+.bc-head b {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.bc-head span {
+  font-weight: 700;
+  color: var(--pfand);
+}
+
+.bc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px 6px;
+}
+
+.bc-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 3px;
+  animation: row-in 0.3s ease-out both;
+}
+
+.bc-slot {
+  width: 74px;
+  height: 74px;
+  border-radius: 12px;
+  background: var(--crate-deep);
+  box-shadow: inset 0 4px 6px rgb(0 0 0 / 0.35);
+  display: grid;
+  place-items: center;
+}
+
+.bc-cap {
+  width: 62px;
+  height: 62px;
+  /* offen: Fortschritt als gelber Anteil von unten */
+  background: linear-gradient(to top, rgb(255 210 63 / 0.55) 0 var(--p, 0%), #2d6a46 var(--p, 0%) 100%);
+}
+
+.bc-cell.done .bc-cap {
+  background: radial-gradient(circle, var(--pfand) 0 55%, rgb(0 0 0 / 0.22) 56% 60%, var(--pfand) 61%);
+  animation: cap-drop 0.6s var(--ease-bounce) both;
+}
+
+.bc-icon {
+  font-size: 1.6rem;
+  filter: grayscale(1) opacity(0.55);
+}
+
+.bc-cell.done .bc-icon {
+  filter: none;
+}
+
+.bc-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1.05;
+}
+
+.bc-desc {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: var(--crate-sub);
+}
+
+.bc-cell:not(.done) .bc-title {
+  color: var(--crate-sub);
 }
