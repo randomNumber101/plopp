@@ -1335,27 +1335,57 @@ label.check input {
   height: 32px;
 }
 
-/* Fortschritt als Bierglas */
+/* Fortschritt: Mini-Kasten (Liste) bzw. Balken im Kasten-Look (breit) */
+.mc {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-crate {
+  display: grid;
+  gap: 3px;
+  padding: 4px;
+  border-radius: 6px;
+  background: var(--crate);
+}
+
+.mc-crate i {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--crate-deep);
+}
+
+.mc-crate i.on {
+  background: var(--pfand);
+}
+
+.mc-num {
+  min-width: 36px;
+  text-align: right;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.mc.full .mc-num {
+  color: var(--ok);
+}
+
 .progress {
   position: relative;
-  width: 86px;
-  height: 24px;
-  border-radius: 999px;
-  background: var(--surface-2);
+  width: 100%;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--crate-deep);
   overflow: hidden;
-  font-size: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.08);
-}
-
-.progress-wide,
-.card .progress,
-.sheet .progress {
-  width: 100%;
-  height: 28px;
 }
 
 .progress-bar {
@@ -1363,25 +1393,14 @@ label.check input {
   left: 0;
   top: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 70%, rgb(255 255 255 / 0.45) 0 1.5px, transparent 2px) 0 0 / 14px 14px,
-    radial-gradient(circle at 60% 30%, rgb(255 255 255 / 0.35) 0 1px, transparent 1.5px) 0 0 / 10px 10px,
-    linear-gradient(180deg, var(--beer-1), var(--beer-2));
-  border-right: 5px solid var(--foam);
+  background: var(--pfand);
   transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.progress-bar[style*='width: 0%'] {
-  border-right: none;
-}
-
-.progress.full .progress-bar {
-  background: linear-gradient(180deg, #7fd37f, var(--ok));
-  border-right: none;
 }
 
 .progress span {
   position: relative;
-  color: var(--text);
+  color: #fff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
 }
 
 /* ------------------------------------------------------------------------------------------ Toast */
@@ -3459,17 +3478,121 @@ button.tag {
 }
 
 .brew-hero {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px;
-  border-radius: 24px;
-  background: radial-gradient(circle at 15% 20%, var(--accent-soft), var(--surface) 70%);
-  box-shadow: var(--shadow-1);
+  padding: 30px 16px 16px;
+  border-radius: 16px;
+  background: var(--crate);
+  color: #fff;
+  box-shadow: inset 0 -6px 0 var(--crate-mid), 0 6px 0 var(--crate-deep);
 }
 
-.brew-hero .bpin {
-  animation: pop-in 0.45s var(--ease-bounce);
+.brew-grip {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 96px;
+  margin-left: -48px;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--crate-deep);
+}
+
+.brew-hero h2 {
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+
+.brew-hero .meta,
+.brew-hero .small,
+.brew-hero .address {
+  color: var(--crate-sub);
+}
+
+.brew-hero .link,
+.brew-hero a {
+  color: #ffe68a;
+}
+
+.brew-hero .trust-badge,
+.brew-hero .type-chip {
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+  border: none;
+}
+
+.brew-hero .trust-badge * {
+  color: #fff;
+}
+
+.brew-cap {
+  animation: cap-drop 0.7s var(--ease-bounce) both;
+}
+
+.brew-logo {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 6px;
+}
+
+.brew-logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Sortiment als Kasten: ein Fach je Bier, probierte mit Korken */
+.sort-crate {
+  border-radius: 16px;
+  background: var(--crate);
+  padding: 12px;
+  box-shadow: inset 0 -6px 0 var(--crate-mid), 0 6px 0 var(--crate-deep);
+  color: #fff;
+}
+
+.sort-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.sort-head b {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.6rem;
+}
+
+.sort-head span {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--crate-sub);
+}
+
+.sort-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+}
+
+.sort-slot {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 9px;
+  background: var(--crate-deep);
+  box-shadow: inset 0 3px 5px rgb(0 0 0 / 0.35);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
 }
 
 /* Einladungen */

@@ -14,7 +14,7 @@ import {
 import { load, save, haptic } from '../ui/fx'
 import { go } from '../router'
 import { usePageState } from '../pageState'
-import { initials } from '../brewery'
+import { Cap, capMark, houseColor } from '../ui/kasten'
 import { BREWERY_HIDE_REASONS, BREWERY_TYPES, STATES, type BreweryType } from '../types'
 
 type Filter = 'beers' | 'all' | 'open' | 'started' | 'hidden'
@@ -147,7 +147,7 @@ export default function Breweries() {
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="thumb thumb-empty thumb-ini">{initials(b.name)}</div>
+                  <Cap color={houseColor(b)} mark={capMark(b.name)} size={46} />
                 )}
                 <div className="row-main">
                   <div className="row-title">

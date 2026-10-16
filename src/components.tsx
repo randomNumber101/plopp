@@ -611,7 +611,7 @@ export function FloatingBar({ children }: { children: React.ReactNode }) {
   return createPortal(<div className="action-bar">{children}</div>, document.body)
 }
 
-/** Fortschritt als sich füllendes Bierglas (Balken mit Schaumkrone) */
+/** Fortschritt als Mini-Kasten: ein Fach je Bier (bis 12), probierte Fächer gelb. „wide“: Balken im Kasten-Look */
 export function Progress({ drunk, total, wide }: { drunk: number; total: number; wide?: boolean }) {
   const pct = total ? Math.round((drunk / total) * 100) : 0
   const [shown, setShown] = useState(0)
@@ -619,10 +619,25 @@ export function Progress({ drunk, total, wide }: { drunk: number; total: number;
     const t = requestAnimationFrame(() => setShown(pct))
     return () => cancelAnimationFrame(t)
   }, [pct])
+  if (wide)
+    return (
+      <div className={`progress progress-wide ${pct >= 100 ? 'full' : ''}`} title={`${drunk} von ${total}`}>
+        <div className="progress-bar" style={{ width: `${shown}%` }} />
+        <span>
+          {drunk}/{total}
+        </span>
+      </div>
+    )
+  const n = Math.max(1, Math.min(12, total))
+  const filled = total <= 12 ? drunk : Math.min(n, Math.round((drunk / total) * n) || (drunk > 0 ? 1 : 0))
   return (
-    <div className={`progress ${wide ? 'progress-wide' : ''} ${pct >= 100 ? 'full' : ''}`} title={`${drunk} von ${total}`}>
-      <div className="progress-bar" style={{ width: `${shown}%` }} />
-      <span>
+    <div className={`mc ${pct >= 100 ? 'full' : ''}`} title={`${drunk} von ${total} probiert`}>
+      <span className="mc-crate" style={{ gridTemplateColumns: `repeat(${Math.min(6, n)}, 9px)` }} aria-hidden="true">
+        {Array.from({ length: n }, (_, i) => (
+          <i key={i} className={i < filled ? 'on' : ''} />
+        ))}
+      </span>
+      <span className="mc-num">
         {drunk}/{total}
       </span>
     </div>

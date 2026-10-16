@@ -18,7 +18,6 @@ import {
   ChoiceSheet,
   ErrorBox,
   FloatingBar,
-  Progress,
   RoundChip,
   RoundNote,
   SkeletonList,
@@ -34,7 +33,8 @@ import { setPrefill } from '../store'
 import { BREWERY_HIDE_REASONS, BREWERY_TYPES, HIDE_REASONS, STATES, type BreweryHideReason, type HideReason } from '../types'
 import { cacheGet, cacheSet } from '../pageState'
 import type { BreweryProgress } from '../types'
-import { beerNameShortener, initials } from '../brewery'
+import { Cap, capMark, houseColor } from '../ui/kasten'
+import { beerNameShortener } from '../brewery'
 import { IconEyeOff, IconTrash } from '../ui/icons'
 
 export default function BreweryDetail({ id }: { id: string }) {
@@ -150,13 +150,15 @@ export default function BreweryDetail({ id }: { id: string }) {
         </div>
       )}
       <div className="brew-hero">
+      <i className="brew-grip" aria-hidden="true" />
       <div className="brew-head">
-        <div className={`bpin ${drunkCount && drunkCount >= list.length ? 'st-all' : drunkCount ? 'st-some' : ''} ${b.logo_url ? 'has-logo' : ''}`}>
-          <span className="bpin-ini">{initials(b.name)}</span>
-          {b.logo_url && (
+        {b.logo_url ? (
+          <span className="brew-logo">
             <img src={b.logo_url} alt="" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.remove()} />
-          )}
-        </div>
+          </span>
+        ) : (
+          <Cap color={houseColor(b)} mark={capMark(b.name)} size={64} className="brew-cap" />
+        )}
         <h2>{b.name}</h2>
       </div>
       <div className="badge-row">
@@ -262,14 +264,26 @@ export default function BreweryDetail({ id }: { id: string }) {
       )}
 
       {list.length > 0 && (
-        <div className="card">
-          <div className="section-title">
-            <b>Sortiment probiert</b>
-            <span className="muted small">
-              {drunkCount >= list.length ? '🏆 alles probiert!' : `noch ${list.length - drunkCount} offen`}
+        <div className="sort-crate">
+          <div className="sort-head">
+            <b>Sortiment</b>
+            <span>
+              {drunkCount >= list.length ? 'alles probiert' : `${drunkCount} von ${list.length} probiert`}
             </span>
           </div>
-          <Progress drunk={drunkCount} total={list.length} wide />
+          <div className="sort-grid">
+            {list.map((beer) => (
+              <button
+                key={beer.id}
+                className={`sort-slot ${drunkSet.has(beer.id) ? 'on' : ''}`}
+                onClick={() => go(`/beer/${beer.id}`)}
+                aria-label={`${beer.name}${drunkSet.has(beer.id) ? ', probiert' : ''}`}
+                title={beer.name}
+              >
+                {drunkSet.has(beer.id) && <Cap color={houseColor(b)} mark={capMark(short(beer.name))} size={36} />}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
