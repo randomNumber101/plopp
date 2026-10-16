@@ -2590,14 +2590,43 @@ button.tag {
   text-align: center;
 }
 
-.login-logo {
-  font-size: 5rem;
-  animation: float 3s ease-in-out infinite;
+.login-crate {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  max-width: 260px;
+  margin: 0 auto 10px;
+  padding: 22px 10px 10px;
+  border-radius: 14px;
+  background: var(--crate);
+  box-shadow: inset 0 -5px 0 var(--crate-mid), 0 5px 0 var(--crate-deep);
+}
+
+.login-crate .ks-grip {
+  top: 7px;
+  width: 70px;
+  margin-left: -35px;
+}
+
+.login-slot {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--crate-deep);
+  display: grid;
+  place-items: center;
+}
+
+.login-slot .kk {
+  animation: ks-drop 0.7s cubic-bezier(0.3, 1.35, 0.5, 1) both;
 }
 
 .login h1 {
   margin: 8px 0 4px;
-  font-size: 2.2rem;
+  font-size: 3.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .login .tagline {
@@ -3745,13 +3774,14 @@ button.tag {
 }
 
 h1.brand {
-  font-size: 3rem;
   margin-bottom: 0;
-  background: linear-gradient(180deg, var(--beer-2), var(--accent-deep));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 2px 0 rgb(255 255 255 / 0.6));
+  color: var(--crate);
+}
+
+@media (prefers-color-scheme: dark) {
+  h1.brand {
+    color: var(--pfand);
+  }
 }
 
 .app-footer {

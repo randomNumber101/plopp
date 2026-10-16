@@ -3,6 +3,10 @@ import { supabase } from '../supabase'
 import { inviteStatus, type InviteStatus } from '../api'
 import { ErrorBox, Spinner } from '../components'
 import { go, useRoute } from '../router'
+import PloppMark from '../ui/PloppMark'
+import { capBackground } from '../ui/kasten'
+
+const LOGIN_CAPS = ['#c8102e', '#123b6b', '', '#0e5a3a', '#ffd23f', '#6b1e2e', '#1f4e9a', '#b5122b', '', '#0b3a75']
 
 function translate(msg: string) {
   if (/invalid login credentials/i.test(msg)) return 'E-Mail oder Passwort falsch.'
@@ -76,8 +80,17 @@ export default function Login() {
 
   return (
     <div className="login">
-      <div className="login-logo">🍻</div>
-      <h1 className="brand">Plopp!</h1>
+      <div className="login-crate" aria-hidden="true">
+        <i className="ks-grip" />
+        {LOGIN_CAPS.map((c, i) => (
+          <span key={i} className="login-slot">
+            {c && <span className="kk" style={{ width: '84%', height: '84%', background: capBackground(c), animationDelay: `${i * 90}ms` }} />}
+          </span>
+        ))}
+      </div>
+      <h1 className="brand">
+        <PloppMark size={48} /> Plopp!
+      </h1>
       <p className="tagline">Der Biertracker – jedes Bier zählt.</p>
 
       {status === 'checking' ? (

@@ -164,9 +164,9 @@ export default function KastenStapel({ caps }: { caps: CrateCap[] }) {
       return
     }
     // gerade voll geworden: erst den vollen Kasten zeigen, dann wegsinken lassen, dann fällt der neue drauf
-    const full = Math.floor((caps.length - 1) / CRATE)
-    setView(Math.min(full, top))
-    setDropIdx((caps.length - 1) % CRATE)
+    const full = Math.min(Math.floor(seen / CRATE), top)
+    setView(full)
+    setDropIdx(Math.floor((caps.length - 1) / CRATE) === full ? (caps.length - 1) % CRATE : null)
     setPhase('full')
     const t1 = window.setTimeout(() => setPhase('sink'), 1400)
     const t2 = window.setTimeout(() => {
