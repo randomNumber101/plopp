@@ -5632,3 +5632,221 @@ html:has(.app-map) body {
   font-size: 1.02rem;
   box-shadow: 0 4px 0 var(--rummel-red-deep);
 }
+
+/* ================================================================================ Karte im Kasten-Look */
+.kpin-wrap {
+  background: none !important;
+  border: none !important;
+}
+
+.kpin {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.35));
+  transition: transform 0.2s var(--ease-bounce);
+}
+
+.kpin-cap {
+  position: absolute;
+  inset: 0;
+  clip-path: var(--cap);
+  background: radial-gradient(circle, #12261a 0 55%, rgb(255 255 255 / 0.18) 56% 60%, #12261a 61%);
+}
+
+.kpin.st-some .kpin-cap,
+.kpin.st-all .kpin-cap {
+  background: radial-gradient(circle, #ffd23f 0 55%, rgb(0 0 0 / 0.22) 56% 60%, #ffd23f 61%);
+}
+
+.kpin.st-wish .kpin-cap {
+  background: radial-gradient(circle, #ffffff 0 55%, rgb(0 0 0 / 0.2) 56% 60%, #ffffff 61%);
+}
+
+.kpin.st-empty .kpin-cap {
+  inset: 6px;
+  background: #7c9584;
+}
+
+.kpin.tr-unverified .kpin-cap {
+  opacity: 0.75;
+}
+
+.kpin-badge {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--crate);
+  color: #fff;
+  font: 800 11px/17px var(--font-body);
+  text-align: center;
+}
+
+.kpin.st-all .kpin-badge {
+  background: var(--crate-deep);
+}
+
+.kpin.selected {
+  transform: scale(1.1);
+}
+
+.kpin.selected .kpin-cap {
+  outline: none;
+}
+
+.kcl-wrap {
+  background: none !important;
+  border: none !important;
+}
+
+.kcl {
+  position: relative;
+  height: 40px;
+  border-radius: 9px;
+  background: var(--crate);
+  box-shadow: inset 0 -5px 0 var(--crate-deep), 0 3px 8px rgb(0 0 0 / 0.3);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: transform 0.15s;
+}
+
+.kcl:active {
+  transform: scale(0.94);
+}
+
+.kcl-grip {
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--crate-deep);
+}
+
+.kcl span {
+  font: 900 17px/1 var(--font-display);
+}
+
+.kcl.some::after {
+  content: '';
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  width: 18px;
+  height: 18px;
+  clip-path: var(--cap);
+  background: var(--pfand);
+}
+
+.edge-chip {
+  position: absolute;
+  z-index: 790;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 11px;
+  border: none;
+  border-radius: 16px;
+  background: #12261a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 0.3);
+  cursor: pointer;
+}
+
+.edge-chip svg {
+  color: var(--pfand);
+}
+
+.lg {
+  border: none;
+  border-radius: 0;
+  clip-path: var(--cap);
+  width: 13px;
+  height: 13px;
+}
+
+.lg-some {
+  background: var(--pfand);
+}
+
+.lg-none {
+  background: #12261a;
+}
+
+.lg-crate {
+  clip-path: none;
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--crate);
+}
+
+.lg.lg-reg-on {
+  clip-path: none;
+  background: var(--crate);
+  border: none;
+  border-radius: 3px;
+}
+
+.lg.lg-reg-off {
+  clip-path: none;
+  background: #8fb39a;
+  border: none;
+  border-radius: 3px;
+}
+
+.map-search .search {
+  border-radius: 10px;
+}
+
+.map-tool {
+  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+}
+
+.map-legend {
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.map-mode button.on {
+  background: #12261a;
+  color: #fff;
+}
+
+.leaflet-popup-content .region-show {
+  background: var(--crate);
+  color: #fff;
+  border-radius: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .kpin-cap {
+    background: radial-gradient(circle, #e8f1ea 0 55%, rgb(0 0 0 / 0.25) 56% 60%, #e8f1ea 61%);
+  }
+  .lg-none {
+    background: #e8f1ea;
+  }
+}
+
+.mapview:not(.regions-mode) .map-tools {
+  top: 190px;
+}
+
+.brew-logo.sheet-logo-img {
+  width: 52px;
+  height: 52px;
+  box-shadow: 0 0 0 2px var(--border);
+}

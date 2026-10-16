@@ -8,7 +8,8 @@ import { go } from '../router'
 import { usePageState } from '../pageState'
 import { setPrefill } from '../store'
 import { BREWERY_TYPES, type BreweryProgress } from '../types'
-import { beerNameShortener, initials } from '../brewery'
+import { beerNameShortener } from '../brewery'
+import { Cap, capMark, houseColor } from '../ui/kasten'
 import { loadRegions, regionAt, regionProgress } from '../regions'
 import { IconFit, IconLocate, IconMinus, IconPlus, IconSearch } from '../ui/icons'
 
@@ -60,34 +61,45 @@ function esc(s: string) {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 }
 
+/** Brauerei als Kronkorken: gelb = probiert, mit Haken = alles probiert, weiß = gemerkt, dunkel = offen */
 function pinIcon(b: BreweryProgress, selected: boolean) {
-  const img = b.logo_url || b.image_url
-  const cls = `bpin st-${status(b)} tr-${b.trust ?? 'user'}${b.logo_url ? ' has-logo' : ''}${selected ? ' selected' : ''}`
-  const badge = b.drunk > 0 ? `<b class="bpin-badge">${b.drunk >= b.total ? '✓' : b.drunk}</b>` : ''
+  const st = status(b)
+  const cls = `kpin st-${st} tr-${b.trust ?? 'user'}${selected ? ' selected' : ''}`
+  const badge = st === 'all' ? '<b class="kpin-badge">✓</b>' : b.drunk > 0 ? `<b class="kpin-badge">${b.drunk}</b>` : ''
+  const size = selected ? 40 : 30
   return L.divIcon({
-    className: 'bpin-wrap',
-    html:
-      `<div class="${cls}"><span class="bpin-ini">${esc(initials(b.name))}</span>` +
-      (img ? `<img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '') +
-      `${badge}</div>`,
-    iconSize: [42, 42],
-    iconAnchor: [21, 21],
+    className: 'kpin-wrap',
+    html: `<div class="${cls}"><span class="kpin-cap"></span>${badge}</div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   })
 }
 
 type PinMarker = L.Marker & { brewery: BreweryProgress }
 
+/** Gruppe als Mini-Kasten mit „probiert/gesamt“ */
 function clusterIcon(cluster: L.MarkerCluster) {
   const ms = cluster.getAllChildMarkers() as PinMarker[]
   const tried = ms.filter((m) => m.brewery.drunk > 0).length
-  const pct = Math.round((tried / ms.length) * 100)
+  const label = `${tried}/${ms.length}`
+  const w = Math.max(54, 20 + label.length * 9)
   return L.divIcon({
-    className: 'bcluster-wrap',
-    html:
-      `<div class="bcluster" style="--p:${pct}%"><span>${ms.length}</span></div>`,
-    iconSize: [46, 46],
-    iconAnchor: [23, 23],
+    className: 'kcl-wrap',
+    html: `<div class="kcl${tried ? ' some' : ''}" style="width:${w}px"><i class="kcl-grip"></i><span>${label}</span></div>`,
+    iconSize: [w, 40],
+    iconAnchor: [w / 2, 20],
   })
+}
+
+const isAbroad = (b: BreweryProgress) => !!b.country && !/^(de|deu|deutschland|germany)$/i.test(b.country.trim())
+
+interface EdgeChip {
+  key: string
+  label: string
+  x: number
+  y: number
+  rot: number
+  bounds: L.LatLngBounds
 }
 
 export default function MapPage() {
@@ -258,6 +270,56 @@ export default function MapPage() {
     }
   }, [data.data, filter, onlyVerified, regionSel, regions.data])
 
+  // Brauereien im Ausland, die gerade außerhalb des Ausschnitts liegen: Pfeil-Chip am Rand, je Land einer
+  const [edges, setEdges] = useState<EdgeChip[]>([])
+  useEffect(() => {
+    const m = map.current
+    if (!m || !data.data || layer !== 'pins') {
+      setEdges([])
+      return
+    }
+    const test = FILTERS.find((f) => f.id === filter)!.test
+    const byCountry = new Map<string, BreweryProgress[]>()
+    for (const b of data.data) {
+      if (b.lat == null || b.lng == null || !isAbroad(b) || !test(b)) continue
+      if (regionSel) continue
+      const k = b.country!.trim()
+      byCountry.set(k, [...(byCountry.get(k) ?? []), b])
+    }
+    const update = () => {
+      const view = m.getBounds()
+      const size = m.getSize()
+      const out: EdgeChip[] = []
+      for (const [country, list] of byCountry) {
+        const off = list.filter((b) => !view.contains([b.lat!, b.lng!]))
+        if (!off.length) continue
+        const bounds = L.latLngBounds(off.map((b) => [b.lat!, b.lng!] as L.LatLngTuple))
+        const c = m.latLngToContainerPoint(bounds.getCenter())
+        const cx = size.x / 2
+        const cy = size.y / 2
+        const dx = c.x - cx
+        const dy = c.y - cy
+        const t = Math.min((cx - 52) / Math.abs(dx || 0.001), (cy - 70) / Math.abs(dy || 0.001))
+        if (t >= 1) continue
+        const tried = off.filter((b) => b.drunk > 0).length
+        out.push({
+          key: country,
+          label: `${country} ${tried}/${off.length}`,
+          x: Math.max(60, Math.min(size.x - 60, cx + dx * t)),
+          y: Math.max(225, Math.min(size.y - 95, cy + dy * t)),
+          rot: Math.round((Math.atan2(dy, dx) * 180) / Math.PI),
+          bounds,
+        })
+      }
+      setEdges(out)
+    }
+    update()
+    m.on('moveend zoomend resize', update)
+    return () => {
+      m.off('moveend zoomend resize', update)
+    }
+  }, [data.data, filter, layer, regionSel])
+
   // Regionen einfärben: grau = noch nicht erkundet, je mehr Brauereien probiert, desto kräftiger
   const rprog = useMemo(
     () => (regions.data && data.data ? regionProgress(regions.data, data.data) : null),
@@ -277,9 +339,10 @@ export default function MapPage() {
       style: (f) => {
         const p = byId.get(f?.properties.id)
         const pct = p && p.breweries ? p.visited / p.breweries : 0
-        return p && p.visited
-          ? { color: '#9a5b00', weight: 1.2, fillColor: '#f4a300', fillOpacity: 0.18 + 0.5 * pct }
-          : { color: '#8a8070', weight: 1, dashArray: '3 4', fillColor: '#6f6a60', fillOpacity: 0.22 }
+        if (!p || !p.breweries) return { color: '#ffffff', weight: 1.2, fillColor: '#cbd8ce', fillOpacity: 0.35 }
+        return p.visited
+          ? { color: '#ffffff', weight: 1.5, fillColor: pct >= 1 ? '#0f4d2b' : '#1e7a46', fillOpacity: 0.3 + 0.55 * pct }
+          : { color: '#ffffff', weight: 1.5, fillColor: '#8fb39a', fillOpacity: 0.35 }
       },
       onEachFeature: (f, lyr) => {
         const p = byId.get(f.properties.id)
@@ -457,6 +520,21 @@ export default function MapPage() {
         )}
       </div>
 
+      {edges.map((e) => (
+        <button
+          key={e.key}
+          className="edge-chip"
+          style={{ left: e.x, top: e.y }}
+          onClick={() => map.current?.flyToBounds(e.bounds, { padding: [60, 60], maxZoom: 9, duration: 0.7 })}
+          aria-label={`Brauereien in ${e.key} zeigen`}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: `rotate(${e.rot}deg)` }}>
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+          {e.label}
+        </button>
+      ))}
+
       <div className="map-tools">
         <button className="map-tool" onClick={() => map.current?.zoomIn()} aria-label="Hineinzoomen">
           <IconPlus size={22} />
@@ -512,16 +590,13 @@ export default function MapPage() {
       ) : (
         <div className="map-legend">
           <span>
-            <i className="lg lg-all" /> alles probiert
-          </span>
-          <span>
-            <i className="lg lg-some" /> teilweise
+            <i className="lg lg-some" /> probiert
           </span>
           <span>
             <i className="lg lg-none" /> offen
           </span>
           <span>
-            <i className="lg lg-unverified" /> ungeprüft
+            <i className="lg lg-crate" /> Gruppe
           </span>
           {missing > 0 && <span className="muted">· {missing} ohne Standort</span>}
         </div>
@@ -553,13 +628,9 @@ function GroupSheet({
       </div>
       <div className="sheet-list group-list">
         {list.map((b) => {
-          const img = b.logo_url || b.image_url
           return (
             <button key={b.id} type="button" className="group-row" onClick={() => onPick(b)}>
-              <span className={`bpin st-${status(b)} tr-${b.trust ?? "user"}${b.logo_url ? " has-logo" : ""} group-logo`}>
-                <span className="bpin-ini">{initials(b.name)}</span>
-                {img && <img src={img} alt="" loading="lazy" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.remove()} />}
-              </span>
+              <Cap color={houseColor(b)} mark={capMark(b.name)} size={36} />
               <span className="group-name">
                 {b.name}
                 {b.brewery_type && b.brewery_type !== 'brauerei' && (
@@ -584,24 +655,19 @@ function BrewerySheet({ b, onClose }: { b: BreweryProgress; onClose: () => void 
   const wishSet = wish.data ?? new Set<string>()
   // Offene Biere zuerst – das ist meistens interessanter
   const sorted = [...list].sort((x, y) => Number(drunkSet.has(x.id)) - Number(drunkSet.has(y.id)))
-  const img = b.logo_url || b.image_url
   const short = beerNameShortener(list.map((x) => x.name), b.name)
 
   return (
     <div className="sheet" role="dialog" aria-label={b.name}>
       <div className="sheet-handle" />
       <div className="sheet-head">
-        <div className={`bpin st-${status(b)} sheet-logo`}>
-          <span className="bpin-ini">{initials(b.name)}</span>
-          {img && (
-            <img
-              src={img}
-              alt=""
-              referrerPolicy="no-referrer"
-              onError={(e) => e.currentTarget.remove()}
-            />
-          )}
-        </div>
+        {b.logo_url ? (
+          <span className="brew-logo sheet-logo-img">
+            <img src={b.logo_url} alt="" referrerPolicy="no-referrer" onError={(e) => e.currentTarget.remove()} />
+          </span>
+        ) : (
+          <Cap color={houseColor(b)} mark={capMark(b.name)} size={52} />
+        )}
         <div className="sheet-title">
           <b>{b.name}</b>
           <span className="muted small">
