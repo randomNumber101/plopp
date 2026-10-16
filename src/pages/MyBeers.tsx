@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { myCheckins, myWishlist, setWishlist } from '../api'
-import { ACHIEVEMENTS, computeStats, progress, timeline, useStatsContext, type BeerAgg } from '../achievements'
+import { ACHIEVEMENTS, computeStats, progress, useStatsContext, type BeerAgg } from '../achievements'
 import {
   BeerRow,
   ChipBar,
@@ -17,10 +17,10 @@ import {
   useAsync,
 } from '../components'
 import { go } from '../router'
-import { fmtLeft, useChallenges } from '../challenges'
 import { usePageState } from '../pageState'
-import { haptic, load, save, useUnit } from '../ui/fx'
-import { IconChevron, IconFindAdd, IconMoon, IconTrophy } from '../ui/icons'
+import { haptic, load, save } from '../ui/fx'
+import { IconChevron, IconFindAdd } from '../ui/icons'
+import KastenStapel, { capsFromCheckins } from '../ui/KastenStapel'
 
 type Sort = 'recent' | 'count' | 'rating' | 'name'
 const SORTS: { id: Sort; label: string }[] = [
@@ -30,14 +30,6 @@ const SORTS: { id: Sort; label: string }[] = [
   { id: 'name', label: 'A–Z' },
 ]
 const PREFS = 'bier-mybeers'
-const CURRENT_LABEL = { day: 'heute', week: 'diese Woche', month: 'diesen Monat', year: 'dieses Jahr' } as const
-
-const HERO_BUBBLES = [8, 22, 37, 55, 68, 81, 93].map((left, i) => ({
-  left,
-  size: 4 + (i % 3) * 3,
-  dur: 3 + (i % 4),
-  delay: i * 0.7,
-}))
 
 export default function MyBeers() {
   const prefs = useMemo(() => load(PREFS, { tab: 'drunk', sort: 'recent', style: '' }), [])
@@ -83,71 +75,41 @@ export default function MyBeers() {
     checkins.reload()
     wish.reload()
   }
-  const [unit] = useUnit()
-  const buckets = useMemo(() => timeline(checkins.data ?? [], unit), [checkins.data, unit])
-  const maxBucket = Math.max(1, ...buckets.map((b) => b.checkins.length))
-  const current = buckets[buckets.length - 1]?.checkins.length ?? 0
+  const caps = useMemo(() => capsFromCheckins(checkins.data ?? []), [checkins.data])
   const wishCount = wish.data?.length ?? 0
   const loading = checkins.loading && !checkins.data
 
   return (
     <div className="page">
-      <ChallengeTeaser />
+      {checkins.data && <KastenStapel caps={caps} />}
       {checkins.data && stats.checkins > 0 && (
-        <button className="hero" onClick={() => go('/stats')} aria-label="Statistik und Abzeichen öffnen">
-          {HERO_BUBBLES.map((b, i) => (
-            <span
-              key={i}
-              className="hb"
-              style={{ left: `${b.left}%`, width: b.size, height: b.size, animationDuration: `${b.dur}s`, animationDelay: `${b.delay}s` }}
-            />
-          ))}
-          <div className="hero-top">
-            <div>
-              <div className="hero-kicker">Deine Sammlung</div>
-              <div className="hero-big">
-                <CountUp value={stats.unique} />
-                <small>{stats.unique === 1 ? 'Bier' : 'Biere'}</small>
-              </div>
-            </div>
-            <span className="hero-badges">
-              <IconTrophy size={18} /> {badges}/{ACHIEVEMENTS.length}
-            </span>
-          </div>
-          <div className="hero-stats">
-            <div>
-              <b>
-                <CountUp value={current} />
-              </b>
-              <span>{CURRENT_LABEL[unit]}</span>
-            </div>
-            <div>
-              <b>
-                <CountUp value={stats.breweries} />
-              </b>
-              <span>Brauereien</span>
-            </div>
-            <div>
-              <b>
-                <CountUp value={stats.states.size} />
-                /16
-              </b>
-              <span>Bundesländer</span>
-            </div>
-          </div>
-          <div className="hero-spark" aria-hidden="true">
-            {buckets.map((m, i) => (
-              <i
-                key={m.key}
-                className={i === buckets.length - 1 ? 'cur' : ''}
-                style={{ height: `${(m.checkins.length / maxBucket) * 100}%`, animationDelay: `${i * 35}ms` }}
-              />
-            ))}
-          </div>
-          <div className="hero-cta">
-            <span>Statistik & Abzeichen</span>
-            <IconChevron size={18} />
-          </div>
+        <button className="ks-stats" onClick={() => go('/stats')} aria-label="Statistik und Abzeichen öffnen">
+          <span>
+            <b>
+              <CountUp value={stats.unique} />
+            </b>
+            {stats.unique === 1 ? 'Bier' : 'Biere'}
+          </span>
+          <span>
+            <b>
+              <CountUp value={stats.breweries} />
+            </b>
+            Brauereien
+          </span>
+          <span>
+            <b>
+              <CountUp value={stats.states.size} />
+              /16
+            </b>
+            Länder
+          </span>
+          <span>
+            <b>
+              {badges}
+            </b>
+            Herzen
+          </span>
+          <IconChevron size={18} />
         </button>
       )}
 
@@ -188,7 +150,7 @@ export default function MyBeers() {
           {loading && <SkeletonList />}
           <ErrorBox msg={checkins.error} />
           {checkins.data && stats.aggs.length === 0 && (
-            <EmptyState title="Dein Glas ist noch leer">
+            <EmptyState title="Der Kasten ist noch leer">
               <button className="btn btn-primary btn-big" onClick={() => go('/catalog')}>
                 <IconFindAdd size={22} /> Erstes Bier erfassen
               </button>
@@ -317,23 +279,5 @@ function Grouped({
         </section>
       ))}
     </>
-  )
-}
-
-/** Auffällige Karte, solange am Abend noch keine Challenge gewählt ist */
-function ChallengeTeaser() {
-  const st = useChallenges()
-  if (!st.loaded || !st.night.open || st.active) return null
-  return (
-    <button className="ch-teaser" onClick={() => go('/challenge')}>
-      <span className="ch-teaser-cap" aria-hidden="true">
-        <IconMoon size={22} />
-      </span>
-      <span className="ch-teaser-text">
-        <b>Abend-Challenge wählen</b>
-        <span>noch {fmtLeft(st.night.end.getTime() - Date.now())}</span>
-      </span>
-      <IconChevron size={20} />
-    </button>
   )
 }
