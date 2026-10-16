@@ -34,6 +34,7 @@ import { go } from '../router'
 import { HIDE_REASONS, STYLES, type HideReason } from '../types'
 import { haptic } from '../ui/fx'
 import { IconEyeOff, IconTrash } from '../ui/icons'
+import { Bottle, Cap, capMark, houseColor } from '../ui/kasten'
 
 
 export default function BeerDetail({ id }: { id: string }) {
@@ -50,10 +51,12 @@ export default function BeerDetail({ id }: { id: string }) {
   const [rating, setRating] = useState<number | null>(null)
   const [note, setNote] = useState('')
   const [date, setDate] = useState(todayInput)
+  const [imgBroken, setImgBroken] = useState(false)
 
   if (beer.loading && !beer.data) return <Spinner />
   if (beer.error || !beer.data) return <ErrorBox msg={beer.error ?? 'Bier nicht gefunden.'} />
   const b = beer.data
+  const capColor = houseColor(b.brewery ?? { name: b.name })
   const list = checkins.data ?? []
   const rated = list.filter((c) => c.rating != null)
   const avg = rated.length ? rated.reduce((s, c) => s + (c.rating ?? 0), 0) / rated.length : null
@@ -126,26 +129,29 @@ export default function BeerDetail({ id }: { id: string }) {
           </button>
         </div>
       )}
-      <div className="beer-hero">
-        {b.image_url ? (
-          <img className="hero-img" src={b.image_url} alt="" referrerPolicy="no-referrer" />
-        ) : (
-          <div className="beer-hero-emoji" aria-hidden="true">
-            🍺
+      <div className="label-hero">
+        <Cap className="label-cap" color={capColor} mark={capMark(b.brewery?.name || b.name)} size={128} />
+        <div className="label-photo">
+          {b.image_url && !imgBroken ? (
+            <img src={b.image_url} alt="" referrerPolicy="no-referrer" onError={() => setImgBroken(true)} />
+          ) : (
+            <Bottle style={b.style} color={capColor} height={190} />
+          )}
+        </div>
+        <div className="label-text">
+          <h2>{b.name}</h2>
+          {b.brewery && (
+            <button className="label-brewery" onClick={() => go(`/brewery/${b.brewery!.id}`)}>
+              {b.brewery.name}
+              {b.brewery.city ? `, ${b.brewery.city}` : ''}
+            </button>
+          )}
+          <div className="tagrow">
+            {b.style && <span className="tag">{b.style}</span>}
+            {b.abv != null && <span className="tag">{formatAbv(b.abv)} %</span>}
+            <TrustBadge trust={b.trust} detail={sources} />
+            <RoundChip item={b} />
           </div>
-        )}
-        <h2>{b.name}</h2>
-        {b.brewery && (
-          <button className="link" onClick={() => go(`/brewery/${b.brewery!.id}`)}>
-            {b.brewery.name}
-            {b.brewery.city ? ` · ${b.brewery.city}` : ''}
-          </button>
-        )}
-        <div className="tagrow">
-          {b.style && <span className="tag">{b.style}</span>}
-          {b.abv != null && <span className="tag">{b.abv} % vol</span>}
-          <TrustBadge trust={b.trust} detail={sources} />
-          <RoundChip item={b} />
         </div>
       </div>
 
@@ -176,6 +182,7 @@ export default function BeerDetail({ id }: { id: string }) {
             }
           }}
         >
+          {b.brewery && <div className="coaster-print">{b.brewery.name}</div>}
           <div className="rate-q">Wie war's?</div>
           <RatingInput value={rating} onChange={setRating} />
           <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Notiz (optional) – wo, mit wem, wie?" />
@@ -195,7 +202,7 @@ export default function BeerDetail({ id }: { id: string }) {
       ) : (
         <div className="btn-row">
           <button className="btn btn-primary btn-big prost-big" disabled={busy} onClick={prost}>
-            🍻 Prost!
+            Prost!
           </button>
           <button
             className={`btn wish-btn ${wish.data ? 'btn-active on' : ''}`}
@@ -208,7 +215,7 @@ export default function BeerDetail({ id }: { id: string }) {
               toast({ icon: on ? '⭐' : '☆', msg: on ? 'Auf die Merkliste gesetzt' : 'Von der Merkliste genommen' })
             }}
           >
-            {wish.data ? '★ Gemerkt' : '☆ Merken'}
+            {wish.data ? 'Gemerkt' : 'Merken'}
           </button>
         </div>
       )}
@@ -216,7 +223,9 @@ export default function BeerDetail({ id }: { id: string }) {
 
       {list.length > 0 && (
         <>
-          <h3>Verlauf</h3>
+          <h3 className="h-with-tally">
+            Verlauf <Tally n={list.length} />
+          </h3>
           <ul className="history">
             {list.map((c, i) => (
               <li key={c.id} style={{ animationDelay: `${Math.min(i, 10) * 30}ms` }}>
@@ -366,5 +375,26 @@ function EditBeer({
       <ErrorBox msg={error} />
       <button className="btn btn-primary">Speichern</button>
     </form>
+  )
+}
+
+const formatAbv = (v: number) => v.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+
+/** Strichliste: je fünf Striche ein Bündel, der fünfte quer */
+function Tally({ n }: { n: number }) {
+  if (n <= 0) return null
+  const groups: number[] = []
+  for (let i = 0; i < Math.min(n, 40); i += 5) groups.push(Math.min(5, n - i))
+  return (
+    <span className="tally" aria-label={`${n}-mal getrunken`}>
+      {groups.map((g, i) => (
+        <span key={i} className="tally-g">
+          {Array.from({ length: Math.min(g, 4) }, (_, k) => (
+            <i key={k} />
+          ))}
+          {g === 5 && <b />}
+        </span>
+      ))}
+    </span>
   )
 }
