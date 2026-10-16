@@ -14,6 +14,8 @@ export interface CelebrateOpts {
   icon?: string
   title: string
   sub?: string
+  /** Kronkorken-Farbe beim Prost */
+  color?: string
 }
 
 export function celebrate(o: CelebrateOpts) {

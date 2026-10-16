@@ -7,7 +7,7 @@ import { checkNewAchievements } from './achievements'
 import { cacheGet, cacheSet } from './pageState'
 import { celebrate, haptic, reducedMotion, type CelebrateOpts } from './ui/fx'
 import { IconCheck, IconSearch, IconX } from './ui/icons'
-import { Bottle, houseColor } from './ui/kasten'
+import { Bottle, capBackground, houseColor } from './ui/kasten'
 
 /**
  * Lädt Daten asynchron; reload() lädt neu (ohne die alten Daten vorher zu verwerfen).
@@ -95,17 +95,11 @@ export function Toaster() {
 }
 
 // ---------------------------------------------------------------------------------------------- Feier
-const BUBBLES = Array.from({ length: 26 }, (_, i) => ({
-  left: (i * 37) % 100,
-  size: 8 + ((i * 13) % 22),
-  delay: ((i * 7) % 10) / 14,
-  dur: 1.1 + ((i * 5) % 7) / 10,
-}))
 const CONFETTI = Array.from({ length: 34 }, (_, i) => ({
   left: (i * 29) % 100,
   delay: ((i * 11) % 10) / 20,
   rot: (i * 47) % 360,
-  hue: [38, 140, 4, 205, 48, 280][i % 6],
+  hue: [48, 352, 160, 48, 230, 20][i % 6],
 }))
 
 export function Celebration() {
@@ -131,14 +125,6 @@ export function Celebration() {
   return (
     <div className={`celebrate celebrate-${c.kind ?? 'prost'}`} key={c.id} onClick={() => setC(null)} aria-live="polite">
       {motion &&
-        BUBBLES.map((b, i) => (
-          <span
-            key={i}
-            className="bubble"
-            style={{ left: `${b.left}%`, width: b.size, height: b.size, animationDelay: `${b.delay}s`, animationDuration: `${b.dur}s` }}
-          />
-        ))}
-      {motion &&
         c.kind === 'badge' &&
         CONFETTI.map((p, i) => (
           <span
@@ -147,13 +133,40 @@ export function Celebration() {
             style={{ left: `${p.left}%`, animationDelay: `${p.delay}s`, background: `hsl(${p.hue} 85% 55%)`, rotate: `${p.rot}deg` }}
           />
         ))}
-      <div className="celebrate-card">
-        <div className="celebrate-icon">{c.icon ?? '🍻'}</div>
-        {c.kind === 'badge' && <div className="celebrate-kicker">Abzeichen freigeschaltet!</div>}
-        {c.kind === 'challenge' && <div className="celebrate-kicker">Challenge geschafft!</div>}
-        <div className="celebrate-title">{c.title}</div>
-        {c.sub && <div className="celebrate-sub">{c.sub}</div>}
-      </div>
+      {c.kind === 'badge' ? (
+        <div className="celebrate-card cel-rummel">
+          <svg className="cel-heart" viewBox="0 0 160 146" aria-hidden="true">
+            <path d="M80 140C40 112 6 86 6 46 6 22 24 6 46 6c15 0 27 8 34 20 7-12 19-20 34-20 22 0 40 16 40 40 0 40-34 66-74 94Z" fill="#8a4b22" stroke="#e2334b" strokeWidth="4" />
+            <path d="M80 126C46 102 18 80 18 47 18 30 31 18 47 18c14 0 25 9 33 24 8-15 19-24 33-24 16 0 29 12 29 29 0 33-28 55-62 79Z" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="2 7" strokeLinecap="round" />
+            <text x="80" y="82" textAnchor="middle" fontSize="38">
+              {c.icon ?? '🏅'}
+            </text>
+          </svg>
+          <div className="celebrate-kicker">Neues Herz an der Bude</div>
+          <div className="celebrate-title">{c.title}</div>
+          {c.sub && <div className="celebrate-sub">{c.sub}</div>}
+        </div>
+      ) : c.kind === 'challenge' ? (
+        <div className="celebrate-card cel-rummel">
+          <span className="bulb-row bulbs-chase cel-bulbs" aria-hidden="true">
+            {Array.from({ length: 10 }, (_, i) => (
+              <span key={i} className="bulb" />
+            ))}
+          </span>
+          <div className="cel-mark">{c.icon ?? '🎯'}</div>
+          <div className="celebrate-kicker">Geschafft!</div>
+          <div className="celebrate-title">{c.title}</div>
+          {c.sub && <div className="celebrate-sub">{c.sub}</div>}
+        </div>
+      ) : (
+        <div className="celebrate-card cel-kasten">
+          <span className="cel-slot" aria-hidden="true">
+            <span className="kk cel-cap" style={{ background: capBackground(c.color ?? '#ffd23f') }} />
+          </span>
+          <div className="celebrate-title">{c.title}</div>
+          {c.sub && <div className="celebrate-sub">{c.sub}</div>}
+        </div>
+      )}
     </div>
   )
 }
@@ -163,10 +176,10 @@ const PROST = ['Prost!', 'Zum Wohl!', 'Cheers!', 'Na denn Prost!', "O'zapft is!"
 export const prostWord = () => PROST[Math.floor(Math.random() * PROST.length)]
 
 /** Sofort eintragen, mit „Rückgängig“ im Toast; prüft danach auf neue Abzeichen */
-export async function quickCheckin(beer: Pick<Beer, 'id' | 'name'>, opts: { big?: boolean; onUndo?: () => void } = {}) {
+export async function quickCheckin(beer: Pick<Beer, 'id' | 'name'> & { brewery?: Beer['brewery'] }, opts: { big?: boolean; onUndo?: () => void } = {}) {
   haptic(20)
   const id = await addCheckin(beer.id)
-  if (opts.big) celebrate({ kind: 'prost', title: prostWord(), sub: beer.name })
+  if (opts.big) celebrate({ kind: 'prost', title: prostWord(), sub: beer.name, color: houseColor(beer.brewery ?? { name: beer.name }) })
   toast({
     icon: '🍻',
     msg: opts.big ? 'Eingetragen' : `${prostWord()} ${beer.name}`,
