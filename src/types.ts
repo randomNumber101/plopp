@@ -8,6 +8,8 @@ export interface Brewery {
   lng: number | null
   website: string | null
   logo_url?: string | null
+  /** Hausfarbe für den Kronkorken (#rrggbb) */
+  cap_color?: string | null
   source?: string
   trust?: Trust
   brewery_type?: BreweryType | null
@@ -81,6 +83,7 @@ export interface BreweryProgress {
   lat: number | null
   lng: number | null
   logo_url?: string | null
+  cap_color?: string | null
   image_url?: string | null
   trust?: Trust
   brewery_type?: BreweryType | null

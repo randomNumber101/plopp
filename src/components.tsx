@@ -7,6 +7,7 @@ import { checkNewAchievements } from './achievements'
 import { cacheGet, cacheSet } from './pageState'
 import { celebrate, haptic, reducedMotion, type CelebrateOpts } from './ui/fx'
 import { IconCheck, IconSearch, IconX } from './ui/icons'
+import { Bottle, houseColor } from './ui/kasten'
 
 /**
  * Lädt Daten asynchron; reload() lädt neu (ohne die alten Daten vorher zu verwerfen).
@@ -300,7 +301,7 @@ export function ErrorBox({ msg }: { msg: string | null }) {
   return <div className="error">⚠️ {msg}</div>
 }
 
-/** Sterne – zeigt auch Zwischenwerte (z. B. 3,7 = drei volle Sterne und 70 % vom vierten) */
+/** Bewertung als fünf Kronkorken – zeigt auch Zwischenwerte (3,7 = drei volle Korken und 70 % vom vierten) */
 export function Stars({
   value,
   onChange,
@@ -315,7 +316,7 @@ export function Stars({
     <span
       className={`stars stars-${size}`}
       role={onChange ? 'radiogroup' : 'img'}
-      aria-label={value != null ? `${formatRating(value)} von 5 Sternen` : 'nicht bewertet'}
+      aria-label={value != null ? `${formatRating(value)} von 5` : 'nicht bewertet'}
     >
       {[1, 2, 3, 4, 5].map((n) => {
         const fill = value == null ? 0 : Math.max(0, Math.min(1, value - (n - 1)))
@@ -333,9 +334,9 @@ export function Stars({
               setTimeout(() => setPopped(null), 450)
               onChange?.(v)
             }}
-            aria-label={`${n} Sterne`}
+            aria-label={`${n} Kronkorken`}
           >
-            ★{fill > 0 && fill < 1 && <span className="star-part" style={{ width: `${fill * 100}%` }}>★</span>}
+            <span className="kk-star" style={{ '--f': `${fill * 100}%` } as React.CSSProperties} />
           </button>
         )
       })}
@@ -401,7 +402,9 @@ export function BeerThumb({ beer }: { beer: Beer }) {
       onError={() => setBroken(true)}
     />
   ) : (
-    <div className="thumb thumb-empty">🍺</div>
+    <div className="thumb thumb-empty">
+      <Bottle style={beer.style} color={houseColor(beer.brewery)} height={44} />
+    </div>
   )
 }
 

@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 import { ensureCircle, resetSessionCaches } from './api'
@@ -8,7 +8,7 @@ import { resetQuiz } from './quiz'
 import { byId as CHALLENGE_DEF, fmtLeft, resetChallenges, useChallenges } from './challenges'
 import { go, useRoute } from './router'
 import { Celebration, Spinner, Toaster } from './components'
-import { IconBack, IconBrewery, IconFindAdd, IconMap, IconMoon, IconMore, IconMug } from './ui/icons'
+import { IconBack, IconBrewery, IconCrate, IconMap, IconMore, IconPlus } from './ui/icons'
 import { haptic } from './ui/fx'
 import PloppMark, { plopp } from './ui/PloppMark'
 import { nudge } from './ui/tilt'
@@ -32,16 +32,32 @@ const ChallengePage = lazy(() => import('./pages/Challenge'))
 const QuizPage = lazy(() => import('./pages/Quiz'))
 
 const NAV = [
-  { path: '', Icon: IconMug, label: 'Meine' },
+  { path: '', Icon: IconCrate, label: 'Meine' },
   { path: 'breweries', Icon: IconBrewery, label: 'Brauereien' },
-  { path: 'catalog', Icon: IconFindAdd, label: 'Erfassen', fab: true },
+  { path: 'catalog', Icon: IconPlus, label: 'Erfassen', fab: true },
   { path: 'map', Icon: IconMap, label: 'Karte' },
   { path: 'settings', Icon: IconMore, label: 'Mehr' },
 ]
 
+/** Höhe des Kopfs (mit Rummel-Banner) als CSS-Variable --head-h – die Karte hängt sich darunter */
+function useHeadHeight(ready: boolean) {
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const set = () => document.documentElement.style.setProperty('--head-h', `${el.getBoundingClientRect().height}px`)
+    set()
+    const ro = new ResizeObserver(set)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ready])
+  return ref
+}
+
 export default function App() {
   const [fizz, setFizz] = useState(0)
   const [session, setSession] = useState<Session | null | undefined>(undefined)
+  const headRef = useHeadHeight(!!session)
   const route = useRoute()
 
   useEffect(() => {
@@ -141,29 +157,29 @@ export default function App() {
 
   return (
     <div className={`app ${active === 'map' ? 'app-map' : ''}`}>
-      <header className="topbar">
-        {isSub ? (
-          <button className="back" onClick={() => history.back()} aria-label="Zurück">
-            <IconBack size={22} />
-          </button>
-        ) : (
-          <span className="back" />
-        )}
-        <div className="title-wrap">
-          <button
-            className="title"
-            onClick={() => {
-              plopp()
-              go('/')
-            }}
-            aria-label="Plopp! – zur Startseite"
-          >
-            <PloppMark size={32} />
-            Plopp!
-          </button>
-          <ChallengeLine hidden={active === 'challenge'} />
+      <header className="topbar" ref={headRef}>
+        <div className="topbar-row">
+          {isSub && (
+            <button className="back" onClick={() => history.back()} aria-label="Zurück">
+              <IconBack size={22} />
+            </button>
+          )}
+          <div className="title-wrap">
+            <button
+              className="title"
+              onClick={() => {
+                plopp()
+                go('/')
+              }}
+              aria-label="Plopp! – zur Startseite"
+            >
+              <PloppMark size={34} />
+              Plopp!
+            </button>
+          </div>
+          <LosButton active={active === 'challenge'} />
         </div>
-        <ChallengeButton active={active === 'challenge'} />
+        <RummelBanner hidden={active === 'challenge' || active === 'quiz'} />
       </header>
       <main>
         <div className="page-anim" key={route.join('/')}>
@@ -172,6 +188,7 @@ export default function App() {
       </main>
       <Toaster />
       <Celebration />
+      <RummelIntro />
       <nav className="bottomnav">
         {NAV.map(({ path, Icon, label, fab }) => (
           <button
@@ -187,7 +204,7 @@ export default function App() {
             }}
           >
             <span className="icon">
-              <Icon size={fab ? 28 : 23} />
+              <Icon size={fab ? 30 : 24} strokeWidth={fab ? 3 : 2} />
               {fab && fizz > 0 && (
                 <span className="fab-fizz" key={fizz} aria-hidden="true">
                   <i />
@@ -206,88 +223,110 @@ export default function App() {
   )
 }
 
-/** Knopf rechts oben: Kronkorken mit Mond – pulsiert, wenn der Abend läuft und keine Challenge gewählt ist; Ring = Fortschritt */
-function ChallengeButton({ active }: { active: boolean }) {
+/** Los-Knopf rechts oben: roter Lose-Schein. Wackelt ab und zu, solange abends noch keine Challenge läuft;
+ *  läuft eine, zeigt er den Fortschritt. Vor 16 Uhr ruhig in Nachtblau. */
+function LosButton({ active }: { active: boolean }) {
   const st = useChallenges()
   const p = st.progress
-  const pct = st.active ? (p ? Math.min(1, p.cur / p.goal) : 0) : 0
   const mode = !st.night.open ? 'closed' : st.active ? 'running' : 'choose'
-  // Hinweis-Blase: einmal pro Abend, sobald Challenges zur Wahl stehen
-  const hintKey = `plopp-ch-hint-${st.night.night}`
-  const [hintSeen, setHintSeen] = useState(() => {
-    try {
-      return localStorage.getItem(hintKey) === '1'
-    } catch {
-      return true
-    }
-  })
-  const showHint = mode === 'choose' && st.loaded && !hintSeen && !active
-  const seen = () => {
-    setHintSeen(true)
-    try {
-      localStorage.setItem(hintKey, '1')
-    } catch {
-      /* egal */
-    }
-  }
-  useEffect(() => {
-    if (active && mode === 'choose') seen()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, mode])
+  const def = st.active ? CHALLENGE_DEF(st.active.challenge) : undefined
+  const label = mode === 'running' ? (def?.kind === 'quiz' ? 'Quiz' : p ? `${p.cur}/${p.goal}` : 'Los') : 'Los'
   return (
-    <span className="ch-wrap">
-    {showHint && (
-      <button
-        className="ch-hint"
-        onClick={() => {
-          seen()
-          go('/challenge')
-        }}
-      >
-        🎯 Neue Abend-Challenges!
-        <span className="ch-hint-x" role="button" aria-label="Schließen" onClick={(e) => (e.stopPropagation(), seen())}>
-          ×
-        </span>
-      </button>
-    )}
     <button
-      className={`back ch-btn ch-${mode} ${active ? 'on' : ''}`}
-      onClick={() => {
-        seen()
-        go('/challenge')
-      }}
-      aria-label={
-        mode === 'closed' ? 'Abend-Challenges (ab 16 Uhr)' : mode === 'choose' ? 'Abend-Challenge wählen' : 'Laufende Challenge'
-      }
-      style={{ '--p': `${pct * 100}%` } as React.CSSProperties}
+      className={`los-btn ${mode} ${active ? 'on' : ''}`}
+      onClick={() => go('/challenge')}
+      aria-label={mode === 'closed' ? 'Abend-Challenges (ab 16 Uhr)' : mode === 'choose' ? 'Abend-Challenge wählen' : 'Laufende Challenge'}
     >
-      <span className="ch-ring" />
-      <span className="ch-cap" />
-      <IconMoon size={20} className="ch-icon" />
-      {mode === 'choose' && <span className="ch-dot">!</span>}
+      <span className={`bulb ${mode === 'closed' ? 'off' : 'chase'}`} />
+      {label}
     </button>
-    </span>
   )
 }
 
-/** Laufende Challenge als kleine Zeile im Kopf unter „Plopp!“: Titel · Fortschritt · Restzeit */
-function ChallengeLine({ hidden }: { hidden: boolean }) {
+const KIND_COLOR = { auto: '#1f4e8c', manual: '#c8102e', quiz: '#6d3fa0' } as const
+
+/** Laufende Challenge als Rummel-Banner unter dem Kopf: Titel, Restzeit, Glühbirnen als Fortschritt */
+function RummelBanner({ hidden }: { hidden: boolean }) {
   const st = useChallenges()
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => tick((n) => n + 1), 60000)
+    return () => clearInterval(t)
+  }, [])
   if (hidden || !st.active || !st.night.open) return null
   const def = CHALLENGE_DEF(st.active.challenge)
   const p = st.progress
-  const prog = def?.kind === 'quiz' ? 'Quiz starten' : p ? `${p.cur}/${p.goal}` : 'abhaken'
-  const mins = Math.max(0, Math.round((st.night.end.getTime() - Date.now()) / 60000))
-  const left = mins < 60 ? `${mins} min` : `${Math.floor(mins / 60)}:${String(mins % 60).padStart(2, '0')} h`
+  const left = fmtLeft(st.night.end.getTime() - Date.now())
+  const goal = p ? Math.min(p.goal, 8) : 0
   return (
     <button
-      className="ch-line"
+      className="rummel-banner"
       onClick={() => go(def?.kind === 'quiz' ? '/quiz/challenge' : '/challenge')}
-      aria-label={`Laufende Challenge: ${def?.title ?? 'Challenge'}, ${prog}, noch ${fmtLeft(st.night.end.getTime() - Date.now())}`}
+      aria-label={`Laufende Challenge: ${def?.title ?? 'Challenge'}, ${p ? `${p.cur} von ${p.goal}` : ''}, noch ${left}`}
     >
-      <span className="ch-line-title">{def?.title ?? 'Challenge'}</span>
-      <b>{prog}</b>
-      <span className="ch-line-time">noch {left}</span>
+      <span className="bulb-row bulbs-chase" aria-hidden="true">
+        {Array.from({ length: 18 }, (_, i) => (
+          <span key={i} className="bulb" />
+        ))}
+      </span>
+      <span className="rb-main">
+        <span className="rb-mark" style={{ background: def ? KIND_COLOR[def.kind] : '#1f4e8c' }} aria-hidden="true">
+          {def?.icon ?? '🎯'}
+        </span>
+        <span className="rb-text">
+          <span className="rb-title">{def?.title ?? 'Challenge'}</span>
+          <span className="rb-time">noch {left}</span>
+        </span>
+        <span className="rb-prog" aria-hidden="true">
+          {def?.kind === 'quiz' || !p ? (
+            'Quiz'
+          ) : p.goal <= 8 ? (
+            Array.from({ length: goal }, (_, i) => <span key={i} className={`bulb ${i < p.cur ? 'lit' : 'off'}`} />)
+          ) : (
+            `${p.cur}/${p.goal}`
+          )}
+        </span>
+      </span>
     </button>
+  )
+}
+
+/** Rummel-Vorhang beim Start einer Challenge: Markise, Lichter, Titel – klappt nach gut zwei Sekunden zum Banner zusammen */
+export function startRummel(id: string) {
+  window.dispatchEvent(new CustomEvent('rummel-start', { detail: id }))
+}
+
+function RummelIntro() {
+  const [id, setId] = useState<string | null>(null)
+  useEffect(() => {
+    let t = 0
+    const on = (e: Event) => {
+      setId((e as CustomEvent<string>).detail)
+      window.clearTimeout(t)
+      t = window.setTimeout(() => setId(null), 2300)
+    }
+    window.addEventListener('rummel-start', on)
+    return () => {
+      window.removeEventListener('rummel-start', on)
+      window.clearTimeout(t)
+    }
+  }, [])
+  if (!id) return null
+  const def = CHALLENGE_DEF(id)
+  return (
+    <div className="rummel-intro" role="status" aria-live="polite" onClick={() => setId(null)}>
+      <div className="ri-awning" aria-hidden="true" />
+      <div className="bulb-row bulbs-chase" aria-hidden="true">
+        {Array.from({ length: 8 }, (_, i) => (
+          <span key={i} className="bulb" />
+        ))}
+      </div>
+      <div className="ri-mark" style={{ background: def ? KIND_COLOR[def.kind] : '#1f4e8c' }} aria-hidden="true">
+        {def?.icon ?? '🎯'}
+      </div>
+      <div className="ri-title">{def?.title ?? 'Los geht’s'}</div>
+      {def?.desc && <div className="ri-desc">{def.desc}</div>}
+      <div className="ri-until">bis 4 Uhr</div>
+    </div>
   )
 }

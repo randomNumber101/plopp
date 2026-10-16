@@ -34,7 +34,7 @@ export default function PloppMark({ size = 24 }: { size?: number }) {
 
   return (
     <svg className={`plopp-mark ${popping ? 'pop' : ''}`} width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-      <g className="pf-lines" stroke="#2a1a0d" strokeWidth="4" strokeLinecap="round">
+      <g className="pf-lines" stroke="#1e7a46" strokeWidth="4" strokeLinecap="round">
         <path d="M20 42 L8 50" />
         <path d="M24 50 L14 59" />
         <path d="M14 35 L4 39" />
@@ -51,8 +51,8 @@ export default function PloppMark({ size = 24 }: { size?: number }) {
       </g>
       <g transform="rotate(-18 36 28)">
         <g className="pf-cap">
-          <polygon points={CAP} fill="#2a1a0d" />
-          <circle cx="36" cy="28" r="12" fill="#ffe6a3" />
+          <polygon className="pf-teeth" points={CAP} fill="#12261a" />
+          <circle cx="36" cy="28" r="12" fill="#ffd23f" />
           <circle cx="36" cy="28" r="7.5" fill="none" stroke="#2a1a0d" strokeOpacity="0.18" strokeWidth="2" />
           <path d="M29 22.5 a9 9 0 0 1 6-3" fill="none" stroke="#fff" strokeOpacity="0.8" strokeWidth="2.2" strokeLinecap="round" />
         </g>
