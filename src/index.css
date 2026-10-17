@@ -1737,23 +1737,23 @@ label.check input {
     height 0.45s ease, opacity 0.3s;
 }
 
-/* Kronkorken von der Seite: geriffelter Rand mit Zacken unten, helle Deckelfläche oben */
+/* Kronkorken von der Seite: läuft nach oben zu (Deckel schmaler als der gezackte Rand), Stapel greifen ineinander */
 .ks-cap.disc {
-  clip-path: polygon(0% 4.0px, 10% 1.6px, 20% 0.8px, 30% 0.3px, 40% 0.1px, 50% 0.0px, 60% 0.1px, 70% 0.3px, 80% 0.8px, 90% 1.6px, 100% 4.0px, 100.0% 100%, 96.4% calc(100% - 3px), 92.9% 100%, 89.3% calc(100% - 3px), 85.7% 100%, 82.1% calc(100% - 3px), 78.6% 100%, 75.0% calc(100% - 3px), 71.4% 100%, 67.9% calc(100% - 3px), 64.3% 100%, 60.7% calc(100% - 3px), 57.1% 100%, 53.6% calc(100% - 3px), 50.0% 100%, 46.4% calc(100% - 3px), 42.9% 100%, 39.3% calc(100% - 3px), 35.7% 100%, 32.1% calc(100% - 3px), 28.6% 100%, 25.0% calc(100% - 3px), 21.4% 100%, 17.9% calc(100% - 3px), 14.3% 100%, 10.7% calc(100% - 3px), 7.1% 100%, 3.6% calc(100% - 3px), 0.0% 100%);
+  clip-path: polygon(13.0% 3.5px, 20.4% 2.2px, 27.8% 1.3px, 35.2% 0.6px, 42.6% 0.1px, 50.0% 0.0px, 57.4% 0.1px, 64.8% 0.6px, 72.2% 1.3px, 79.6% 2.2px, 87.0% 3.5px, 100% 100%, 96.4% calc(100% - 3px), 92.9% 100%, 89.3% calc(100% - 3px), 85.7% 100%, 82.1% calc(100% - 3px), 78.6% 100%, 75.0% calc(100% - 3px), 71.4% 100%, 67.9% calc(100% - 3px), 64.3% 100%, 60.7% calc(100% - 3px), 57.1% 100%, 53.6% calc(100% - 3px), 50.0% 100%, 46.4% calc(100% - 3px), 42.9% 100%, 39.3% calc(100% - 3px), 35.7% 100%, 32.1% calc(100% - 3px), 28.6% 100%, 25.0% calc(100% - 3px), 21.4% 100%, 17.9% calc(100% - 3px), 14.3% 100%, 10.7% calc(100% - 3px), 7.1% 100%, 3.6% calc(100% - 3px), 0.0% 100%);
   border-radius: 0;
   overflow: visible;
   background: repeating-linear-gradient(90deg, rgb(0 0 0 / 0.3) 0 1.5px, rgb(255 255 255 / 0.12) 1.5px 2.5px, transparent 2.5px 4.5px),
-    linear-gradient(to bottom, transparent 0 5px, rgb(0 0 0 / 0.12) 5px 100%), var(--c);
+    linear-gradient(to bottom, transparent 0 4px, rgb(0 0 0 / 0.28) 4px 7px, rgb(0 0 0 / 0.08) 9px, rgb(255 255 255 / 0.14) calc(100% - 4px), rgb(0 0 0 / 0.2) 100%), var(--c);
   filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.4));
 }
 
 .ks-cap.disc::before {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 13%;
+  right: 13%;
   top: 0;
-  height: 8px;
+  height: 7px;
   border-radius: 50%;
   background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--c) 78%, #fff) 0 52%, color-mix(in srgb, var(--c) 60%, #000) 56% 62%, color-mix(in srgb, var(--c) 80%, #fff) 66%);
 }
@@ -7345,4 +7345,226 @@ html:has(.app-map) body {
 
 .bc-cell:not(.done) .bc-title {
   color: var(--crate-sub);
+}
+
+/* Abzeichen antippen → Erklärblatt */
+button.bc-cell {
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+button.bc-cell:active .bc-slot {
+  transform: scale(0.94);
+}
+.bc-slot {
+  transition: transform 0.15s;
+}
+
+.badge-sheet {
+  align-items: center;
+  text-align: center;
+}
+.badge-sheet .bs-icon {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  font-size: 2.2rem;
+  clip-path: var(--cap);
+  background: #2d6a46;
+  margin-top: 6px;
+}
+.badge-sheet .bs-icon:not(.done) {
+  filter: grayscale(0.7);
+}
+.badge-sheet .bs-icon.done {
+  background: radial-gradient(circle, var(--pfand) 0 55%, rgb(0 0 0 / 0.22) 56% 60%, var(--pfand) 61%);
+  animation: cap-drop 0.5s var(--ease-bounce) both;
+}
+.badge-sheet .bs-title {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.5rem;
+  line-height: 1.05;
+}
+.badge-sheet .bs-how {
+  margin: 0;
+  font-size: 1.05rem;
+  max-width: 30ch;
+}
+.badge-sheet .bs-hint {
+  margin: -4px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted, #8a7a66);
+}
+.badge-sheet .bs-prog {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(260px, 100%);
+  font-weight: 800;
+}
+.badge-sheet .bs-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.12);
+  overflow: hidden;
+}
+.badge-sheet .bs-bar i {
+  display: block;
+  height: 100%;
+  background: var(--crate);
+  border-radius: 4px;
+}
+.badge-sheet.rummel {
+  background: var(--night-2);
+  color: var(--night-text);
+  font-family: var(--font-rummel-body);
+}
+.badge-sheet.rummel .bs-title {
+  font-family: var(--font-rummel);
+  font-weight: 400;
+}
+.badge-sheet.rummel .bs-icon {
+  clip-path: none;
+  border-radius: 50%;
+  background: var(--night-3);
+}
+.badge-sheet.rummel .bs-icon.done {
+  background: var(--ginger);
+  box-shadow: 0 0 0 3px var(--rummel-red);
+}
+.badge-sheet.rummel .bs-hint {
+  color: var(--night-muted);
+}
+.badge-sheet.rummel .bs-bar {
+  background: var(--night-3);
+}
+.badge-sheet.rummel .bs-bar i {
+  background: var(--bulb);
+}
+.badge-sheet.rummel .btn-ghost {
+  color: var(--night-text);
+}
+
+/* Losbude: gewonnene Challenges als bunte Lebkuchenherzen */
+.herzenbude button.ach {
+  font: inherit;
+  cursor: pointer;
+}
+.herzenbude .ach.won.done .ach-heart path:first-child {
+  fill: var(--gb, var(--ginger));
+  stroke: var(--rim, var(--rummel-red));
+  stroke-width: 6;
+}
+.herzenbude .ach.won.done .ach-heart .icing {
+  stroke: var(--rim, #fff);
+  filter: brightness(1.35);
+}
+.herzenbude .ach.won .ach-icon {
+  font-size: 1.7rem;
+}
+.herzenbude .ach.won .ach-title {
+  font-size: 0.95rem;
+  max-width: 110px;
+}
+.hb-n {
+  margin-top: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--rim, var(--rummel-red));
+  color: var(--night);
+  font-weight: 900;
+  font-size: 0.75rem;
+}
+.hb-empty {
+  padding: 18px 4px 6px;
+  text-align: center;
+  color: var(--night-muted);
+}
+.hb-empty p {
+  margin: 0 0 10px;
+}
+
+/* Losbude: Meta-Abzeichen schlicht als Liste */
+.hb-meta {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.hb-meta-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 4px 4px;
+  color: var(--night-muted);
+  font-size: 0.85rem;
+}
+.hb-meta-head b {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+}
+.hb-meta-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hb-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: var(--night-2);
+  color: var(--night-muted);
+  font: inherit;
+  text-align: left;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.hb-meta-row.done {
+  color: var(--night-text);
+}
+.hb-meta-icon {
+  font-size: 1.15rem;
+  filter: grayscale(1) opacity(0.6);
+}
+.hb-meta-row.done .hb-meta-icon {
+  filter: none;
+}
+.hb-meta-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.hb-meta-main b {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.hb-meta-main i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--bulb);
+  max-width: 100%;
+}
+.hb-meta-row.done .hb-meta-main i {
+  display: none;
+}
+.hb-meta-val {
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+.hb-meta-row.done .hb-meta-val {
+  color: #3fc1a5;
 }

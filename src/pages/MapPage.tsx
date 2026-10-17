@@ -403,9 +403,8 @@ export default function MapPage() {
     map.current?.flyToBounds(GERMANY, { padding: [10, 10], duration: 0.6 })
   }
 
-  function showAll() {
-    const c = cluster.current
-    if (c && c.getLayers().length) map.current?.fitBounds(c.getBounds(), { padding: [40, 40], maxZoom: 10 })
+  function showGermany() {
+    map.current?.flyToBounds(GERMANY, { padding: [10, 10], duration: 0.6 })
   }
 
   const missing = data.data?.filter((b) => b.lat == null && b.total > 0).length ?? 0
@@ -478,7 +477,7 @@ export default function MapPage() {
         <button className="map-tool" onClick={locate} aria-label="Mein Standort" title="Mein Standort">
           <IconLocate size={22} />
         </button>
-        <button className="map-tool" onClick={showAll} aria-label="Alle zeigen" title="Alle zeigen">
+        <button className="map-tool" onClick={showGermany} aria-label="Ganz Deutschland" title="Ganz Deutschland">
           <IconFit size={22} />
         </button>
       </div>

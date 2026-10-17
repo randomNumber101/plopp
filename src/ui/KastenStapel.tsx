@@ -178,6 +178,8 @@ export default function KastenStapel({
   const B = Math.max(1, buckets.length)
   const colW = W / B
   const discW = Math.max(14, Math.min(44, colW - 8))
+  // Korken greifen ineinander: nur ein schmaler Streifen des gezackten Rands bleibt je Korken sichtbar
+  const discH = 16
   const base = H - 44
   const maxN = Math.max(1, ...buckets.map((b) => b.items.length))
   const step = Math.min(7, (base - 40) / maxN)
@@ -368,7 +370,7 @@ export default function KastenStapel({
                   left: colW * (j + 0.5) - discW / 2,
                   top: base - n * step,
                   width: discW,
-                  height: 15,
+                  height: discH,
                   background: undefined,
                   '--c': c.color,
                   color: 'transparent',
