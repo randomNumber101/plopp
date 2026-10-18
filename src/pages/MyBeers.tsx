@@ -4,7 +4,6 @@ import { ACHIEVEMENTS, computeStats, progress, useStatsContext, type BeerAgg } f
 import {
   BeerRow,
   ChipBar,
-  CountUp,
   EmptyState,
   ErrorBox,
   SearchInput,
@@ -19,7 +18,7 @@ import {
 import { go } from '../router'
 import { usePageState } from '../pageState'
 import { haptic, load, save } from '../ui/fx'
-import { IconChevron, IconFindAdd, IconTrophy } from '../ui/icons'
+import { IconBack, IconFindAdd } from '../ui/icons'
 import KastenStapel, { capsFromCheckins } from '../ui/KastenStapel'
 
 type Sort = 'recent' | 'count' | 'rating' | 'name'
@@ -30,18 +29,23 @@ const SORTS: { id: Sort; label: string }[] = [
   { id: 'name', label: 'A–Z' },
 ]
 const PREFS = 'bier-mybeers'
+type Tab = 'kasten' | 'drunk' | 'wish'
 
 export default function MyBeers() {
-  const prefs = useMemo(() => load(PREFS, { tab: 'drunk', sort: 'recent', style: '' }), [])
-  const [tab, setTabState] = useState<'drunk' | 'wish'>(prefs.tab as 'drunk' | 'wish')
+  const prefs = useMemo(() => {
+    const p = load(PREFS, { tab: 'kasten', sort: 'recent', style: '', v: 2 })
+    // ab dem Lieferschein startet die Seite einmalig wieder im Kasten
+    return p.v === 2 ? p : { ...p, tab: 'kasten', v: 2 }
+  }, [])
+  const [tab, setTabState] = useState<Tab>(prefs.tab as Tab)
   const [sort, setSortState] = useState<Sort>(prefs.sort as Sort)
   const [style, setStyleState] = useState(prefs.style)
   const [q, setQ] = usePageState('mybeers-q', '')
   const checkins = useAsync(myCheckins, [], 'my-checkins')
   const wish = useAsync(myWishlist, [], 'my-wishlist')
 
-  const remember = (p: Partial<typeof prefs>) => save(PREFS, { tab, sort, style, ...p })
-  const setTab = (t: 'drunk' | 'wish') => (setTabState(t), remember({ tab: t }))
+  const remember = (p: Partial<typeof prefs>) => save(PREFS, { tab, sort, style, v: 2, ...p })
+  const setTab = (t: Tab) => (setTabState(t), remember({ tab: t }))
   const setSort = (s: Sort) => (setSortState(s), remember({ sort: s }))
   const setStyle = (s: string) => (setStyleState(s), remember({ style: s }))
 
@@ -76,57 +80,43 @@ export default function MyBeers() {
     wish.reload()
   }
   const caps = useMemo(() => capsFromCheckins(checkins.data ?? []), [checkins.data])
+  const aggMap = useMemo(() => new Map(stats.aggs.map((a) => [a.beer.id, a])), [stats])
   const wishCount = wish.data?.length ?? 0
   const loading = checkins.loading && !checkins.data
 
   return (
     <div className="page">
-      {checkins.data && <KastenStapel caps={caps} />}
       {checkins.data && stats.checkins > 0 && (
-        <div className="ks-stats">
-          <button className="ks-stats-main" onClick={() => go('/stats')} aria-label="Statistik öffnen">
-            <span className="ks-trophy" aria-hidden="true">
-              <IconTrophy size={22} />
-            </span>
-            <span>
-              <b>
-                <CountUp value={stats.unique} />
-              </b>
-              {stats.unique === 1 ? 'Bier' : 'Biere'}
-            </span>
-            <span>
-              <b>
-                <CountUp value={stats.breweries} />
-              </b>
-              Brauereien
-            </span>
-            <span>
-              <b>
-                <CountUp value={stats.states.size} />
-                /16
-              </b>
-              Länder
-            </span>
-            <IconChevron size={18} />
-          </button>
-          <button className="ks-stats-badges" onClick={() => go('/abzeichen')} aria-label="Abzeichen öffnen">
-            <b>{badges}</b>
-            Abzeichen
-          </button>
-        </div>
+        <KastenStapel
+          caps={caps}
+          aggs={aggMap}
+          bon={{ beers: stats.unique, breweries: stats.breweries, badges }}
+          wishCount={wishCount}
+          showSlip={tab === 'kasten'}
+          onList={(t) => setTab(t)}
+        />
       )}
 
-      <div className="tabs" style={{ '--i': tab === 'drunk' ? 0 : 1, '--n': 2 } as React.CSSProperties}>
-        <span className="tabs-ind" />
-        <button className={tab === 'drunk' ? 'on' : ''} onClick={() => setTab('drunk')}>
-          Getrunken
-        </button>
-        <button className={tab === 'wish' ? 'on' : ''} onClick={() => setTab('wish')}>
-          Merkliste {wishCount > 0 && <span className="tab-count">{wishCount}</span>}
-        </button>
-      </div>
+      {tab !== 'kasten' && (
+        <>
+          {stats.checkins > 0 && (
+            <button className="lf-back" onClick={() => setTab('kasten')}>
+              <IconBack size={18} /> Zum Lieferschein
+            </button>
+          )}
+          <div className="tabs" style={{ '--i': tab === 'drunk' ? 0 : 1, '--n': 2 } as React.CSSProperties}>
+            <span className="tabs-ind" />
+            <button className={tab === 'drunk' ? 'on' : ''} onClick={() => setTab('drunk')}>
+              Getrunken
+            </button>
+            <button className={tab === 'wish' ? 'on' : ''} onClick={() => setTab('wish')}>
+              Merkliste {wishCount > 0 && <span className="tab-count">{wishCount}</span>}
+            </button>
+          </div>
+        </>
+      )}
 
-      {tab === 'drunk' && (
+      {(tab === 'drunk' || (tab === 'kasten' && !stats.checkins)) && (
         <>
           {stats.aggs.length > 0 && (
             <>
