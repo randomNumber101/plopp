@@ -723,8 +723,24 @@ def test_assign_brand(url: str):
     print("Marken-Zuordnung OK")
 
 
+def test_house_brand():
+    from scraper.sites import is_nonbeer
+    reudnitz = {"name": "Leipziger Brauhaus zu Reudnitz", "website": "https://www.sternburg-bier.de/"}
+    assert merge.house_brand(reudnitz, ["Sternburg"]) == "Sternburg"
+    # Marke steht nicht in der Website-Adresse → keine Hausmarke, Name der Brauerei bleibt maßgeblich
+    assert merge.house_brand({"name": "Gilde Brauerei", "website": "https://gilde-brauerei.de"}, ["Lindener Spezial"]) is None
+    assert merge.house_brand({"name": "X", "website": None}, ["Sternburg"]) is None
+    assert merge.brand_word("Leipziger Brauhaus zu Reudnitz") == "Leipziger"
+    for junk in ("Index", "Ja, ich stimme zu", "Navigation überspringen", "Zum Inhalt springen", "Alle akzeptieren"):
+        assert is_nonbeer(junk), junk
+    for ok in ("Pilsener", "Export Alkoholfrei", "Diesel", "Radler"):
+        assert not is_nonbeer(ok), ok
+    print("Hausmarke OK")
+
+
 if __name__ == "__main__":
     test_util()
+    test_house_brand()
     test_wikipedia()
     test_sites()
     test_web_pipeline()

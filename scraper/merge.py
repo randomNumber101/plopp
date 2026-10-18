@@ -92,6 +92,20 @@ class AliasIndex:
         return None, "kein Treffer"
 
 
+def house_brand(b: dict, brands: list[str] | None) -> str | None:
+    """Hausmarke einer Brauerei, wenn die Website sie verrät: „Leipziger Brauhaus zu Reudnitz“ mit Marke Sternburg
+    und sternburg-bier.de → „Sternburg“. Ohne Treffer None (dann gilt brand_word)."""
+    site = re.sub(r"^https?://(www\.)?", "", b.get("website") or "").split("/")[0]
+    d = re.sub(r"[^a-z0-9]", "", fold(site).lower())
+    if not d:
+        return None
+    for br in brands or []:
+        k = re.sub(r"[^a-z0-9]", "", fold(br).lower())
+        if len(k) >= 4 and k in d:
+            return br.strip()
+    return None
+
+
 def brand_word(name: str) -> str:
     """Kurzer Markenname für Biere ohne Marke im Namen: „Brauerei Rittmayer“ → „Rittmayer“."""
     words = [w for w in re.split(r"\s+", short_name(name)) if len(re.sub(r"[^\wäöüß]", "", w.lower())) >= 4]
@@ -108,6 +122,7 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
     stats: dict = {}
     breweries: dict[str, dict] = {}
     parent_of: dict[str, str] = {}
+    house: dict[str, str] = {}  # Hausmarke laut Website (Sternburg statt „Leipziger“)
 
     # ------------------------------------------------------------ 1. Wikipedia-Brauereien (verifiziert)
     for e in wp_entries:
@@ -134,6 +149,9 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
             "aliases": {e["name"], short_name(e["name"]), *(e.get("brands") or [])} | ({wd["label"]} if wd and wd.get("label") else set()),
         }
         breweries[ext] = b
+        hb = house_brand(b, e.get("brands"))
+        if hb:
+            house[ext] = hb
         if b["parent_ext"]:
             parent_of[ext] = b["parent_ext"]
     stats["wp_breweries"] = len(breweries)
@@ -321,7 +339,7 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         owner = next((breweries[b["parent_ext"]] for b in bs if b.get("parent_ext") in breweries), None) or \
             sorted(bs, key=lambda b: (b["trust"] != "verified", b["brewery_type"] != "brauerei", len(b["name"])))[0]
         oext = owner["ext_id"]
-        brand = brand_word(owner["name"])
+        brand = house.get(oext) or brand_word(owner["name"])
         own = ({oext, owner.get("parent_ext")} | {b["ext_id"] for b in bs}) - {None}
         for it in site_beers:
             name = it["name"]
@@ -348,7 +366,7 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
         if ext in breweries:
             name = re.sub(r"\s*\([^)]*\)$", "", wb["name"]).strip()  # „Oettinger (beer)“
             if not set(tokens(name)) & alias_tokens[ext]:
-                name = f"{brand_word(breweries[ext]['name'])} {name}"
+                name = f"{house.get(ext) or brand_word(breweries[ext]['name'])} {name}"
             add_beer(ext, name, wb["style"], wb["abv"], None, "wikidata", "verified", wb["eans"])
 
     # 3c. Open Food Facts: Produkt → Brauerei (Marke, Produktname, Bierkatalog, seltenes Wort, Ort, EAN-Präfix)
@@ -393,7 +411,7 @@ def build(wp_entries: list[dict], wd_breweries: list[dict], wd_beers: list[dict]
     merged_verified = off_named = off_skipped = 0
     for p, ext, method in assigned:
         own = [b for b in p.get("brands") or [] if not is_retailer(b)]
-        brand = own[0] if own else brand_word(breweries[ext]["name"])
+        brand = own[0] if own else house.get(ext) or brand_word(breweries[ext]["name"])
         raw = product_name(p, brand)
         if not raw:
             off_skipped += 1

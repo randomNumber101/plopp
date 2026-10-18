@@ -63,7 +63,9 @@ _NAV = re.compile(
     r"online shop|mehr erfahren|weiterlesen|mehr|details|zum shop|jetzt kaufen|in den warenkorb|kaufen|"
     r"kategorie anzeigen|filter|sortieren|zuruck|zurueck|weiter|tipp|neu|sale|brauerei|unternehmen|produkte|"
     r"sortiment|getranke|getraenke|bier|biere|unser bier|unsere biere|alle biere|alle produkte|"
-    r"bierspezialitaten|bierspezialitaeten|spezialitaten|spezialitaeten|menu|menue|suche|english|deutsch)$"
+    r"bierspezialitaten|bierspezialitaeten|spezialitaten|spezialitaeten|menu|menue|suche|english|deutsch|index|navigation uberspringen|navigation ueberspringen|"
+    r"zum inhalt( springen)?|inhalt uberspringen|ja,? ich stimme zu|ich stimme zu|zustimmen|akzeptieren|alle akzeptieren|"
+    r"ablehnen|einstellungen|cookie\w*|ich bin (uber|ueber|mindestens) (16|18)\w*)$"
 )
 _CATEGORY = re.compile(r"\b\w*biere\b|spezialitat|spezialitaet|sortiment|sorten\b|kategorie|ubersicht|uebersicht|"
                        r"\bunsere\b|\balle\b|saisonal\w*|klassiker\b|klassische\b")
