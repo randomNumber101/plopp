@@ -735,6 +735,24 @@ def test_house_brand():
         assert is_nonbeer(junk), junk
     for ok in ("Pilsener", "Export Alkoholfrei", "Diesel", "Radler"):
         assert not is_nonbeer(ok), ok
+    # Ende zu Ende: Website kommt erst über Wikidata dazu, Sortiment nur mit Sortennamen, Wikidata-Dublette „Brauerei Sternburg“
+    entry = {"name": "Leipziger Brauhaus zu Reudnitz", "place": "Reudnitz", "state": "Sachsen", "brands": ["Sternburg"],
+             "styles": [], "lat": 51.3304, "lng": 12.4009, "website": None, "type": "brauerei", "page": "de",
+             "wd": {"qid": "Q1685971", "label": "Leipziger Brauhaus zu Reudnitz"}}
+    wd_b = [{"ext_id": "wd:Q1685971", "name": "Leipziger Brauhaus zu Reudnitz", "lat": 51.3304, "lng": 12.4009,
+             "website": "https://www.sternburg-bier.de/", "state": "Sachsen"},
+            {"ext_id": "wd:Q54339464", "name": "Brauerei Sternburg", "lat": 51.3846, "lng": 12.2828}]
+
+    def crawl(by_site):
+        return {site: {"status": 200, "addresses": [], "beers": [
+            {"name": n, "abv": None, "image": None, "method": "html-link", "conf": "hoch"}
+            for n in ("Pilsener", "Export", "Sternburg Export", "Index", "Navigation überspringen")]} for site in by_site}
+
+    brs, bes, _ = merge.build([entry], wd_b, [], [], {}, crawl=crawl)
+    names = sorted(x["name"] for x in bes if x["brewery_ext"] == "wd:Q1685971")
+    assert names == ["Sternburg Export", "Sternburg Pilsener"], names
+    bx = {x["ext_id"]: x for x in brs}
+    assert "wd:Q54339464" not in bx and "Brauerei Sternburg" in bx["wd:Q1685971"]["aliases"], list(bx)
     print("Hausmarke OK")
 
 

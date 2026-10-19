@@ -22,6 +22,9 @@ export interface IndexBrewery {
   cap_color: string | null
   words: string[]
   compact: string
+  /** Marken und andere Namen der Brauerei („Sternburg“ beim Leipziger Brauhaus zu Reudnitz) */
+  aliases: string[]
+  aliasWords: string[][]
   beerCount: number
 }
 
@@ -47,7 +50,7 @@ export interface SearchIndex {
 
 type Raw = {
   v: number
-  breweries: [string, string, string | null, string | null, string, string | null, (string | null)?][]
+  breweries: [string, string, string | null, string | null, string, string | null, (string | null)?, (string[] | null)?][]
   beers: [string, string, string | null, number | null, string | null, string | null, string][]
 }
 
@@ -77,7 +80,7 @@ export function words(s: string | null | undefined): string[] {
 
 // ------------------------------------------------------------------------------------ Index laden
 
-const KEY = 'plopp-search-index-v1'
+const KEY = 'plopp-search-index-v2'
 const MAX_AGE = 6 * 3600 * 1000
 let current: SearchIndex | null = null
 let loading: Promise<SearchIndex> | null = null
@@ -85,9 +88,13 @@ const listeners = new Set<(i: SearchIndex) => void>()
 
 export function buildIndex(raw: Raw, loadedAt: number): SearchIndex {
   const breweries = new Map<string, IndexBrewery>()
-  for (const [id, name, city, logo_url, trust, brewery_type, cap_color] of raw.breweries) {
+  for (const [id, name, city, logo_url, trust, brewery_type, cap_color, aliases] of raw.breweries) {
     const w = words(name)
-    breweries.set(id, { id, name, city, logo_url, trust: trustOf(trust), brewery_type, cap_color: cap_color ?? null, words: w, compact: w.join(''), beerCount: 0 })
+    const al = (aliases ?? []).filter(Boolean)
+    breweries.set(id, {
+      id, name, city, logo_url, trust: trustOf(trust), brewery_type, cap_color: cap_color ?? null,
+      words: w, compact: w.join(''), aliases: al, aliasWords: al.map((a) => words(a)), beerCount: 0,
+    })
   }
   const beers: IndexBeer[] = raw.beers.map(([id, name, style, abv, brewery_id, image_url, trust]) => {
     const w = words(name)
@@ -144,7 +151,7 @@ export function loadIndex(force = false): Promise<SearchIndex> {
         const s = localStorage.getItem(KEY)
         if (s) {
           const c = JSON.parse(s) as { t: number; u: string; raw: Raw }
-          if (c.u === (await uid()) && c.raw?.v === 1) {
+          if (c.u === (await uid()) && (c.raw?.v === 1 || c.raw?.v === 2)) {
             publish(buildIndex(c.raw, c.t))
             if (Date.now() - c.t < MAX_AGE) return current!
           }
@@ -252,12 +259,20 @@ export interface BreweryGroup {
   breweryMatch: boolean
 }
 
+/** Passt ein Suchwort zur Brauerei – über ihren Namen oder (etwas schwächer) über eine Marke bzw. einen anderen Namen */
+function matchBrewery(t: string, br: IndexBrewery, fuzzy: boolean): number {
+  let best = matchWords(t, br.words, br.compact, fuzzy)
+  if (best >= 100) return best
+  for (const aw of br.aliasWords) best = Math.max(best, matchWords(t, aw, aw.join(''), fuzzy) * 0.95)
+  return best
+}
+
 function scoreBeer(b: IndexBeer, tokens: string[], whole: string, fuzzy: boolean): number {
   let total = 0
   let ok = true
   for (const t of tokens) {
     const n = matchWords(t, b.words, b.compact, fuzzy)
-    const br = b.brewery ? matchWords(t, b.brewery.words, b.brewery.compact, fuzzy) * 0.8 : 0
+    const br = b.brewery ? matchBrewery(t, b.brewery, fuzzy) * 0.8 : 0
     const st = matchWords(t, b.styleWords, b.styleWords.join(''), false) * 0.7
     const s = Math.max(n, br, st)
     if (!s) {
@@ -313,7 +328,7 @@ export function searchIndex(
   for (const br of idx.breweries.values()) {
     let total = 0
     for (const t of tokens) {
-      const s = matchWords(t, br.words, br.compact, hits.length < 5)
+      const s = matchBrewery(t, br, hits.length < 5)
       if (!s) {
         total = 0
         break
