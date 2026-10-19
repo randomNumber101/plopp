@@ -1,6 +1,6 @@
 /**
  * Startseite: die Sammlung als Getränkekasten.
- * Jedes neue (verschiedene) Bier ist ein Kronkorken in der Hausfarbe seiner Brauerei; 20 Fächer = ein Kasten.
+ * Jedes eingetragene Bier ist ein Kronkorken in der Hausfarbe seiner Brauerei (auch Wiederholungen); 20 Fächer = ein Kasten.
  * Fächer eines Abends teilen sich eine Bodenfarbe, der laufende Abend ist gestrichelt umrandet.
  * Rechts oben klemmt ein gekritzelter Pfandbon (Statistik), unter dem Kasten zeigt der Turm die vollen Kästen
  * (ausziehbar zum Durchblättern), darunter der Lieferschein mit den Bieren des Kastens.
@@ -35,24 +35,25 @@ import { shareTowerPoster } from './turmPoster'
 
 export { CRATE, type CrateCap }
 
-/** verschiedene Biere in der Reihenfolge ihres ersten Check-ins */
+/** jeder Check-in ein Korken, in zeitlicher Reihenfolge */
 export function capsFromCheckins(list: Checkin[]): CrateCap[] {
-  const first = new Map<string, Checkin>()
-  for (const c of list) {
-    const prev = first.get(c.beer_id)
-    if (!prev || c.drunk_at < prev.drunk_at) first.set(c.beer_id, c)
-  }
-  return [...first.values()]
-    .sort((a, b) => (a.drunk_at < b.drunk_at ? -1 : a.drunk_at > b.drunk_at ? 1 : 0))
+  const seen = new Map<string, number>()
+  return [...list]
+    .sort((a, b) => (a.drunk_at < b.drunk_at ? -1 : a.drunk_at > b.drunk_at ? 1 : a.id < b.id ? -1 : 1))
     .map((c) => {
       const br = c.beer?.brewery
+      const nth = (seen.get(c.beer_id) ?? 0) + 1
+      seen.set(c.beer_id, nth)
       return {
+        id: c.id,
         beerId: c.beer_id,
         name: c.beer?.name ?? 'Bier',
         brewery: br?.name ?? '',
         color: houseColor(br ?? { name: c.beer?.name }),
         mark: capMark(br?.name || c.beer?.name),
         first: new Date(c.drunk_at).getTime(),
+        nth,
+        rating: c.rating,
       }
     })
 }
@@ -88,7 +89,8 @@ function useEscape(on: boolean, close: () => void) {
   }, [on, close])
 }
 
-const SEEN = 'plopp-kasten-seen'
+// zählt seit „jeder Check-in ein Korken“ Check-ins – neuer Name, damit das Update keine falsche Voll-Fahrt auslöst
+const SEEN = 'plopp-kasten-seen-checkins'
 const BON_SEEN = 'plopp-bon-badges'
 
 export interface BonStats {
@@ -204,9 +206,9 @@ export default function KastenStapel({
     const k = keyOfCap(i) ?? null
     haptic(8)
     if (stackMode) return (setSel(sel === k ? null : k), setFocus(null))
-    if (focus === c.beerId) return (setSel(null), setFocus(null))
+    if (focus === c.id) return (setSel(null), setFocus(null))
     setSel(k)
-    setFocus(c.beerId)
+    setFocus(c.id)
   }
 
   // Pfandbon: neue Abzeichen seit dem letzten Blick in die Statistik
@@ -336,7 +338,7 @@ export default function KastenStapel({
                   className={`ks-col ${sel === b.key ? 'on' : ''}`}
                   style={{ left: colW * j, width: colW, height: H - 30 }}
                   onClick={() => setSel(sel === b.key ? null : b.key)}
-                  aria-label={`${b.title}: ${b.items.length} neue Biere`}
+                  aria-label={`${b.title}: ${b.items.length} ${b.items.length === 1 ? 'Bier' : 'Biere'}`}
                 >
                   <span className="ks-col-n" style={{ bottom: H - base + (b.items.length - 1) * step + 4 }}>
                     {b.items.length}
@@ -349,7 +351,7 @@ export default function KastenStapel({
             {stackMode && <span className="ks-base" style={{ top: base + 15 }} />}
             {crate.map((c, i) => {
               const dim = sel && keyOfCap(i) !== sel
-              const lifted = !stackMode && focus === c.beerId
+              const lifted = !stackMode && focus === c.id
               let style: React.CSSProperties & { '--c'?: string }
               if (!stackMode) {
                 const p = slotPos(i)
@@ -380,7 +382,7 @@ export default function KastenStapel({
               }
               return (
                 <button
-                  key={c.beerId}
+                  key={c.id}
                   className={`ks-cap ${stackMode ? 'disc' : ''} ${dropIdx === i ? 'drop' : ''} ${lifted ? 'lift' : ''}`}
                   style={{ ...style, opacity: dim ? 0.3 : 1 }}
                   onClick={() => pickCap(i)}
@@ -509,7 +511,7 @@ function Lieferschein({
           <div>
             <b>{label(selB)}</b>
             <span>
-              {n === 1 ? '1 neues Bier' : `${n} neue Biere`} {evMode ? 'an diesem Abend' : mode === 'wochen' ? 'in dieser Woche' : 'in diesem Monat'}
+              {n === 1 ? '1 Bier' : `${n} Biere`} {evMode ? 'an diesem Abend' : mode === 'wochen' ? 'in dieser Woche' : 'in diesem Monat'}
             </span>
           </div>
           <button onClick={() => onSel(null)}>Ganzer Kasten</button>
@@ -524,7 +526,7 @@ function Lieferschein({
           </span>
         </div>
       )}
-      {!crate.length && <p className="lf-empty">Das nächste neue Bier kommt hier rein.</p>}
+      {!crate.length && <p className="lf-empty">Das nächste Bier kommt hier rein.</p>}
 
       {groups.map((g) => (
         <div key={g.key} className="lf-group">
@@ -540,7 +542,7 @@ function Lieferschein({
             const where = [beer?.brewery?.name ?? c.brewery, beer?.brewery?.city].filter(Boolean).join(', ')
             const what = [beer?.style, beer?.abv != null ? `${String(beer.abv).replace('.', ',')} %` : null].filter(Boolean).join(', ')
             return (
-              <button key={c.beerId} className={`lf-row ${focus === c.beerId ? 'on' : ''}`} onClick={() => go(`/beer/${c.beerId}`)}>
+              <button key={c.id} className={`lf-row ${focus === c.id ? 'on' : ''}`} onClick={() => go(`/beer/${c.beerId}`)}>
                 <span className="lf-pic">
                   <Bottle style={beer?.style} color={c.color} height={70} />
                   <Cap color={c.color} mark={c.mark} size={24} className="lf-cap" />
@@ -551,8 +553,8 @@ function Lieferschein({
                   {what && <span>{what}</span>}
                 </span>
                 <span className="lf-right">
-                  <b>{a?.count ?? 1}×</b>
-                  {a?.avg != null && <RateDots value={a.avg} />}
+                  {c.nth === 1 ? <em className="lf-new">neu</em> : <em className="lf-again">{c.nth}. Mal</em>}
+                  {c.rating != null && <RateDots value={c.rating} />}
                 </span>
               </button>
             )
@@ -795,7 +797,7 @@ function TowerFx({
             const o = (slot - capSize) / 2
             return (
               <span
-                key={c.beerId}
+                key={c.id}
                 className={`ks-cap ${i === CRATE - 1 && ph === 'drop' ? 'drop' : ''}`}
                 style={{
                   left: p.x + o,

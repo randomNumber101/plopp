@@ -5,12 +5,19 @@
 export const CRATE = 20
 
 export interface CrateCap {
+  /** Check-in – jeder Check-in ist ein eigener Korken */
+  id: string
   beerId: string
   name: string
   brewery: string
   color: string
   mark: string
+  /** Zeitpunkt dieses Check-ins */
   first: number
+  /** das wievielte Mal dieses Bier (1 = zum ersten Mal) */
+  nth: number
+  /** Bewertung dieses Check-ins */
+  rating: number | null
 }
 
 export const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']

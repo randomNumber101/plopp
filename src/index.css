@@ -2337,6 +2337,27 @@ label.check input {
   background: linear-gradient(90deg, var(--pfand-deep) 0 var(--f), #d3dfd6 var(--f) 100%);
 }
 
+.lf-new,
+.lf-again {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 3px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.lf-new {
+  background: var(--pfand);
+  color: #12261a;
+}
+
+.lf-again {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
 .lf-foot {
   display: flex;
   gap: 8px;
