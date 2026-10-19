@@ -1,0 +1,778 @@
+Diese Liste umfasst die '''aktiven Bierbrauereien in Nordrhein-Westfalen'''. Als [[Brauerei]]en werden die Braustätten aufgefasst. Es werden jeweils das betreibende Unternehmen, der Standort, das Gründungsdatum sowie die dort hergestellten Biermarken und -sorten aufgelistet. Nach Angaben des [[Statistisches Bundesamt|Statistischen Bundesamtes]] waren es 2012 insgesamt 138 Brauereien.<ref>{{Webarchiv|url=http://www.bier-universum.de/portal/news/newsdetail/article/zahl-der-brauereien-ganz-leicht-gesunken-1.html |wayback=20140509104002 |text=Archivierte Kopie |archiv-bot=2026-04-24 01:55:02 InternetArchiveBot }}</ref> 2015 waren es nur noch 125.<ref>http://www.brauer-nord.de/index.php?id=30&tx_ttnews%5Btt_news%5D=59&cHash=b084babc44579a29af933d410aec939d</ref>
+
+== Regierungsbezirk Arnsberg ==
+=== Dortmund und östliches Ruhrgebiet ===
+Dortmunds Brautradition reicht bis in die Mitte des 13.&nbsp;Jahrhunderts zurück. Bereits 1293 hat Dortmund das [[Braurecht]] erhalten. Der Durchbruch kam aber erst, als die Kronen-Brauerei 1843 begann, [[Export (Bier)|Export]] industriell zu brauen. Infolgedessen wurden sieben weitere [[Großbrauerei]]en gegründet oder fusionierten aus älteren kleineren Brauereien. Höhepunkt waren die 1950er bis 1970er Jahre, als Dortmund mit einem Ausstoß von bis zu 7,5 Millionen Hektolitern nach [[Milwaukee]] der weltweit größte Brauereistandort war. Mit der steigenden Nachfrage nach Pilsner Bier begann der Niedergang der Dortmunder Brauwirtschaft. Heute existiert von den acht Großbrauereien (Bergmann, DAB, [[Dortmunder Union-Brauerei|DUB]], Hansa, Kronen, [[Dortmunder Löwenbrauerei|Löwen]], Ritter, Stifts und Thier) nur noch die Actien-Brauerei am ehemaligen Standort der Hansa-Brauerei. Sie gehört ebenso wie die Hövels Hausbrauerei zur [[Radeberger Gruppe]] der [[Dr. August Oetker KG]]. Die Bergmann-Brauerei wurde 2005 wieder gegründet und braut seit 2010 wieder Bier in Dortmund.<ref>{{Internetquelle |autor=Katrin Figge |url=https://www.waz.de/staedte/dortmund/brauereien-und-fusionen-die-geschichte-des-dortmunder-bieres-id8067124.html |titel=Brauerei-Geschichte: Dortmund — Bier, Brauen und Fusionen |werk=waz.de |datum=2022-05-16 |abruf=2024-02-07}}</ref>
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+! Anmerkungen
+|-
+|[[Bergmann Brauerei]]
+| Dortmund-Phoenix-West
+| 2007
+|
+|-
+|[[Dortmunder Actien-Brauerei]]
+|Dortmund-Nordmarkt
+|1875
+|Braut u. a. [[Brauerei Brinkhoff|Brinkhoff’s]], [[Dortmunder Hansa]], [[Kronen Privatbrauerei Dortmund|Dortmunder Kronen]], [[Kronen Privatbrauerei Dortmund|Dortmunder Stifts]], [[Dortmunder Thier Brauerei|Dortmunder Thier]], [[Dortmunder Ritter Brauerei|Ritter]], [[Brauerei Schlösser|Schlösser]] und [[Wicküler-Brauerei|Wicküler]]
+|-
+| [[Hövels Hausbrauerei]]
+| Dortmund-City
+| 1854
+|
+|-
+| Aktionsbrauerei Dähne
+| [[Herne]]
+| 2009
+|
+|-
+| Benno’s Brauhaus<ref>{{Internetquelle |autor=Britta Bingmann |url=https://www.waz.de/staedte/witten/benno-braeu-ist-angezapft-id11697802.html |titel=Benno-Bräu ist angezapft |hrsg=[[Westdeutsche Allgemeine Zeitung|WAZ]] |datum=2016-04-01 |abruf=2016-12-25}}</ref>
+| [[Witten]]
+| 2016
+|
+|-
+| [[Lindenbrauerei]] Hausbrauerei des Kultur- und Kommunikationszentrum
+| Unna
+| 2002
+|
+|-
+| [[Privatbrauerei Moritz Fiege]]
+| Bochum
+| 1878
+| Die Marke Bernstein wurde 2012 von der insolventen [[Brauerei Schwelm|Brauerei Schwelm Dr. Lohbeck GmbH und Co KG]] übernommen.
+|-
+| Braumanufaktur Pohlmann<ref>{{Internetquelle |autor=Hubertus Heuel |url=https://www.wp.de/staedte/hagen/neuer-braumeister-fuer-lagerbier-im-freilichtmuseum-hagen-id216747649.html |titel=Neuer Braumeister für Lagerbier im Freilichtmuseum Hagen |datum=2019-03-25 |sprache=de-DE |abruf=2019-12-27}}</ref>
+| Hagen, [[LWL-Freilichtmuseum Hagen|LWL-Freilichtmuseum]]
+| 2014
+|seit 01/2019 im LWL-Freilichtmuseum in Hagen, zuvor in Witten
+|-
+| [[Privatbrennerei Sonnenschein|RuhrtalBrauerei]]<ref>{{Internetquelle |autor=Rudolf Kellerhoff |url=https://www.waz.de/staedte/witten/helles-aus-herbede-id1070062.html |titel=Helles aus Herbede |hrsg=[[Westdeutsche Allgemeine Zeitung|WAZ]] |datum=2008-09-03 |abruf=2016-12-26}}</ref>
+| [[Heven|Witten-Heven]]
+| 2008
+|
+|-
+| [[Vormann Brauerei]]
+| Hagen-Dahl
+| 1877
+|
+|-
+|KohleCraftBräu
+|[[Lünen]]
+|2020
+|
+|-
+|Ostermann Braumanufaktur GmbH
+|[[Schwerte]]
+|2020
+|Schwerter Brauerei seit 1863, geschlossen 1920. Wiedereröffnung 2020.
+|}
+
+=== Sauerland ===
+Als Bierregion ist das Sauerland vor allem durch die Großbrauerereien (Veltins und Warsteiner sowie Krombacher im angrenzenden Siegerland), die Ende des 19. Jahrhunderts ihren Aufschwung genommen haben und heute deutschlandweit einen Marktanteil von knapp unter 20 % haben, von Bedeutung. Kleinere und Hausbrauereien haben sich hingegen kaum halten können; lediglich die Westheimer Brauerei hat noch lokale Bedeutung. Seit den späten 1980ern gibt es aber bei den Hausbrauereien auch wieder Neugründungen.
+Die typische Biersorte ist Pilsener.
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+! Anmerkungen
+|-
+| Altenhofer Carolinenbräu
+| [[Wenden (Sauerland)|Wenden]]-Altenhof
+| 1999
+|
+|-
+| Altenrüthener Landbierbrauerei
+| [[Rüthen]]-[[Altenrüthen]]
+| 1994
+|
+|-
+| Arnsberger Mühlenbräu<ref>{{Internetquelle |autor=Achim Gieseke |url=https://www.waz.de/staedte/arnsberg/in-arnsberg-wird-wieder-bier-gebraut-ein-muehlenbraeu-id7917906.html |titel=In Arnsberg wird wieder Bier gebraut - ein "Mühlenbräu" |werk=waz.de |datum=2013-05-06 |abruf=2024-02-07}}</ref>
+| [[Arnsberg]]
+| 2012
+|
+|-
+| Biermanufaktur Dangel
+| Eslohe-[[Wenholthausen]]
+|
+|
+|-
+| Brauerei Mette GbR
+Metten Hefemännchen
+| Finnentrop-[[Schliprüthen]]
+| 2008
+|Gewerblich nebenberufliche Brauerei
+Keine festen Öffnungszeiten.
+Bier nur auf Vorbestellung
+|-
+| [[Veltins|Brauerei C. & A. Veltins]]
+|Meschede-Grevenstein
+|1824
+|
+|-
+|Bräukels GbR
+|Lennestadt-Altenhundem
+|2018
+|Nebengewerbs-Brauerei
+|-
+| Esloher Brauhaus
+| [[Eslohe]]
+| 1988
+|
+|-
+| [[Schloss Bruchhausen|Freiherr von Fürstenberg Gaugreben’sche Verwaltung Hofbrauerei]]
+| Olsberg-Bruchhausen
+| 1993<ref>{{Internetquelle |url=https://www.waz.de/staedte/altkreis-brilon/aus-hobbythek-idee-wurde-erfolgsgeschichte-id9921064.html |titel=Aus Hobbythek-Idee wurde Erfolgsgeschichte |werk=waz.de |datum=2014-10-11 |abruf=2024-02-07}}</ref>
+|
+|-
+| [[Brauerei Westheim|Gräflich zu Stolberg’sche Brauerei Westheim]]
+| Marsberg-Westheim
+| 1862
+|
+|-
+|Hotel Flurschütz<ref>[https://www.hotel-flurschuetz.de/flurschuetz-edel/ Hotel Flurschütz]</ref>
+|[[Saalhausen (Lennestadt)|Lennestadt-Saalhausen]]
+|2016
+|
+|-
+|Repetaler Heldenbräu<ref>{{Internetquelle |autor=Yvonne Clemens |url=https://www.siegener-zeitung.de/attendorn/c-lokales/brauer-seit-dem-ersten-bier_a225531 |titel=Brauer seit dem ersten Bier |datum=2021-02-18 |sprache=de-DE |abruf=2021-10-01}}</ref>
+|Attendorn-[[Helden (Attendorn)|Helden]]
+|2018
+|
+|-
+| [[Historische Brennerei Rönsahl|Rönsahler Brauerei]]
+| [[Rönsahl|Kierspe-Rönsahl]]
+| 2011
+|
+|-
+| Troll’s Brauhaus
+| [[Medebach]]
+| 2011
+|
+|-
+| Waldstadtbrauerei Iserlohn
+| [[Iserlohn]]
+| 2017
+|
+|-
+| [[Warsteiner Brauerei Haus Cramer]]
+| Warstein
+| 1753
+|Braut u. a. [[Isenbeck]]
+|}
+
+=== Siegerland und Wittgensteiner Land ===
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+|-
+| [[Brauerei Bosch]]
+| Bad Laasphe
+| 1705
+|-
+| Braugemeinschaft Edertal
+| [[Beddelhausen|Bad Berleburg-Beddelhausen]]
+| 2011
+|-
+| [[Irle-Brauerei|Brauhaus Johann Friedrich Irle]]
+| Siegen-Kaan-Marienborn
+| 1693
+|-
+| Ilsen Brauerei
+| Kreuztal-[[Littfeld]]
+| 1994
+|-
+| [[Krombacher Brauerei]]
+| Kreuztal-Krombach
+| 1803
+|}
+
+=== Hellweg/Börde ===
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+|-
+| Brauhaus Zwiebel
+| [[Soest]]
+| 1993
+|-
+| Gasthaus Himmelpforten
+| [[Niederense (Ense)|Ense-Niederense]]
+| 2014
+|-
+| Lippstädter Brauerei Thombansen
+| [[Lippstadt]]
+| 2000
+|-
+| Brauhof Wilshaus
+| [[Hamm]]-Braam-Ostwennemar
+| 2001
+|}
+
+== Regierungsbezirk Düsseldorf ==
+=== Düsseldorf ===
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Gründung
+|-
+| Alter Bahnhof Oberkassel
+| 2011
+|-
+| [[Brauerei im Füchschen]]
+| 1848
+|-
+| Brauerei Kürzer
+| 2010
+|-
+| [[Brauerei Schumacher]]
+| 1838
+|-
+| [[Brauerei zum Schlüssel]]
+| 1850
+|-
+| Brauhaus Joh. Albrecht
+|
+|-
+| Privatbrauerei Olbermann
+| 2019
+|-
+| [[Uerige|Uerige Obergärige Hausbrauerei]]
+| 1862
+|}
+
+=== Westliches Ruhrgebiet ===
+{| class="wikitable"
+! Unternehmen
+! Standort
+! Gründung
+|-
+| [[König-Brauerei]]
+| [[Duisburg-Beeck]]
+| 1858
+|-
+| Restaurant Im Eichwäldchen
+| [[Duisburg-Mündelheim]]
+| 2013
+|-
+| [[Privatbrauerei Jacob Stauder]]
+| [[Essen-Altenessen]]
+| 1867
+|-
+| [[Dampfbierbrauerei Essen-Borbeck|Dampfbierbrauerei Borbeck]]
+|[[Essen-Borbeck]]
+|1872/1895
+|-
+| Aspera-Brauerei Riese
+| [[Mülheim an der Ruhr]]
+|
+|-
+|Bottroper Bier
+|[[Bottrop-Fuhlenbrock]]
+|2019
+|}
+
+=== Niederrhein ===
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+|-
+| [[Diebels|Brauerei Diebels]]
+| Issum
+| 1878
+|-
+| [[Brauerei Gleumes]]
+| Krefeld
+| 1896
+|-
+| Brauerei Schlüffken<ref>{{Internetquelle |autor=Jens Voss |url=https://rp-online.de/nrw/staedte/krefeld/schlueffken-krefeld-hat-eine-neue-bierspezialitaet_aid-34909631 |titel="Schlüffken": Krefeld hat eine neue Bierspezialität |werk=rp-online.de |datum=2018-12-04 |abruf=2024-02-08}}</ref>
+| [[Krefeld]]-Nordbahnhof
+| 2018
+|-
+| [[Bolten-Brauerei]]
+| Korschenbroich
+|1266
+|-
+| [[Brauerei Königshof]]
+| Krefeld
+| 2003
+|-
+| Brauerei Zum Stefanus
+| [[Mennrath|Mönchengladbach-Mennrath]]
+| 1999
+|-
+| Brauhaus Kalkarer Mühle
+| [[Kalkar]]
+| 1994
+|-
+| Feldschlösschen Spezialbierbrauerei
+| [[Hamminkeln]]
+| 1852
+|-
+| fleuther
+| [[Geldern]]
+| 2016
+|-
+| Geilings Bräu
+| [[Saalhoff|Kamp-Lintfort-Saalhoff]]
+| 2012
+|-
+| Hensen Brauerei<ref>{{Internetquelle |autor=Andreas Gruhn |url=https://rp-online.de/nrw/staedte/moenchengladbach/bei-hensen-braut-sich-wieder-was-zusammen_aid-21038159 |titel=Mönchengladbach: Bei Hensen braut sich wieder was zusammen |werk=rp-online.de |datum=2017-04-12 |abruf=2024-02-08}}</ref>
+| [[Mönchengladbach]]
+| 2017
+|-
+| Hausbrauerei Schmitz Mönk
+| [[Willich]]-[[Anrath]]
+| 1903
+|-
+| Brauerei Im Dom
+| [[Neuss]]
+| 1601
+|-
+| Neue Willicher Brauerei
+| [[Willich]]
+| 2018
+|-
+| [[Oettinger Brauerei]]
+| Mönchengladbach
+| 2003
+|-
+| Walter Bräu
+| [[Büderich (Wesel)|Wesel-Büderich]]
+| 2007
+|-
+| Straelener Brauhaus
+| [[Straelen]]
+| 2015
+|-
+| Brauprojekt 777
+| [[Spellen|Voerde-Spellen]]
+| 2011
+|-
+|Corma<ref>{{Internetquelle |url=https://corma.art/ |titel=CORMA - Privatbrauerei |sprache=de-DE |abruf=2021-01-16}}</ref>
+|[[Meerbusch]]
+|2020
+|-
+|Bockerter Heide Brauerei
+|[[Viersen]]
+|2018
+|}
+
+=== Bergisches Land ===
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+|-
+| Hausbrauerei Wirtschaft Richard Becker
+| [[Remscheid]]
+| 2006
+|-
+| Wuppertaler Brauhaus
+| [[Barmen (Stadtbezirk)|Wuppertal-Barmen]]
+| 1997
+|-
+| Ratinger Brauhaus
+| [[Ratingen]]
+| 2005
+|-
+| Remscheider Bräu
+| Remscheid
+| 2015
+|-
+| Brauhaus Aloysianum
+| Leichlingen (im Bahnhof)
+| 2015
+|-
+|Barmer Brauerei
+|Wuppertal-Barmen
+|2019
+|}
+
+== Regierungsbezirk Detmold / Ostwestfalen-Lippe ==
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+! Anmerkungen
+|-
+| Brauhaus Joh. Albrecht
+| [[Bielefeld]]
+|
+|
+|-
+| Braustube Bielefelder Biermanufaktur
+| Bielefeld
+| 2015
+|
+|-
+| Brauerei Rotingdorf
+| [[Rotingdorf|Werther-Rotingdorf]]
+| 2006
+|
+|-
+| Brauerei Sandforth
+| [[Brockhagen|Steinhagen-Brockhagen]]
+| 2014
+|
+|-
+| Gerry Weber Landhotel
+| [[Halle (Westfalen)]]
+| 2008
+|
+|-
+| [[Schloßbrauerei Rheder|Gräflich von Mengersen’sche Dampfbrauerei]]
+| Brakel
+| 1686
+|
+|-
+| Gütersloher Brauhaus
+| [[Gütersloh]]
+|
+|
+|-
+| [[Herforder Brauerei]]
+| Hiddenhausen
+| 1878
+|
+|-
+| Hofbrauerei Marienhof Marks
+| [[Delbrück]]-[[Bentfeld (Delbrück)|Bentfeld]]
+| 2010
+|
+|-
+|Havarie Braumanufaktur
+|Delbrück
+|2020
+|
+|-
+| [[Abtei (Marienfeld)|Hotel-Residence Klosterpforte]]
+| Harsewinkel-Marienfeld
+| 2009
+|
+|-
+| [[Josefs-Brauerei]]
+| [[Bad Lippspringe]]
+| 2000
+| behindertengerechte Brauerei/[[Integrationsfirma]], bis 2021 in [[Bigge (Olsberg)]]
+|-
+| Kleinbrauerei Hohler Landbier
+| Olpe-[[Hohl (Olpe)|Hohl]]
+| 2017
+|
+|-
+| Kaiser Craft
+| [[Bünde]]
+| 2017
+|
+|-
+| [[Kloster Dalheim (Lichtenau)|Kloster Dalheim]]
+| Lichtenau-Dalheim
+| 2007
+|
+|-
+| [[Paderborner Brauerei]] Haus Cramer
+| [[Paderborn]]
+|  1825
+|
+|-
+| [[Privatbrauerei Ernst Barre]]
+| [[Lübbecke]]
+| 1842
+|
+|-
+| [[Privat-Brauerei Hohenfelde]]
+| Langenberg
+| 1845
+|
+|-
+| [[Privat-Brauerei Strate Detmold]]
+| Detmold
+| 1863
+|
+|-
+|Liebharts Privatbrauerei
+|Detmold
+|2005
+|
+|-
+| Schwalenberger Brauzunft
+| [[Schieder-Schwalenberg]]
+| 2004
+|
+|-
+| [[Warburger Brauerei]]
+| Warburg
+| 1721
+|
+|-
+| [[Westfalen Culinarium|Westfälisches Biermuseum]]
+| Nieheim
+| 2006
+|
+|}
+
+== Regierungsbezirk Köln ==
+=== Köln ===
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+! Anmerkungen
+|-
+| [[Brauerei zur Malzmühle]]
+| Altstadt-Nord
+| 1858
+|
+|-
+| [[Früh (Brauerei)|Cölner Hofbräu P. Josef Früh]]
+| Feldkassel
+| 1904
+|
+|-
+| Gasthaus-Brauerei Braustelle
+| [[Köln-Ehrenfeld|Ehrenfeld]]
+| 2001
+|
+|-
+| [[Brau und Brunnen#Haus Kölscher Brautradition|Haus Kölscher Brautradition]]
+| Mülheim
+|
+| Braut u. a. [[Brauhaus Sion|Sion Kölsch]], [[Peters Kölsch]], [[Gilden Kölsch]], [[Küppers Kölsch]] und [[Dom-Brauerei|Dom Kölsch]]
+|-
+| [[Brauerei Päffgen]]
+| Altstadt-Nord
+| 1883
+|
+|-
+| [[Privatbrauerei Gaffel Becker & Co]]
+| Altstadt-Nord
+| 1908
+|
+|-
+| [[Privat-Brauerei Heinrich Reissdorf]]
+| Rodenkirchen
+| 1894
+|
+|-
+| [[Brauerei & Brennerei Gebrüder Sünner]]
+| Kalk
+| 1830
+|
+|-
+| Weiss Bräu
+| [[Köln-Neustadt-Süd|Neustadt-Süd]]
+| 2012
+|
+|-
+|}
+
+=== Übriger südlicher Niederrhein und Mittelrhein ===
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+|-
+| Ale*Mania
+| [[Bonn]]
+| 2014
+|-
+| Aloysianum
+| [[Leichlingen (Rheinland)]]
+| 2015
+|-
+| Alter Bahnhof Frechen
+| [[Frechen]]
+| 2012
+|-
+| Anton’s Brauerei
+| [[Erkelenz]]
+| 2014
+|-
+| Privatbrauerei Bischoff
+| [[Brühl (Rheinland)|Brühl]]/[[Hürth]]
+| 1962
+|-
+| Brauereigasthof McMüller's
+| [[Linnich]]-[[Kofferen]]
+| 1998
+|-
+| Brauhaus Am Ennert
+| Bonn-[[Beuel]]
+| 
+|-
+| Brauhaus Bönnsch
+| [[Bonn]]
+|
+|-
+| Brauhaus Gummersbach
+| [[Gummersbach]]
+| 2002
+|-
+| Brauhaus Rheinbach
+| [[Rheinbach]]
+| 1998
+|-
+| Brauerei Am Roßtor
+| [[Wassenberg]]
+| 2014
+|-
+| Erlebnisbrauerei Lohmar
+| [[Lohmar]]
+| 2010
+|-
+| [[Erzquell Brauerei|Erzquell-Brauerei Bielstein Haas & Co]]
+| Wiehl-Bielstein
+| 1976
+|-
+| Heinenhof – Die Mikrobrauerei
+| [[Orr (Pulheim)|Pulheim-Orr]]
+| 2018
+|-
+| Gemünder Brauerei
+| [[Gemünd (Schleiden)|Schleiden-Gemünd]]
+| 1961
+|-
+| Hilfarther Brauhaus
+| [[Hückelhoven]]-[[Hilfarth]]
+| 2011
+|-
+| Hotel Maueler Hofbräu / Gasthof Willmeroth
+| [[Windeck]]-Mauel
+| 2003
+|-
+|Pfaffen Brauerei - Max Päffgen
+|Lohmar
+|2002
+|-
+| Privatbrauerei Jacob Rainer & Sohn
+| [[Welz (Linnich)|Linnich-Welz]]
+| 1828
+|-
+| Schnaff Privatbrauerei
+| [[Hückeswagen]]
+| 2017
+|-
+| Siegburger Brauhaus „Zum roten Löwen“
+| [[Siegburg]]
+| 1990
+|-
+| Stadtbrauerei Troisdorf
+| [[Troisdorf]]
+|
+|-
+| 2T-Bauerei
+| [[Lindlar]]
+| 2017
+|}
+
+== Regierungsbezirk Münster ==
+{| class="wikitable" style="vertical-align:top"
+! Unternehmen
+! Standort
+! Gründung
+|-
+| [[Pinkus Müller]]
+| Münster
+| 1816
+|-
+| Gruthaus-Brauerei
+| Münster
+| 2011
+|-
+| Läuterwerk
+| Münster
+| 2015
+|-
+| Finne Brauerei
+| Münster
+| 2016
+|-
+| Bierbrauerei Dackel
+| Münster
+| 2017
+|-
+| Böcken-Bräu
+| [[Haltern am See]]
+| 2016
+|-
+| Brauhaus Kemker
+| Everswinkel-[[Alverskirchen]]
+| 2018
+|-
+| [[Pott’s|Pott’s Naturpark-Brauerei]]
+| [[Oelde]]
+| 1769
+|-
+| [[Krombacher Brauerei#Geschichte|Rolinck]]
+| [[Steinfurt]]-Burgsteinfurt
+| 1820<ref>https://www.muensterland-qualitaet.de/hersteller/privatbrauerei-a-rolinck/</ref>
+|-
+| Privatbrauerei Stiefel Jürgens
+| [[Beckum]]
+| 1680
+|-
+| Brauhaus Stephanus
+| [[Coesfeld]]
+| 1990
+|-
+| Haus Klute
+| [[Havixbeck]]-Poppenbeck
+| 1993
+|-
+| Brauhaus Rütershoff
+| [[Castrop-Rauxel]]
+| 2005
+|-
+| Isendorfer Hausbrauerei
+| [[Emsdetten]]-Isendorf
+| 2009
+|-
+| Lüdinghauser Brauwerkstatt
+| [[Lüdinghausen]]
+| 2015
+|-
+| Suberg's bei Boente
+| [[Recklinghausen]]
+| 1988
+|-
+| Teutoburger Brauerei
+| [[Lengerich (Westfalen)|Lengerich]]
+| 2010
+|-
+| Privatbrauerei Haverkamp
+| Ibbenbüren-[[Laggenbeck]]
+| 2015
+|-
+| Winnis Brauwerkstatt
+| [[Olfen]]
+| 2017
+|-
+| Britannia Beers<ref>{{Internetquelle |url=https://www.wn.de/Muensterland/Kreis-Steinfurt/Lienen/2013/07/Mikrobrauer-macht-englisches-Bier-Cheers-Mr.-Hilder |titel=Cheers, Mr. Hilder |werk=wn.de |datum=2013-07-13 |abruf=2024-03-01}}</ref>
+| [[Lienen]]
+| 2012
+|-
+|Major Braumanufaktur
+|Borken
+|2020
+|-
+|Brauerei Hagedorn
+| [[Rhede]]
+| 2024
+|}
+
+== Siehe auch ==
+* [[Liste aktiver Brauereien in Deutschland]]
+* [[Liste ehemaliger Brauereien in Nordrhein-Westfalen]]
+
+== Einzelnachweise ==
+<references />
+
+{{Navigationsleiste Liste der Brauereien nach Bundesland}}
+
+[[Kategorie:Brauerei (Nordrhein-Westfalen)|!]]
+[[Kategorie:Liste (Brauereien)|Nordrheinwestfalen]]
